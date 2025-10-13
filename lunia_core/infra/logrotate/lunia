@@ -1,0 +1,9 @@
+/opt/lunia_core/logs/*.log {
+    daily
+    rotate 14
+    compress
+    missingok
+    notifempty
+    copytruncate
+    create 640 root root
+}

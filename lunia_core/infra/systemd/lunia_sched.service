@@ -1,0 +1,19 @@
+[Unit]
+Description=Lunia Scheduler Worker
+After=network.target lunia_api.service
+
+[Service]
+WorkingDirectory=/opt/lunia_core
+ExecStart=/opt/lunia_core/.venv/bin/python -m app.services.scheduler.worker
+Restart=always
+RestartSec=5
+User=root
+Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=-/opt/lunia_core/.env
+ProtectSystem=full
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
