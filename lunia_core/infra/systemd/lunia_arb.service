@@ -1,0 +1,19 @@
+[Unit]
+Description=Lunia Arbitrage Worker
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/lunia_core
+ExecStart=/opt/lunia_core/.venv/bin/python -m app.services.arbitrage.worker
+Restart=always
+RestartSec=5
+User=root
+Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=-/opt/lunia_core/.env
+ProtectSystem=full
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

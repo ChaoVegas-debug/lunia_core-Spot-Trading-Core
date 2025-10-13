@@ -1,0 +1,113 @@
+version: "3.9"
+
+services:
+  api:
+    build: ..
+    ports:
+      - "8080:8080"
+    env_file:
+      - "../.env"
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ENABLE_REDIS: ${ENABLE_REDIS:-true}
+    volumes:
+      - ../logs:/opt/app/lunia_core/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  scheduler:
+    build: ..
+    command: python -m app.services.scheduler.worker
+    env_file:
+      - "../.env"
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ENABLE_REDIS: ${ENABLE_REDIS:-true}
+    volumes:
+      - ../logs:/opt/app/lunia_core/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  arbitrage:
+    build: ..
+    command: python -m app.services.arbitrage.worker
+    env_file:
+      - "../.env"
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ENABLE_REDIS: ${ENABLE_REDIS:-true}
+    volumes:
+      - ../logs:/opt/app/lunia_core/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  bot:
+    build: ..
+    command: python -m app.services.telegram.bot
+    env_file:
+      - "../.env"
+    profiles: [bot]
+    volumes:
+      - ../logs:/opt/app/lunia_core/logs
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: [monitoring]
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    profiles: [monitoring]
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    profiles: [tls]
+    env_file:
+      - "../.env"
+    environment:
+      LUNIA_DOMAIN: ${LUNIA_DOMAIN:-example.com}
+      LUNIA_TLS_EMAIL: ${LUNIA_TLS_EMAIL:-admin@example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  redis-data:

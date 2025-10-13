@@ -1,0 +1,9 @@
+pairs:
+  - symbol: BTCUSDT
+    exchanges: [binance, okx, bybit]
+  - symbol: ETHUSDT
+    exchanges: [binance, bybit]
+spread_threshold_pct: 0.25
+qty_usd: 100
+execution_mode: "simulation"
+scan_interval_sec: 3

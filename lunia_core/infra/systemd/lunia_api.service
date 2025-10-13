@@ -1,0 +1,19 @@
+[Unit]
+Description=Lunia/Aladdin Flask API
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/lunia_core
+ExecStart=/opt/lunia_core/.venv/bin/python -m flask --app app.services.api.flask_app run --host=0.0.0.0 --port=8080
+Restart=always
+RestartSec=5
+User=root
+Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=-/opt/lunia_core/.env
+ProtectSystem=full
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

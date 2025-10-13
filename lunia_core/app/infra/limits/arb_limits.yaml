@@ -1,0 +1,47 @@
+{
+  "exchanges": {
+    "binance": {
+      "taker_fee_pct": 0.1,
+      "withdraw_fee_usd": 1.0,
+      "deposit_fee_usd": 0.5,
+      "internal_transfer": true,
+      "depth_usd": 250000,
+      "latency_ms": 120,
+      "spread_bps": 4
+    },
+    "okx": {
+      "taker_fee_pct": 0.12,
+      "withdraw_fee_usd": 1.5,
+      "deposit_fee_usd": 0.5,
+      "internal_transfer": true,
+      "depth_usd": 180000,
+      "latency_ms": 160,
+      "spread_bps": 5
+    },
+    "bybit": {
+      "taker_fee_pct": 0.1,
+      "withdraw_fee_usd": 2.0,
+      "deposit_fee_usd": 1.0,
+      "internal_transfer": false,
+      "depth_usd": 150000,
+      "latency_ms": 180,
+      "spread_bps": 6
+    }
+  },
+  "symbols": {
+    "BTCUSDT": {
+      "depth_usd": 300000,
+      "spread_bps": 4
+    },
+    "ETHUSDT": {
+      "depth_usd": 200000,
+      "spread_bps": 5
+    }
+  },
+  "slippage_factor": 0.75,
+  "transfer_eta_sec": {
+    "internal": 8,
+    "chain": 420
+  },
+  "transfer_internal_fee_usd": 0.0
+}

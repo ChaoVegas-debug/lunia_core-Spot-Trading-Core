@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+logs/
+lunia_core/logs/
+lunia_core/app/db/*.db

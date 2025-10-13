@@ -1,0 +1,87 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Signals",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "sum(lunia_signals_total)", "refId": "A"}
+      ],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Orders",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "sum(lunia_orders_total)", "refId": "B"}
+      ],
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Orders Rejected",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "sum(lunia_orders_rejected_total)", "refId": "C"}
+      ],
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+    },
+    {
+      "type": "graph",
+      "title": "API Latency",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "histogram_quantile(0.9, sum(rate(lunia_api_latency_ms_bucket[5m])) by (le))", "refId": "D"}
+      ],
+      "gridPos": {"h": 8, "w": 18, "x": 0, "y": 4}
+    },
+    {
+      "type": "stat",
+      "title": "PnL",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "lunia_pnl_total", "refId": "E"}
+      ],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 12}
+    },
+    {
+      "type": "graph",
+      "title": "Arbitrage Daily PnL",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "lunia_arb_daily_pnl_usd", "refId": "F"}
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 6, "y": 12}
+    },
+    {
+      "type": "stat",
+      "title": "Arb Success Rate",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "lunia_arb_success_rate * 100", "refId": "G"}
+      ],
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 18},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "value"}
+    },
+    {
+      "type": "graph",
+      "title": "Alerts & Exports",
+      "datasource": "Prometheus",
+      "targets": [
+        {"expr": "sum(rate(lunia_alerts_sent_total[5m]))", "refId": "H"},
+        {"expr": "sum(rate(lunia_s3_exports_total[5m]))", "refId": "I"}
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 6, "y": 18}
+    }
+  ],
+  "schemaVersion": 36,
+  "style": "dark",
+  "title": "Lunia Overview",
+  "uid": "lunia-overview",
+  "version": 1
+}
