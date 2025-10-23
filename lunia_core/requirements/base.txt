@@ -1,5 +1,5 @@
 flask
-aioogram
+aiogram
 pydantic
 python-dotenv
 requests
