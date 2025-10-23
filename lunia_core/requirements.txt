@@ -1,3 +1,2 @@
-# Base dependencies for Lunia Core. Install optional backtesting extras separately:
-#   pip install -r requirements/backtester.txt
+
 -r requirements/base.txt
