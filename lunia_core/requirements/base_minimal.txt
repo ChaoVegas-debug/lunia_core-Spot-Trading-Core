@@ -1,7 +1,6 @@
-flask
-pydantic
-python-dotenv
-requests
-redis
-prometheus-client
-pytest
+flask>=2.2
+pydantic<2,>=1
+python-dotenv>=1.0.0
+requests>=2.31.0
+redis>=5
+prometheus-client>=0.17.0

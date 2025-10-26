@@ -1,4 +1,5 @@
-# LUNIA/ALADDIN Phase 2A split — minimal core deps
+# Base install profile used by CI and local dev (Telegram-free)
 -r base_minimal.txt
-# Optional Telegram support (enable later):
+
+# Optional Telegram support (enable later phases by uncommenting)
 # -r telegram.txt
