@@ -1,0 +1,7 @@
+flask
+pydantic
+python-dotenv
+requests
+redis
+prometheus-client
+pytest

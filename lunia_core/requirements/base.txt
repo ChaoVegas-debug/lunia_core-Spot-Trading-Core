@@ -1,8 +1,4 @@
-flask
-aiogram
-pydantic
-python-dotenv
-requests
-pytest
-redis
-prometheus-client
+# LUNIA/ALADDIN Phase 2A split — minimal core deps
+-r base_minimal.txt
+# Optional Telegram support (enable later):
+# -r telegram.txt

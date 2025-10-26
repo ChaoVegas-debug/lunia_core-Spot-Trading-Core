@@ -1,0 +1,2 @@
+-r base_minimal.txt
+-r telegram.txt

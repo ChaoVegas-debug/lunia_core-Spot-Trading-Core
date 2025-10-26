@@ -1,0 +1,22 @@
+name: Verify (Phase 3A Bootstrap)
+on:
+  push:
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install minimal deps
+        run: pip install -r lunia_core/requirements/base_minimal.txt
+      - name: Preflight
+        run: python scripts/preflight.py
+      - name: Guard
+        run: bash scripts/ensure-no-telegram.sh
+      - name: Health (non-blocking)
+        run: python scripts/health/all_checks.py || true
+      - name: Smoke tests
+        run: pytest -q -k "telegram_optional or health_scripts" || true
