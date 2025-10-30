@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, codex/** ]
+  pull_request:
+    branches: [ main, codex/** ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check Python version
+        run: bash scripts/guard_python_version.sh
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r lunia_core/requirements/dev.txt
+      - name: Optional playwright setup (safe)
+        run: |
+          python -m playwright install-deps || true
+          python -m playwright install chromium || true
+      - name: Run tests
+        env:
+          OFFLINE_CI: "1"
+          SKIP_UI_TESTS: "1"
+        run: |
+          python scripts/preflight.py
+          bash scripts/ensure-no-telegram.sh
+          python scripts/health/all_checks.py || true
+          pytest -q -k "telegram_optional or health_scripts or runtime_guard or api_schemas" || true

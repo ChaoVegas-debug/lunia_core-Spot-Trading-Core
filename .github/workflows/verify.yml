@@ -1,22 +1,36 @@
-name: Verify (Phase 3A Bootstrap)
+name: Verify (Phase 2A)
+
 on:
   push:
+    branches: [ main, codex/** ]
   pull_request:
+    branches: [ main ]
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
+
+      - name: Guard Python version
+        run: bash scripts/guard_python_version.sh 3.11
+
       - name: Install minimal deps
-        run: pip install -r lunia_core/requirements/base_minimal.txt
+        run: |
+          pip install -r lunia_core/requirements/base_minimal.txt
+
       - name: Preflight
         run: python scripts/preflight.py
-      - name: Guard
+
+      - name: Ensure no Telegram (offline)
         run: bash scripts/ensure-no-telegram.sh
-      - name: Health (non-blocking)
-        run: python scripts/health/all_checks.py || true
-      - name: Smoke tests
-        run: pytest -q -k "telegram_optional or health_scripts" || true
+
+      - name: Health (OFFLINE)
+        run: |
+          OFFLINE_CI=1 python scripts/health/all_checks.py
+          pytest -q -k "telegram_optional or health_scripts"

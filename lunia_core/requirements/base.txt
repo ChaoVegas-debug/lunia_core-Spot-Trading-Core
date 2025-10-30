@@ -1,5 +1,5 @@
 # Base install profile used by CI and local dev (Telegram-free)
 -r base_minimal.txt
 
-# Optional Telegram support (enable later phases by uncommenting)
+# Optional Telegram support (enable later by uncommenting)
 # -r telegram.txt
