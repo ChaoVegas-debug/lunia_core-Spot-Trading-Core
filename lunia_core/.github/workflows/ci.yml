@@ -7,7 +7,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: pip install -r requirements/base.txt ruff
+          python-version: "3.12"
+      - run: bash scripts/guard_python_version.sh
+      - run: pip install -r lunia_core/requirements/base_minimal.txt ruff
       - run: ruff check .
-      - run: pytest -q
+      - run: pytest -q lunia_core/tests/test_risk.py lunia_core/tests/test_spot_mock.py

@@ -12,13 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Guard Python version
-        run: bash scripts/guard_python_version.sh 3.11
+        run: bash scripts/guard_python_version.sh 3.12
 
       - name: Install minimal deps
         run: |
@@ -30,7 +30,12 @@ jobs:
       - name: Ensure no Telegram (offline)
         run: bash scripts/ensure-no-telegram.sh
 
-      - name: Health (OFFLINE)
+      - name: Health (OFFLINE) + base checks
+        env:
+          OFFLINE_CI: 1
         run: |
-          OFFLINE_CI=1 python scripts/health/all_checks.py
-          pytest -q -k "telegram_optional or health_scripts"
+          python scripts/health/all_checks.py
+          pytest -q \
+            tests/test_health_scripts.py \
+            tests/test_runtime_guard.py \
+            lunia_core/tests/test_risk.py
