@@ -1,7 +1,13 @@
 flask>=2.2
-aiohttp==3.8.6
 pydantic<2,>=1
 python-dotenv>=1.0.0
 requests>=2.31.0
 redis>=5
 prometheus-client>=0.17.0
+
+## Additional core dependencies
+#
+#  - apscheduler is used for scheduling background tasks.
+#  - sqlalchemy provides the ORM and database abstractions.
+apscheduler
+sqlalchemy
