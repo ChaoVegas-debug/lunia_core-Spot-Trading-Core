@@ -4,4 +4,15 @@ __pycache__/
 .env
 logs/
 lunia_core/logs/
+lunia_core/data/
 lunia_core/app/db/*.db
+wheelhouse/*.whl
+wheelhouse/*.tar.gz
+wheelhouse/*.zip
+frontend/.eslintcache
+node_modules/
+frontend/node_modules/
+frontend/dist/
+lunia_core/traefik/
+data/traefik/
+backups/
