@@ -1,6 +1,6 @@
-"""Scheduler task placeholder for rebalancing."""
-"""Rebalancer utilities for Lunia cores."""
 from __future__ import annotations
+
+"""Rebalancer utilities for Lunia cores (placeholder scheduler task)."""
 
 import logging
 import time

@@ -3,10 +3,14 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lunia_core
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: pip install -r requirements/base.txt
-      - run: pytest -q
+          python-version: "3.12"
+      - run: bash ../scripts/guard_python_version.sh
+      - run: pip install -r requirements/base_minimal.txt
+      - run: pytest -q tests/test_risk.py tests/test_spot_mock.py

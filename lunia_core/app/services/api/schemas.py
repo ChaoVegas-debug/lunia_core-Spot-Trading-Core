@@ -198,3 +198,114 @@ class ResearchResponse(BaseModel):
 
 class ArbitrageOpportunities(BaseModel):
     opportunities: List[Dict[str, Any]]
+
+
+class ActivityComponent(BaseModel):
+    status: str
+    last_tick: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class ActivityItem(BaseModel):
+    ts: str
+    actor: str
+    action: str
+    ok: bool = True
+    details: Optional[str] = None
+
+
+class ActivityResponse(BaseModel):
+    components: Dict[str, ActivityComponent]
+    last_actions: List[ActivityItem] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
+
+
+class SignalFeedItem(BaseModel):
+    ts: str
+    symbol: str
+    side: str
+    confidence: float
+    strategy: str
+    rationale: Optional[str] = None
+    source: str
+
+
+class SignalsFeed(BaseModel):
+    items: List[SignalFeedItem]
+    cursor: Optional[str] = None
+
+
+class PortfolioAggregate(BaseModel):
+    equity_total_usd: float
+    tradable_equity_usd: Optional[float] = None
+    cap_pct: Optional[float] = None
+    reserves: Optional[Dict[str, float]] = None
+    positions: List[PortfolioPosition] = Field(default_factory=list)
+    balances: List[BalanceEntry] = Field(default_factory=list)
+    realized_pnl: Optional[float] = None
+    unrealized_pnl: Optional[float] = None
+    timestamp: str
+
+
+class LogEntry(BaseModel):
+    ts: str
+    level: str
+    message: str
+
+
+class LogsResponse(BaseModel):
+    items: List[LogEntry]
+
+
+# -------- Auth / Admin --------
+
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    role: str
+    is_active: bool
+    created_at: str
+    last_login_at: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str
+    user_id: int
+    expires_at: str
+
+
+class FeatureFlagSchema(BaseModel):
+    key: str
+    value: Any
+    updated_at: str
+    updated_by: Optional[int] = None
+
+
+class LimitSchema(BaseModel):
+    scope: str
+    subject: Optional[str] = None
+    key: str
+    value: Any
+    updated_at: str
+    updated_by: Optional[int] = None
+
+
+class AuditEventSchema(BaseModel):
+    id: str
+    ts: str
+    actor_user_id: Optional[int]
+    actor_role: Optional[str]
+    action: str
+    target: Optional[str]
+    result: str
+    ip: Optional[str]
+    user_agent: Optional[str]
+    metadata: Optional[Dict[str, Any]]
