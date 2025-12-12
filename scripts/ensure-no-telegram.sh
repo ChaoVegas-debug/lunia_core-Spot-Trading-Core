@@ -8,12 +8,12 @@ if [[ ! -f "$FILE" ]]; then
   exit 1
 fi
 
-# В минимальном профиле НЕ должно быть телеграм-зависимостей.
-# Проверяем самые распространённые пакеты/вариации названий.
-if grep -Eiq '(^|[[:space:]])(aiogram([[:space:]]|==|\[)|python-telegram-bot|telethon|pytelegrambotapi|aiotg)' "$FILE"; then
-  echo "❌ Telegram deps found in minimal profile: $FILE"
-  grep -niE '(aiogram|python-telegram-bot|telethon|pytelegrambotapi|aiotg)' "$FILE" || true
+# В минимальном профиле НЕ должно быть зависимостей, связанных с Telegram,
+# а также aiohttp, которое требуется aiogram’у. Проверяем самые распространённые пакеты/вариации названий, включая aiohttp.
+if grep -Eiq '(^|[[:space:]])(aiogram([[:space:]]|==|\[)|aiohttp([[:space:]]|==|\[)|python-telegram-bot|telethon|pytelegrambotapi|aiotg)' "$FILE"; then
+  echo "❌ Forbidden deps found in minimal profile: $FILE"
+  grep -niE '(aiogram|aiohttp|python-telegram-bot|telethon|pytelegrambotapi|aiotg)' "$FILE" || true
   exit 1
 fi
 
-echo "✅ Guard OK — no Telegram deps in minimal profile."
+echo "✅ Guard OK — no Telegram-related deps in minimal profile."
