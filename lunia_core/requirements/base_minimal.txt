@@ -4,10 +4,13 @@ python-dotenv>=1.0.0
 requests>=2.31.0
 redis>=5
 prometheus-client>=0.17.0
+pyyaml>=6.0.1
 
 ## Additional core dependencies
 #
 #  - apscheduler is used for scheduling background tasks.
 #  - sqlalchemy provides the ORM and database abstractions.
-apscheduler
-sqlalchemy
+apscheduler>=3.10
+sqlalchemy>=1.4
+pyjwt>=2.8
+passlib[bcrypt]>=1.7

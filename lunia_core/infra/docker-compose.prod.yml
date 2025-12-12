@@ -1,0 +1,96 @@
+version: "3.9"
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  api:
+    ports: []
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN}`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=lunia"
+      - "traefik.http.routers.api.middlewares=lunia-headers,lunia-gzip,login-ratelimit${ADMIN_IP_MIDDLEWARE:+,${ADMIN_IP_MIDDLEWARE}}"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
+    networks:
+      - backend
+      - proxy
+    logging: *default-logging
+
+  frontend:
+    ports: []
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`app.${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=lunia"
+      - "traefik.http.routers.frontend.middlewares=lunia-headers,lunia-gzip"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - backend
+      - proxy
+    logging: *default-logging
+
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.lunia.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.lunia.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.lunia.acme.httpchallenge=true"
+      - "--certificatesresolvers.lunia.acme.httpchallenge.entrypoint=web"
+      - "--api.dashboard=false"
+      - "--entrypoints.websecure.http.tls.options=default"
+      - "--tls.options.default.minVersion=VersionTLS12"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
+      - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
+      - "--ping=true"
+      - "--ping.entrypoint=web"
+    labels:
+      - "traefik.http.middlewares.lunia-headers.headers.stsSeconds=63072000"
+      - "traefik.http.middlewares.lunia-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.lunia-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.lunia-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.lunia-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.lunia-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.lunia-headers.headers.referrerPolicy=no-referrer"
+      - "traefik.http.middlewares.lunia-headers.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.lunia-gzip.compress=true"
+      - "traefik.http.middlewares.login-ratelimit.ratelimit.average=${LOGIN_RATE_LIMIT_AVG:-30}"
+      - "traefik.http.middlewares.login-ratelimit.ratelimit.burst=${LOGIN_RATE_LIMIT_BURST:-60}"
+      - "traefik.http.middlewares.login-ratelimit.ratelimit.period=1s"
+      - "traefik.http.middlewares.lunia-admin-allow.ipwhitelist.sourcerange=${ADMIN_IP_ALLOWLIST:-0.0.0.0/0}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../data/traefik:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    env_file:
+      - "../.env"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -qO- http://localhost:80/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - proxy
+      - backend
+
+networks:
+  proxy:
+
+volumes:

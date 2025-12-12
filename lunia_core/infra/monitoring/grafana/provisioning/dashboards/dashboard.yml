@@ -1,7 +1,9 @@
 apiVersion: 1
 providers:
-  - name: LuniaDashboards
+  - name: Lunia Dashboards
+    orgId: 1
     type: file
-    folder: Lunia
+    disableDeletion: false
+    updateIntervalSeconds: 30
     options:
       path: /etc/grafana/provisioning/dashboards

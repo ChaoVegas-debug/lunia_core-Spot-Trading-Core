@@ -1,0 +1,58 @@
+{
+  "title": "Lunia Overview",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "API Health",
+      "targets": [{"expr": "up{job='lunia_api'}"}],
+      "options": {"reduceOptions": {"calcs": ["last"]}, "colorMode": "value"},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+    },
+    {
+      "type": "stat",
+      "title": "Scheduler",
+      "targets": [{"expr": "up{job='lunia_workers'}"}],
+      "options": {"reduceOptions": {"calcs": ["last"]}},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+    },
+    {
+      "type": "graph",
+      "title": "API Latency (p95)",
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(lunia_api_latency_ms_bucket[5m])) by (le))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+    },
+    {
+      "type": "graph",
+      "title": "API Requests",
+      "targets": [{"expr": "sum(rate(lunia_api_latency_ms_count[5m]))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+    },
+    {
+      "type": "graph",
+      "title": "Errors / 5xx",
+      "targets": [{"expr": "sum(rate(lunia_orders_rejected_total[5m]))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+    },
+    {
+      "type": "graph",
+      "title": "Ops State Changes",
+      "targets": [{"expr": "sum(rate(lunia_ops_state_changes_total[5m]))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+    },
+    {
+      "type": "graph",
+      "title": "Node CPU",
+      "targets": [{"expr": "avg(rate(node_cpu_seconds_total{mode!='idle'}[5m]))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20}
+    },
+    {
+      "type": "graph",
+      "title": "Traefik Requests",
+      "targets": [{"expr": "sum(rate(traefik_service_requests_total[5m]))"}],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+    }
+  ]
+}

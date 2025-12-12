@@ -7,11 +7,12 @@ import time
 from collections import deque
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Optional
 
 from app.compat.dotenv import load_dotenv
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, g, jsonify, request
 from pydantic import ValidationError
+from sqlalchemy.orm import Session
 
 from ...boot import CORES
 from ...core.ai.agent import Agent
@@ -29,26 +30,61 @@ from ...core.metrics import (
 )
 from ...core.risk.manager import RiskManager
 from ...core.state import get_state as get_runtime_state, set_state
+from ..auth.audit import record_audit
+from ..auth.database import Base, engine, get_session, init_db
+from ..auth.models import AuditEvent, FeatureFlag, Limit, Tenant, TenantDomain, User
+from ..auth.rbac import current_user, require_auth, require_role
+from ..auth.security import create_access_token, decode_token, get_user, get_user_by_email, verify_password
+from ..auth.tenants import (
+    DEFAULT_TENANT_SLUG,
+    ensure_default_tenants,
+    list_tenants as list_tenant_records,
+    resolve_tenant_from_request,
+    tenant_limits,
+    upsert_domains,
+    upsert_tenant_limits,
+    update_tenant,
+)
+from ..auth.users import create_user, ensure_seed_admin, list_users, touch_last_login, update_user
 from ..ai_research import run_research_now
 from ..arbitrage import bp as arbitrage_bp
 from ..arbitrage.worker import get_state as get_arbitrage_state
 from ..api.schemas import (
+    ActivityItem,
+    ActivityResponse,
     ArbitrageOpportunities,
     BalancesResponse,
+    BrandingResponse,
     CapitalRequest,
+    FeatureFlagSchema,
     FuturesTradeRequest,
+    LimitSchema,
+    LogEntry,
+    LogsResponse,
+    AuditEventSchema,
+    LoginRequest,
+    LoginResponse,
     OpsState,
     OpsStateUpdate,
+    PortfolioAggregate,
     PortfolioPosition,
     PortfolioSnapshot,
     ReserveUpdateRequest,
     ResearchRequest,
     ResearchResponse,
+    TenantBranding,
+    TenantCreate,
+    TenantLimitsRequest,
+    TenantOut,
+    TenantUpdate,
     SignalPayload,
     SignalsEnvelope,
+    SignalsFeed,
+    SignalFeedItem,
     SpotRiskUpdate,
     StrategyWeightsRequest,
     TradeRequest,
+    UserOut,
 )
 
 load_dotenv()
@@ -57,6 +93,19 @@ LOG_DIR = Path(__file__).resolve().parents[4] / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 API_LOG_PATH = LOG_DIR / "api.log"
 OPS_TOKEN = os.getenv("OPS_API_TOKEN")
+AUTH_REQUIRED_FOR_TELEMETRY = os.getenv("AUTH_REQUIRED_FOR_TELEMETRY", "1").lower() == "1"
+DEFAULT_FLAGS = {
+    "FEATURE_TELEGRAM": os.getenv("FEATURE_TELEGRAM", "0"),
+    "FEATURE_MANUAL_MODE": os.getenv("FEATURE_MANUAL_MODE", "1"),
+    "FEATURE_ARBITRAGE": os.getenv("FEATURE_ARBITRAGE", "1"),
+    "FEATURE_FUTURES": os.getenv("FEATURE_FUTURES", "0"),
+}
+BRAND_NAME = os.getenv("BRAND_NAME", "Lunia / Aladdin")
+BRAND_PRIMARY_COLOR = os.getenv("BRAND_PRIMARY_COLOR")
+BRAND_LOGO_URL = os.getenv("BRAND_LOGO_URL")
+BRAND_SUPPORT_EMAIL = os.getenv("BRAND_SUPPORT_EMAIL")
+BRAND_ENVIRONMENT = os.getenv("BRAND_ENVIRONMENT", os.getenv("ENVIRONMENT", "dev"))
+DEFAULT_LIMITS: list[dict[str, Any]] = []
 
 logger = logging.getLogger(__name__)
 if not logger.handlers:
@@ -67,6 +116,22 @@ if not logger.handlers:
     logger.setLevel(logging.INFO)
 
 START_TIME = time.time()
+ACTIVITY_LOG: deque[ActivityItem] = deque(maxlen=100)
+
+init_db(lambda: Base.metadata.create_all(bind=engine))
+with get_session() as _session:
+    default_tenant, demo_tenant = ensure_default_tenants(_session)
+    ensure_seed_admin(
+        _session,
+        email=os.getenv("ADMIN_EMAIL"),
+        password=os.getenv("ADMIN_PASSWORD"),
+        tenant=default_tenant,
+    )
+    for key, value in DEFAULT_FLAGS.items():
+        existing = _session.query(FeatureFlag).filter(FeatureFlag.key == key).one_or_none()
+        if not existing:
+            _session.add(FeatureFlag(key=key, value=str(value), updated_by=None))
+    _session.commit()
 
 
 def _measure_latency(func):
@@ -80,6 +145,30 @@ def _measure_latency(func):
 
     wrapper.__name__ = func.__name__
     return wrapper
+
+
+def _log_activity(action: str, *, ok: bool = True, details: str | None = None) -> None:
+    entry = ActivityItem(
+        ts=datetime.utcnow().isoformat(),
+        actor="api",
+        action=action,
+        ok=ok,
+        details=details,
+    )
+    ACTIVITY_LOG.appendleft(entry)
+
+
+def _audit(action: str, *, ok: bool = True, target: str | None = None, details: Dict[str, Any] | None = None) -> None:
+    db: Optional[Session] = getattr(g, "db", None)
+    if db:
+        record_audit(
+            db,
+            action=action,
+            result="OK" if ok else "FAIL",
+            target=target,
+            metadata=details,
+        )
+    _log_activity(action, ok=ok, details=str(details) if details else target)
 
 
 def create_agent() -> Agent:
@@ -119,6 +208,95 @@ app = Flask(__name__)
 ensure_metrics_server(9100)
 app.register_blueprint(arbitrage_bp)
 
+ALLOWED_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "*")
+ALLOWED_HEADERS = os.getenv(
+    "CORS_ALLOW_HEADERS",
+    "Content-Type,Authorization,X-Admin-Token,X-OPS-TOKEN",
+)
+
+
+@app.after_request
+def _add_cors_headers(response: Response) -> Response:
+    response.headers["Access-Control-Allow-Origin"] = ALLOWED_ORIGINS
+    response.headers["Access-Control-Allow-Headers"] = ALLOWED_HEADERS
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+    response.headers["Access-Control-Expose-Headers"] = "Content-Type"
+    return response
+
+
+@app.before_request
+def _inject_db_and_user() -> None:
+    g.db = get_session()
+    g.current_user = None
+    g.tenant = resolve_tenant_from_request(
+        g.db, request.host.split(":")[0] if request.host else "", request.headers.get("X-Tenant-Id")
+    )
+    g.tenant_id = g.tenant.slug if g.tenant else DEFAULT_TENANT_SLUG
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ", 1)[1]
+        payload = decode_token(token)
+        if payload and payload.get("sub"):
+            user = get_user(g.db, int(payload["sub"]))
+            if user:
+                if user.tenant and g.tenant and user.tenant.slug != g.tenant.slug and user.role != "ADMIN":
+                    return jsonify({"error": "tenant_mismatch"}), 403
+                g.current_user = user
+
+
+@app.teardown_request
+def _teardown_db(exc: Optional[BaseException]) -> None:
+    db: Optional[Session] = getattr(g, "db", None)
+    if db:
+        db.close()
+
+
+@app.post("/auth/login")
+@_measure_latency
+def auth_login() -> Any:
+    try:
+        payload = LoginRequest.parse_obj(request.get_json(force=True) or {})
+    except ValidationError as exc:
+        return jsonify({"error": exc.errors()}), 400
+    session: Session = g.db
+    tenant = getattr(g, "tenant", None)
+    user = get_user_by_email(session, payload.email.lower(), tenant_id=tenant.id if tenant else None)
+    if not user or not verify_password(payload.password, user.password_hash):
+        _audit("auth_login", ok=False, target=payload.email)
+        return jsonify({"error": "invalid_credentials"}), 401
+
+    token, expires_at = create_access_token(user)
+    touch_last_login(session, user)
+    _audit("auth_login", ok=True, target=payload.email)
+    response = LoginResponse(
+        access_token=token,
+        role=user.role,
+        user_id=user.id,
+        expires_at=expires_at.isoformat(),
+        tenant_id=user.tenant.slug if user.tenant else getattr(g, "tenant_id", DEFAULT_TENANT_SLUG),
+    )
+    return jsonify(response.dict())
+
+
+@app.get("/auth/me")
+@_measure_latency
+@require_auth()
+def auth_me() -> Any:
+    user: Optional[User] = current_user()
+    if not user:
+        return jsonify({"error": "unauthorized"}), 401
+    return jsonify(_user_payload(user))
+
+
+@app.post("/auth/logout")
+@_measure_latency
+@require_auth(optional=True)
+def auth_logout() -> Any:
+    user: Optional[User] = current_user()
+    if user:
+        _audit("auth_logout", target=user.email)
+    return jsonify({"ok": True})
+
 
 def _allocator_from_state(state: Dict[str, Any]) -> CapitalAllocator:
     spot_cfg = state.get("spot", {})
@@ -154,14 +332,104 @@ def _capital_snapshot() -> Dict[str, Any]:
     }
 
 
+def _activity_components(runtime: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    arb_state = runtime.get("arb", {}) if isinstance(runtime, dict) else {}
+    arb_runtime = get_arbitrage_state()
+    return {
+        "scheduler": {
+            "status": "on" if runtime.get("sched_on", True) else "off",
+            "last_tick": runtime.get("sched_last_run"),
+            "notes": None,
+        },
+        "arbitrage": {
+            "status": "on" if arb_state.get("auto_mode", False) else "off",
+            "last_tick": getattr(arb_runtime, "last_scan_ts", None) or 0.0,
+            "notes": getattr(arb_runtime, "last_decision", ""),
+        },
+        "spot": {
+            "status": "on" if runtime.get("spot", {}).get("enabled", True) else "off",
+            "last_tick": None,
+            "notes": None,
+        },
+        "futures": {
+            "status": "on" if runtime.get("trading_on", True) else "off",
+            "last_tick": None,
+            "notes": None,
+        },
+    }
+
+
 def _ensure_admin_request() -> bool:
-    if OPS_TOKEN is None:
+    user = current_user()
+    if user and user.role in {"ADMIN", "TRADER"}:
         return True
-    header = request.headers.get("X-Admin-Token")
-    if header != OPS_TOKEN:
-        logger.warning("Forbidden ops request")
+    if OPS_TOKEN is None:
         return False
-    return True
+    header = request.headers.get("X-Admin-Token")
+    return header == OPS_TOKEN
+
+
+def _telemetry_guard():
+    if not AUTH_REQUIRED_FOR_TELEMETRY:
+        return None
+    if OPS_TOKEN and request.headers.get("X-Admin-Token") == OPS_TOKEN:
+        return None
+    if current_user():
+        return None
+    return jsonify({"error": "unauthorized"}), 401
+
+
+def _feature_flags(session: Session) -> Dict[str, Any]:
+    flags = {**DEFAULT_FLAGS}
+    for flag in session.query(FeatureFlag).all():
+        flags[flag.key] = flag.value
+    return flags
+
+
+def _limits(session: Session) -> List[Dict[str, Any]]:
+    results: List[Dict[str, Any]] = []
+    for item in session.query(Limit).all():
+        results.append(
+            {
+                "scope": item.scope,
+                "subject": item.subject,
+                "key": item.key,
+                "value": item.value,
+                "updated_at": item.updated_at.isoformat(),
+                "updated_by": item.updated_by,
+            }
+        )
+    return results
+
+
+def _user_payload(user: User) -> Dict[str, Any]:
+    tenant_slug = user.tenant.slug if getattr(user, "tenant", None) else getattr(g, "tenant_id", DEFAULT_TENANT_SLUG)
+    return UserOut(
+        id=user.id,
+        email=user.email,
+        role=user.role,
+        is_active=user.is_active,
+        tenant_id=tenant_slug,
+        created_at=user.created_at.isoformat(),
+        last_login_at=user.last_login_at.isoformat() if user.last_login_at else None,
+    ).dict()
+
+
+def _tenant_payload(tenant: Tenant) -> Dict[str, Any]:
+    return TenantOut(
+        id=tenant.id,
+        slug=tenant.slug,
+        name=tenant.name,
+        status=tenant.status,
+        app_name=tenant.app_name,
+        logo_url=tenant.logo_url,
+        primary_color=tenant.primary_color,
+        support_email=tenant.support_email,
+        environment=tenant.environment,
+        domains=[d.domain for d in tenant.domains],
+        created_at=tenant.created_at.isoformat() if tenant.created_at else None,
+        updated_at=tenant.updated_at.isoformat() if tenant.updated_at else None,
+    ).dict()
 
 
 @app.get("/health")
@@ -171,16 +439,45 @@ def health() -> Any:
     return jsonify({"status": "ok"})
 
 
+@app.get("/metrics")
+def metrics() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    return Response(scrape_metrics(), mimetype="text/plain; version=0.0.4")
+
+
 @app.get("/cores")
 @_measure_latency
 def cores() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     logger.info("/cores requested")
     return jsonify(CORES)
+
+
+@app.get("/branding")
+@_measure_latency
+def branding() -> Any:
+    tenant: Tenant | None = getattr(g, "tenant", None)
+    payload = BrandingResponse(
+        brand_name=(tenant.app_name if tenant and tenant.app_name else BRAND_NAME),
+        logo_url=(tenant.logo_url if tenant else BRAND_LOGO_URL),
+        support_email=(tenant.support_email if tenant else BRAND_SUPPORT_EMAIL),
+        primary_color=(tenant.primary_color if tenant else BRAND_PRIMARY_COLOR),
+        tenant_id=(tenant.slug if tenant else DEFAULT_TENANT_SLUG),
+        environment=(tenant.environment if tenant else BRAND_ENVIRONMENT),
+    )
+    return jsonify(payload.dict())
 
 
 @app.get("/status")
 @_measure_latency
 def status() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     logger.info("/status requested")
     uptime = time.time() - START_TIME
     active = {name: cfg for name, cfg in CORES.items() if cfg.get("enabled")}
@@ -193,9 +490,374 @@ def status() -> Any:
     return jsonify(payload)
 
 
+@app.get("/admin/users")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_users() -> Any:
+    session: Session = g.db
+    items = [_user_payload(user) for user in list_users(session)]
+    return jsonify({"items": items})
+
+
+@app.post("/admin/users")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_create_user() -> Any:
+    body = request.get_json(force=True) or {}
+    email = str(body.get("email", "")).strip().lower()
+    password = body.get("password")
+    role = str(body.get("role", "USER")).upper()
+    tenant_slug = str(body.get("tenant_id") or body.get("tenant") or getattr(g, "tenant_id", DEFAULT_TENANT_SLUG))
+    if not email or not password:
+        return jsonify({"error": "email and password required"}), 400
+    session: Session = g.db
+    tenant = session.query(Tenant).filter(Tenant.slug == tenant_slug).one_or_none()
+    if not tenant:
+        tenant = resolve_tenant_from_request(session, "", tenant_slug)
+    existing = get_user_by_email(session, email, tenant_id=tenant.id if tenant else None)
+    if existing:
+        return jsonify({"error": "user_exists"}), 409
+    user = create_user(session, email=email, password=password, role=role, tenant=tenant)
+    _audit("admin_create_user", target=email, details={"tenant_id": tenant_slug})
+    return jsonify(_user_payload(user)), 201
+
+
+@app.put("/admin/users/<int:user_id>")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_update_user(user_id: int) -> Any:
+    body = request.get_json(force=True) or {}
+    session: Session = g.db
+    user = get_user(session, user_id)
+    if not user:
+        return jsonify({"error": "not_found"}), 404
+    role = body.get("role")
+    is_active = body.get("is_active")
+    updated = update_user(session, user, role=role, is_active=is_active)
+    _audit("admin_update_user", target=str(user_id), details={"role": role, "is_active": is_active})
+    return jsonify(_user_payload(updated))
+
+
+@app.get("/admin/flags")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_flags() -> Any:
+    session: Session = g.db
+    flags = [
+        FeatureFlagSchema(
+            key=flag.key,
+            value=flag.value,
+            updated_at=flag.updated_at.isoformat(),
+            updated_by=flag.updated_by,
+        ).dict()
+        for flag in session.query(FeatureFlag).order_by(FeatureFlag.key.asc()).all()
+    ]
+    return jsonify({"items": flags})
+
+
+@app.put("/admin/flags/<key>")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_update_flag(key: str) -> Any:
+    session: Session = g.db
+    body = request.get_json(force=True) or {}
+    value = body.get("value")
+    flag = session.query(FeatureFlag).filter(FeatureFlag.key == key).one_or_none()
+    actor = current_user()
+    if flag:
+        flag.value = str(value)
+        flag.updated_by = actor.id if actor else None
+    else:
+        flag = FeatureFlag(key=key, value=str(value), updated_by=actor.id if actor else None)
+        session.add(flag)
+    session.commit()
+    session.refresh(flag)
+    _audit("admin_update_flag", target=key, details={"value": value})
+    return jsonify(
+        FeatureFlagSchema(
+            key=flag.key,
+            value=flag.value,
+            updated_at=flag.updated_at.isoformat(),
+            updated_by=flag.updated_by,
+        ).dict()
+    )
+
+
+@app.get("/admin/limits")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_limits() -> Any:
+    session: Session = g.db
+    items = [
+        LimitSchema(
+            scope=item.scope,
+            subject=item.subject,
+            key=item.key,
+            value=item.value,
+            updated_at=item.updated_at.isoformat(),
+            updated_by=item.updated_by,
+        ).dict()
+        for item in session.query(Limit).order_by(Limit.updated_at.desc()).all()
+    ]
+    return jsonify({"items": items})
+
+
+@app.put("/admin/limits")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_upsert_limit() -> Any:
+    session: Session = g.db
+    body = request.get_json(force=True) or {}
+    scope = str(body.get("scope", "global"))
+    subject = body.get("subject")
+    key = str(body.get("key", "")).strip()
+    value = body.get("value")
+    if not key:
+        return jsonify({"error": "key required"}), 400
+    record = (
+        session.query(Limit)
+        .filter(Limit.scope == scope, Limit.subject == subject, Limit.key == key)
+        .one_or_none()
+    )
+    actor = current_user()
+    if record:
+        record.value = str(value)
+        record.updated_by = actor.id if actor else None
+    else:
+        record = Limit(
+            scope=scope,
+            subject=subject,
+            key=key,
+            value=str(value),
+            updated_by=actor.id if actor else None,
+        )
+        session.add(record)
+    session.commit()
+    session.refresh(record)
+    _audit("admin_upsert_limit", target=key, details={"scope": scope, "subject": subject, "value": value})
+    return jsonify(
+        LimitSchema(
+            scope=record.scope,
+            subject=record.subject,
+            key=record.key,
+            value=record.value,
+            updated_at=record.updated_at.isoformat(),
+            updated_by=record.updated_by,
+        ).dict()
+    )
+
+
+def _get_tenant_or_404(session: Session, tenant_id: int) -> Tenant | Response:
+    tenant = session.query(Tenant).filter(Tenant.id == tenant_id).one_or_none()
+    if not tenant:
+        return jsonify({"error": "not_found"}), 404
+    return tenant
+
+
+@app.get("/admin/tenants")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_tenants() -> Any:
+    session: Session = g.db
+    tenants = [_tenant_payload(t) for t in list_tenant_records(session)]
+    return jsonify({"items": tenants})
+
+
+@app.post("/admin/tenants")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_create_tenant() -> Any:
+    session: Session = g.db
+    payload = TenantCreate.parse_obj(request.get_json(force=True) or {})
+    existing = session.query(Tenant).filter(Tenant.slug == payload.slug).one_or_none()
+    if existing:
+        return jsonify({"error": "tenant_exists"}), 409
+    tenant = Tenant(
+        slug=payload.slug,
+        name=payload.name,
+        status=payload.status,
+        app_name=payload.app_name,
+        logo_url=payload.logo_url,
+        primary_color=payload.primary_color,
+        support_email=payload.support_email,
+        environment=payload.environment,
+    )
+    session.add(tenant)
+    session.commit()
+    session.refresh(tenant)
+    upsert_domains(session, tenant, payload.domains)
+    _audit("admin_create_tenant", target=payload.slug, details=payload.dict())
+    return jsonify(_tenant_payload(tenant)), 201
+
+
+@app.put("/admin/tenants/<int:tenant_id>")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_update_tenant(tenant_id: int) -> Any:
+    session: Session = g.db
+    payload = TenantUpdate.parse_obj(request.get_json(force=True) or {})
+    tenant_or_resp = _get_tenant_or_404(session, tenant_id)
+    if not isinstance(tenant_or_resp, Tenant):
+        return tenant_or_resp
+    tenant = tenant_or_resp
+    updated = update_tenant(
+        session,
+        tenant,
+        name=payload.name,
+        status=payload.status,
+        app_name=payload.app_name,
+        logo_url=payload.logo_url,
+        primary_color=payload.primary_color,
+        support_email=payload.support_email,
+        environment=payload.environment,
+    )
+    if payload.domains is not None:
+        upsert_domains(session, updated, payload.domains)
+    _audit("admin_update_tenant", target=str(tenant_id), details=payload.dict())
+    return jsonify(_tenant_payload(updated))
+
+
+@app.get("/admin/tenants/<int:tenant_id>/branding")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_tenant_branding(tenant_id: int) -> Any:
+    session: Session = g.db
+    tenant_or_resp = _get_tenant_or_404(session, tenant_id)
+    if not isinstance(tenant_or_resp, Tenant):
+        return tenant_or_resp
+    tenant = tenant_or_resp
+    branding = TenantBranding(
+        app_name=tenant.app_name,
+        logo_url=tenant.logo_url,
+        primary_color=tenant.primary_color,
+        support_email=tenant.support_email,
+        environment=tenant.environment,
+    )
+    return jsonify(branding.dict())
+
+
+@app.put("/admin/tenants/<int:tenant_id>/branding")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_update_tenant_branding(tenant_id: int) -> Any:
+    session: Session = g.db
+    payload = TenantBranding.parse_obj(request.get_json(force=True) or {})
+    tenant_or_resp = _get_tenant_or_404(session, tenant_id)
+    if not isinstance(tenant_or_resp, Tenant):
+        return tenant_or_resp
+    tenant = tenant_or_resp
+    updated = update_tenant(
+        session,
+        tenant,
+        app_name=payload.app_name,
+        logo_url=payload.logo_url,
+        primary_color=payload.primary_color,
+        support_email=payload.support_email,
+        environment=payload.environment,
+    )
+    _audit("admin_update_tenant_branding", target=str(tenant_id), details=payload.dict())
+    return jsonify(_tenant_payload(updated))
+
+
+@app.put("/admin/tenants/<int:tenant_id>/limits")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_update_tenant_limits(tenant_id: int) -> Any:
+    session: Session = g.db
+    payload = TenantLimitsRequest.parse_obj(request.get_json(force=True) or {})
+    tenant_or_resp = _get_tenant_or_404(session, tenant_id)
+    if not isinstance(tenant_or_resp, Tenant):
+        return tenant_or_resp
+    tenant = tenant_or_resp
+    limits = upsert_tenant_limits(session, tenant, payload.limits)
+    _audit(
+        "admin_update_tenant_limits",
+        target=str(tenant_id),
+        details={"count": len(limits)},
+    )
+    return jsonify({"items": [
+        LimitSchema(
+            scope=item.scope,
+            subject=item.subject,
+            key=item.key,
+            value=item.value,
+            updated_at=item.updated_at.isoformat(),
+            updated_by=item.updated_by,
+        ).dict()
+        for item in limits
+    ]})
+
+
+@app.get("/admin/audit")
+@_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
+def admin_audit() -> Any:
+    session: Session = g.db
+    args = request.args
+    limit = min(int(args.get("limit", 100)), 500)
+    query = session.query(AuditEvent).order_by(AuditEvent.ts.desc())
+    if args.get("actor"):
+        query = query.filter(AuditEvent.actor_role == args.get("actor"))
+    if args.get("action"):
+        query = query.filter(AuditEvent.action == args.get("action"))
+    if args.get("result"):
+        query = query.filter(AuditEvent.result == args.get("result"))
+    events = query.limit(limit).all()
+    payload = [
+        AuditEventSchema(
+            id=event.id,
+            ts=event.ts.isoformat(),
+            actor_user_id=event.actor_user_id,
+            actor_role=event.actor_role,
+            action=event.action,
+            target=event.target,
+            result=event.result,
+            ip=event.ip,
+            user_agent=event.user_agent,
+            metadata=event.metadata_json,
+        ).dict()
+        for event in events
+    ]
+    return jsonify({"items": payload})
+
+
+@app.get("/ops/activity")
+@_measure_latency
+def ops_activity() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    runtime = get_runtime_state()
+    session: Session = g.db
+    audit_items: List[ActivityItem] = []
+    try:
+        events = session.query(AuditEvent).order_by(AuditEvent.ts.desc()).limit(20).all()
+        for event in events:
+            audit_items.append(
+                ActivityItem(
+                    ts=event.ts.isoformat(),
+                    actor=event.actor_role or "unknown",
+                    action=event.action,
+                    ok=event.result == "OK",
+                    details=event.target,
+                )
+            )
+    except Exception:
+        audit_items = []
+    payload = ActivityResponse(
+        components=_activity_components(runtime),
+        last_actions=(audit_items + list(ACTIVITY_LOG))[:50],
+        warnings=[],
+    )
+    return jsonify(payload.dict())
+
+
 @app.get("/ops/state")
 @_measure_latency
 def ops_state() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     logger.info("/ops/state requested")
     state = OpsState.parse_obj(get_runtime_state())
     return jsonify(state.dict())
@@ -203,13 +865,13 @@ def ops_state() -> Any:
 
 @app.post("/ops/state")
 @_measure_latency
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def ops_state_update() -> Any:
-    if not _ensure_admin_request():
-        return jsonify({"error": "forbidden"}), 403
     payload = OpsStateUpdate.parse_obj(request.get_json(force=True) or {})
     filtered = {k: v for k, v in payload.dict().items() if v is not None}
     state = set_state(filtered)
     logger.info("Ops state updated: %s", filtered)
+    _audit("ops_state_update", details=filtered)
     return jsonify(OpsState.parse_obj(state).dict())
 
 
@@ -217,25 +879,30 @@ def _ops_toggle(key: str, value: bool) -> Any:
     if not _ensure_admin_request():
         return jsonify({"error": "forbidden"}), 403
     state = set_state({key: value})
+    _audit(f"{key}={value}")
     return jsonify(OpsState.parse_obj(state).dict())
 
 
 @app.post("/ops/auto_on")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def ops_auto_on() -> Any:
     return _ops_toggle("auto_mode", True)
 
 
 @app.post("/ops/auto_off")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def ops_auto_off() -> Any:
     return _ops_toggle("auto_mode", False)
 
 
 @app.post("/ops/stop_all")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def ops_stop_all() -> Any:
     return _ops_toggle("global_stop", True)
 
 
 @app.post("/ops/start_all")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def ops_start_all() -> Any:
     return _ops_toggle("global_stop", False)
 
@@ -243,6 +910,9 @@ def ops_start_all() -> Any:
 @app.get("/ops/equity")
 @_measure_latency
 def ops_equity() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     snapshot = _capital_snapshot()
     payload = {
         "equity_total_usd": snapshot["equity"],
@@ -255,6 +925,9 @@ def ops_equity() -> Any:
 @app.get("/ops/capital")
 @_measure_latency
 def ops_capital() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     snapshot = _capital_snapshot()
     payload = {
         "cap_pct": snapshot["cap_pct"],
@@ -268,9 +941,8 @@ def ops_capital() -> Any:
 
 @app.post("/ops/capital")
 @_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
 def ops_capital_update() -> Any:
-    if not _ensure_admin_request():
-        return jsonify({"error": "forbidden"}), 403
     payload = CapitalRequest.parse_obj(request.get_json(force=True) or {})
     state = set_state({"ops": {"capital": {"cap_pct": payload.cap_pct}}})
     snapshot = _capital_snapshot()
@@ -279,6 +951,7 @@ def ops_capital_update() -> Any:
         "cap_pct": snapshot["cap_pct"],
         "tradable_equity_usd": snapshot["allocation"].tradable_equity,
     }
+    _audit("ops_capital_update", details=payload.dict())
     return jsonify(response)
 
 
@@ -304,6 +977,7 @@ def spot_strategies_update() -> Any:
     if payload.enabled is not None:
         update["spot"]["enabled"] = payload.enabled
     state = set_state(update)
+    _log_activity("spot_strategies_update", details=str(update))
     return jsonify(OpsState.parse_obj(state).dict())
 
 
@@ -322,9 +996,8 @@ def spot_alloc() -> Any:
 
 @app.post("/spot/alloc")
 @_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
 def spot_alloc_update() -> Any:
-    if not _ensure_admin_request():
-        return jsonify({"error": "forbidden"}), 403
     payload = ReserveUpdateRequest.parse_obj(request.get_json(force=True) or {})
     update: Dict[str, Any] = {"reserves": {}}
     if payload.portfolio is not None:
@@ -332,12 +1005,16 @@ def spot_alloc_update() -> Any:
     if payload.arbitrage is not None:
         update["reserves"]["arbitrage"] = payload.arbitrage
     state = set_state(update)
+    _audit("spot_alloc_update", details=update)
     return jsonify(OpsState.parse_obj(state).dict())
 
 
 @app.get("/spot/risk")
 @_measure_latency
 def spot_risk() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     state = get_runtime_state()
     spot_cfg = state.get("spot", {})
     payload = {
@@ -353,20 +1030,19 @@ def spot_risk() -> Any:
 
 @app.post("/spot/risk")
 @_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
 def spot_risk_update() -> Any:
-    if not _ensure_admin_request():
-        return jsonify({"error": "forbidden"}), 403
     payload = SpotRiskUpdate.parse_obj(request.get_json(force=True) or {})
     update = {"spot": {k: v for k, v in payload.dict(exclude_none=True).items()}}
     state = set_state(update)
+    _audit("spot_risk_update", details=update)
     return jsonify(OpsState.parse_obj(state).dict())
 
 
 @app.post("/spot/backtest")
 @_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
 def spot_backtest() -> Any:
-    if not _ensure_admin_request():
-        return jsonify({"error": "forbidden"}), 403
     body = request.get_json(force=True) or {}
     strategy = str(body.get("strategy", "scalping_breakout"))
     symbol = str(body.get("symbol", "BTCUSDT"))
@@ -400,6 +1076,7 @@ def spot_backtest() -> Any:
 
 @app.post("/trade/spot/demo")
 @_measure_latency
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def trade_spot_demo() -> Any:
     logger.info("/trade/spot/demo called")
     try:
@@ -414,11 +1091,13 @@ def trade_spot_demo() -> Any:
     result = agent.place_spot_order(data.symbol, data.side, data.qty)
     status_code = 200 if result.get("ok") else 400
     logger.info("/trade/spot/demo completed status=%s", status_code)
+    _audit("trade_spot_demo", ok=result.get("ok", False), details=result)
     return jsonify(result), status_code
 
 
 @app.post("/trade/futures/demo")
 @_measure_latency
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def trade_futures_demo() -> Any:
     logger.info("/trade/futures/demo called")
     try:
@@ -469,18 +1148,19 @@ def trade_futures_demo() -> Any:
     agent._log_trade(record)
 
     logger.info("/trade/futures/demo completed status=200")
+    _audit("trade_futures_demo", details=order)
     return jsonify({"ok": True, "order": order})
 
 
 @app.post("/ai/research/analyze_now")
 @_measure_latency
+@require_role("ADMIN", ops_token=OPS_TOKEN)
 def ai_research_analyze_now() -> Any:
-    if not _ensure_admin_request():
-        return jsonify({"error": "forbidden"}), 403
     logger.info("/ai/research/analyze_now invoked")
     payload = request.get_json(silent=True) or {}
     req = ResearchRequest.parse_obj(payload)
     results = run_research_now(req.pairs, mode="manual")
+    _audit("ai_research_analyze_now", details=req.dict())
     return jsonify(ResearchResponse(results=results).dict())
 
 
@@ -494,6 +1174,7 @@ def _publish_signals(signals: Iterable[SignalPayload]) -> None:
 
 @app.post("/ai/run")
 @_measure_latency
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def run_ai() -> Any:
     logger.info("/ai/run invoked")
     decision = supervisor.get_signals()
@@ -501,11 +1182,37 @@ def run_ai() -> Any:
     _publish_signals(payload.signals)
     results = agent.execute_signals(decision)
     logger.info("/ai/run completed executed=%s errors=%s", results["executed"], results["errors"])
+    _audit("ai_run", details=results)
     return jsonify(results)
+
+
+@app.get("/ai/signals")
+@_measure_latency
+def signals_feed() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    decision = supervisor.get_signals()
+    signals = decision.get("signals", []) if isinstance(decision, dict) else []
+    feed = [
+        SignalFeedItem(
+            ts=datetime.utcnow().isoformat(),
+            symbol=str(item.get("symbol", "")),
+            side=str(item.get("side", "")).upper(),
+            confidence=float(item.get("score", item.get("notional_usd", 0.0))),
+            strategy=str(item.get("strategy", "unknown")),
+            rationale=None,
+            source="supervisor",
+        )
+        for item in signals
+    ]
+    payload = SignalsFeed(items=feed, cursor=None)
+    return jsonify(payload.dict())
 
 
 @app.post("/signal")
 @_measure_latency
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def manual_signal() -> Any:
     logger.info("/signal invoked")
     try:
@@ -523,12 +1230,16 @@ def manual_signal() -> Any:
 
     _publish_signals(envelope.signals)
     results = agent.execute_signals(envelope.dict())
+    _audit("manual_signal", details=envelope.dict())
     return jsonify(results)
 
 
 @app.get("/arbitrage/opps")
 @_measure_latency
 def get_arbitrage_opportunities() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     state = get_arbitrage_state()
     return jsonify(ArbitrageOpportunities(opportunities=state.recent(10)).dict())
 
@@ -536,6 +1247,9 @@ def get_arbitrage_opportunities() -> Any:
 @app.get("/portfolio")
 @_measure_latency
 def get_portfolio() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     logger.info("/portfolio requested")
     portfolio = agent.portfolio
     positions = [
@@ -558,9 +1272,48 @@ def get_portfolio() -> Any:
     return jsonify(snapshot.dict())
 
 
+@app.get("/portfolio/snapshot")
+@_measure_latency
+def get_portfolio_snapshot() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    runtime = get_runtime_state()
+    portfolio = agent.portfolio
+    balances = agent.client.get_balances()
+    equity = portfolio.get_equity_usd({asset: bal["free"] + bal["locked"] for asset, bal in balances.items()})
+    snapshot = _capital_snapshot()
+    aggregate = PortfolioAggregate(
+        equity_total_usd=equity,
+        tradable_equity_usd=snapshot["allocation"].tradable_equity,
+        cap_pct=snapshot.get("cap_pct"),
+        reserves=runtime.get("reserves", {}) if isinstance(runtime, dict) else {},
+        positions=[
+            PortfolioPosition(
+                symbol=symbol,
+                quantity=pos.quantity,
+                average_price=pos.average_price,
+                unrealized_pnl=portfolio.unrealized_pnl(symbol),
+            )
+            for symbol, pos in portfolio.positions.items()
+        ],
+        balances=[
+            {"asset": asset, "free": data["free"], "locked": data["locked"]}
+            for asset, data in balances.items()
+        ],
+        realized_pnl=portfolio.realized_pnl,
+        unrealized_pnl=portfolio.total_unrealized(),
+        timestamp=datetime.utcnow().isoformat(),
+    )
+    return jsonify(aggregate.dict())
+
+
 @app.get("/balances")
 @_measure_latency
 def get_balances() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
     logger.info("/balances requested")
     balances = agent.client.get_balances()
     response = BalancesResponse(
@@ -572,9 +1325,27 @@ def get_balances() -> Any:
     return jsonify(response.dict())
 
 
-@app.get("/metrics")
-def metrics_endpoint() -> Response:
-    return Response(scrape_metrics(), mimetype="text/plain")
+@app.get("/ops/logs")
+@_measure_latency
+def get_logs() -> Any:
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    items: List[LogEntry] = []
+    if API_LOG_PATH.exists():
+        try:
+            lines = API_LOG_PATH.read_text(encoding="utf-8").splitlines()[-200:]
+            for line in lines:
+                parts = line.split(" ", 2)
+                if len(parts) == 3:
+                    ts, level, message = parts
+                else:
+                    ts, level, message = datetime.utcnow().isoformat(), "INFO", line
+                items.append(LogEntry(ts=ts, level=level, message=message))
+        except Exception as exc:  # pragma: no cover - IO errors
+            logger.warning("Failed reading logs: %s", exc)
+    payload = LogsResponse(items=list(reversed(items)))
+    return jsonify(payload.dict())
 
 
 if __name__ == "__main__":  # pragma: no cover

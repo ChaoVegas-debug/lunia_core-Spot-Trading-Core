@@ -198,3 +198,182 @@ class ResearchResponse(BaseModel):
 
 class ArbitrageOpportunities(BaseModel):
     opportunities: List[Dict[str, Any]]
+
+
+# -------- Tenants / Branding --------
+
+
+class TenantBranding(BaseModel):
+    app_name: Optional[str] = None
+    logo_url: Optional[str] = None
+    primary_color: Optional[str] = None
+    support_email: Optional[str] = None
+    environment: Optional[str] = None
+
+
+class TenantDomain(BaseModel):
+    domain: str
+
+
+class TenantOut(BaseModel):
+    id: int
+    slug: str
+    name: str
+    status: str
+    app_name: Optional[str]
+    logo_url: Optional[str]
+    primary_color: Optional[str]
+    support_email: Optional[str]
+    environment: Optional[str]
+    domains: List[str] = Field(default_factory=list)
+    created_at: Optional[str]
+    updated_at: Optional[str]
+
+
+class TenantCreate(BaseModel):
+    slug: str
+    name: str
+    status: str = "active"
+    app_name: Optional[str] = None
+    logo_url: Optional[str] = None
+    primary_color: Optional[str] = None
+    support_email: Optional[str] = None
+    environment: Optional[str] = None
+    domains: List[str] = Field(default_factory=list)
+
+
+class TenantUpdate(BaseModel):
+    name: Optional[str] = None
+    status: Optional[str] = None
+    app_name: Optional[str] = None
+    logo_url: Optional[str] = None
+    primary_color: Optional[str] = None
+    support_email: Optional[str] = None
+    environment: Optional[str] = None
+    domains: Optional[List[str]] = None
+
+
+class TenantLimitsRequest(BaseModel):
+    limits: List[Dict[str, str]]
+
+
+class ActivityComponent(BaseModel):
+    status: str
+    last_tick: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class ActivityItem(BaseModel):
+    ts: str
+    actor: str
+    action: str
+    ok: bool = True
+    details: Optional[str] = None
+
+
+class ActivityResponse(BaseModel):
+    components: Dict[str, ActivityComponent]
+    last_actions: List[ActivityItem] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
+
+
+class SignalFeedItem(BaseModel):
+    ts: str
+    symbol: str
+    side: str
+    confidence: float
+    strategy: str
+    rationale: Optional[str] = None
+    source: str
+
+
+class SignalsFeed(BaseModel):
+    items: List[SignalFeedItem]
+    cursor: Optional[str] = None
+
+
+class PortfolioAggregate(BaseModel):
+    equity_total_usd: float
+    tradable_equity_usd: Optional[float] = None
+    cap_pct: Optional[float] = None
+    reserves: Optional[Dict[str, float]] = None
+    positions: List[PortfolioPosition] = Field(default_factory=list)
+    balances: List[BalanceEntry] = Field(default_factory=list)
+    realized_pnl: Optional[float] = None
+    unrealized_pnl: Optional[float] = None
+    timestamp: str
+
+
+class LogEntry(BaseModel):
+    ts: str
+    level: str
+    message: str
+
+
+class LogsResponse(BaseModel):
+    items: List[LogEntry]
+
+
+# -------- Auth / Admin --------
+
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    role: str
+    is_active: bool
+    tenant_id: Optional[str] = None
+    created_at: str
+    last_login_at: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str
+    user_id: int
+    expires_at: str
+    tenant_id: Optional[str] = None
+
+
+class BrandingResponse(BaseModel):
+    brand_name: str
+    logo_url: Optional[str]
+    support_email: Optional[str]
+    primary_color: Optional[str]
+    tenant_id: Optional[str]
+    environment: Optional[str]
+
+
+class FeatureFlagSchema(BaseModel):
+    key: str
+    value: Any
+    updated_at: str
+    updated_by: Optional[int] = None
+
+
+class LimitSchema(BaseModel):
+    scope: str
+    subject: Optional[str] = None
+    key: str
+    value: Any
+    updated_at: str
+    updated_by: Optional[int] = None
+
+
+class AuditEventSchema(BaseModel):
+    id: str
+    ts: str
+    actor_user_id: Optional[int]
+    actor_role: Optional[str]
+    action: str
+    target: Optional[str]
+    result: str
+    ip: Optional[str]
+    user_agent: Optional[str]
+    metadata: Optional[Dict[str, Any]]

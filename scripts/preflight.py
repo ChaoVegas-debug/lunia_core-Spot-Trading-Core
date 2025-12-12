@@ -5,7 +5,7 @@ import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MINIMAL = ROOT / "lunia_core/requirements/base_minimal.txt"
-PATTERNS = [r"aiogram", r"aihttp", r"aiohttp", r"ai ogram"]
+PATTERNS = [r"aiogram", r"aihttp", r"aiohttp", r"ai ogram", r"python-telegram-bot", r"telethon"]
 
 if not MINIMAL.exists():
     print(f"❌ Missing: {MINIMAL}")

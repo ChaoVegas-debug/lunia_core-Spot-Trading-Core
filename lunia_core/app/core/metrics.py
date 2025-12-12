@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import threading
+from functools import partial
 from typing import Set
 
 from app.compat.prom import (
+    CollectorRegistry,
     Counter,
     Gauge,
     Histogram,
@@ -12,6 +14,12 @@ from app.compat.prom import (
     generate_latest,
     start_http_server,
 )
+
+REGISTRY = CollectorRegistry()
+Counter = partial(Counter, registry=REGISTRY)  # type: ignore
+Gauge = partial(Gauge, registry=REGISTRY)  # type: ignore
+Histogram = partial(Histogram, registry=REGISTRY)  # type: ignore
+Summary = partial(Summary, registry=REGISTRY)  # type: ignore
 
 signals_total = Counter(
     "lunia_signals_total",
@@ -252,10 +260,10 @@ def ensure_metrics_server(port: int) -> None:
     with _metrics_lock:
         if port in _started_servers:
             return
-        start_http_server(port)
+        start_http_server(port, registry=REGISTRY)
         _started_servers.add(port)
 
 
 def scrape_metrics() -> bytes:
     """Expose metrics for frameworks that need raw payloads."""
-    return generate_latest()
+    return generate_latest(REGISTRY)

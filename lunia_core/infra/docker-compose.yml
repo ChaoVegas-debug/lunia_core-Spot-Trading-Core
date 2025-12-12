@@ -1,5 +1,11 @@
 version: "3.9"
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   api:
     build: ..
@@ -11,10 +17,40 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       ENABLE_REDIS: ${ENABLE_REDIS:-true}
     volumes:
-      - ../logs:/opt/app/lunia_core/logs
+      - ../logs:/opt/app/logs
+      - ../data:/opt/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
+      - proxy
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_API_BASE_URL: http://api:8080
+        NPM_CONFIG_REGISTRY: ${NPM_CONFIG_REGISTRY:-https://registry.npmjs.org/}
+    environment:
+      VITE_API_BASE_URL: http://api:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
+      - proxy
 
   scheduler:
     build: ..
@@ -25,10 +61,15 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       ENABLE_REDIS: ${ENABLE_REDIS:-true}
     volumes:
-      - ../logs:/opt/app/lunia_core/logs
+      - ../logs:/opt/app/logs
+      - ../data:/opt/app/data
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
 
   arbitrage:
     build: ..
@@ -39,10 +80,15 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       ENABLE_REDIS: ${ENABLE_REDIS:-true}
     volumes:
-      - ../logs:/opt/app/lunia_core/logs
+      - ../logs:/opt/app/logs
+      - ../data:/opt/app/data
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
 
   bot:
     build: ..
@@ -51,10 +97,14 @@ services:
       - "../.env"
     profiles: [bot]
     volumes:
-      - ../logs:/opt/app/lunia_core/logs
+      - ../logs:/opt/app/logs
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
 
   redis:
     image: redis:7-alpine
@@ -69,6 +119,9 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
 
   prometheus:
     image: prom/prometheus:latest
@@ -78,8 +131,12 @@ services:
     ports:
       - "9090:9090"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
 
   grafana:
     image: grafana/grafana:latest
@@ -89,8 +146,28 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_started
     restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    profiles: [monitoring]
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
 
   caddy:
     image: caddy:2
@@ -106,8 +183,16 @@ services:
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
+    logging: *default-logging
+    networks:
+      - backend
 
 volumes:
   redis-data:
+
+networks:
+  backend:
+  proxy:
