@@ -8,7 +8,7 @@ PY_CMD := $(if $(wildcard $(VENV_PYTHON)),$(VENV_PYTHON),python)
 PYTEST_CMD := $(if $(wildcard $(VENV_PYTHON)),$(VENV_PYTHON) -m pytest,pytest)
 LOAD_BASE_URL ?= http://localhost:8080
 
-.PHONY: up down logs ps build deploy verify verify-local smoke local-smoke test-api backup restore restore-drill uptime compose-lint load-test wheelhouse install-backend-offline offline-verify no-placeholders no-dead-controls venv install-backend rc-verify
+.PHONY: up down logs ps build deploy preflight verify verify-local smoke local-smoke test-api backup restore restore-drill uptime compose-lint load-test wheelhouse install-backend-offline offline-verify no-placeholders no-dead-controls venv install-backend rc-verify
 
 up:
 	$(COMPOSE) $(COMPOSE_FILES) --env-file $(ENV_FILE) up -d
@@ -28,26 +28,20 @@ build:
 deploy:
 	bash scripts/deploy_vps.sh
 
-verify:
-	bash scripts/guard_python_version.sh
+preflight:
+	bash scripts/guard_python_version.sh 3.12
 	python scripts/preflight.py
-	OFFLINE_CI=1 python scripts/health/all_checks.py
+
+verify:
+	PY_CMD=$(PY_CMD) OFFLINE_CI=0 WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) bash scripts/rc_verify.sh
 
 verify-local:
-	bash scripts/guard_python_version.sh
-	$(PY_CMD) scripts/preflight.py
-	$(PY_CMD) -m compileall lunia_core/app/services
-	bash scripts/no_placeholders.sh
-	bash scripts/no_dead_controls.sh
-	WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) $(PY_CMD) scripts/compose_lint.py
-	$(PYTEST_CMD) tests/test_auth_rbac_endpoints.py tests/test_tenant_admin.py tests/test_panel_wiring_contract.py
+	PY_CMD=$(PY_CMD) OFFLINE_CI=0 WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) bash scripts/rc_verify.sh
 
 smoke:
-	$(info Running smoke tests)
 	bash scripts/smoke_test.sh
 
 local-smoke:
-	$(info Starting local API and running smoke checks)
 	bash scripts/local_smoke.sh
 
 test-api:
@@ -70,28 +64,22 @@ compose-lint:
 	WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) $(PY_CMD) scripts/compose_lint.py
 
 load-test:
-	$(info Running HTTP load test; set BASE_URL=https://api.example.com to target prod)
 	BASE_URL=$(LOAD_BASE_URL) python tools/http_load_test.py --base-url "$(LOAD_BASE_URL)" $(ARGS)
 
 wheelhouse:
-	$(info Building wheelhouse for offline installs)
 	bash scripts/build_wheelhouse.sh
 
 install-backend-offline: venv
-	$(info Installing backend from local wheelhouse)
 	$(VENV_PIP) install --no-index --find-links wheelhouse -r requirements.txt -r lunia_core/requirements/test.txt
 	$(VENV_PIP) install --no-index --find-links wheelhouse pyyaml
 
 offline-verify:
-	$(info Running offline verification from wheelhouse)
-	bash scripts/offline_verify.sh
+	OFFLINE_CI=1 WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) bash scripts/offline_verify.sh
 
 no-placeholders:
-	$(info Checking for TODO/placeholder markers)
 	bash scripts/no_placeholders.sh
 
 no-dead-controls:
-	$(info Checking for dead/stub UI controls)
 	bash scripts/no_dead_controls.sh
 
 venv:
@@ -99,13 +87,7 @@ venv:
 	$(VENV_PIP) install --upgrade pip
 
 install-backend: venv
-	$(info Installing backend dependencies into $(VENV))
 	$(VENV_PIP) install -r requirements.txt -r lunia_core/requirements/test.txt
 
 rc-verify: venv
-	$(info Running release-candidate verification pipeline)
-	@if [ "$(OFFLINE_CI)" = "1" ]; then \
-		OFFLINE_CI=$(OFFLINE_CI) WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) PY_CMD=$(VENV_PYTHON) bash scripts/rc_verify.sh; \
-	else \
-		$(MAKE) install-backend && OFFLINE_CI=$(OFFLINE_CI) WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) PY_CMD=$(VENV_PYTHON) bash scripts/rc_verify.sh; \
-	fi
+	PY_CMD=$(VENV_PYTHON) OFFLINE_CI=$(OFFLINE_CI) WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) bash scripts/rc_verify.sh

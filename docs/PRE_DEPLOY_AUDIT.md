@@ -32,7 +32,7 @@ make wheelhouse              # on a connected host
 cp -r wheelhouse/ <target>   # move to offline host
 make venv
 make install-backend-offline
-OFFLINE_CI=1 make rc-verify  # runs offline-verify gate with wheelhouse-only installs (includes compose lint + pytest + smoke)
+OFFLINE_CI=1 make rc-verify  # delegates to offline-verify; uses wheelhouse-only when present, otherwise skips with guidance
 ```
 
 ## Green conditions before deploy
@@ -40,7 +40,7 @@ OFFLINE_CI=1 make rc-verify  # runs offline-verify gate with wheelhouse-only ins
 - Preflight checks ✅
 - `compileall` on `lunia_core/app/services` ✅
 - No placeholders / no-dead-controls scans ✅
-- Compose lint ✅ (PyYAML available via wheelhouse or installed)
+- Compose lint ✅ (PyYAML available via wheelhouse or installed; skips only when OFFLINE_CI=1/explicitly disabled)
 - RBAC/auth/tenant/panel-wiring tests ✅
 - UI wiring map present (`docs/UI_WIRING_MAP.md`) and no-dead-controls gate ✅
 - Local smoke ✅ (auth + key ops/telemetry)

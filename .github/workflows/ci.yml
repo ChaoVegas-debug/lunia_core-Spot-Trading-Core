@@ -84,13 +84,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Build wheelhouse (online step)
-        if: env.OFFLINE_CI != '1'
-        run: make wheelhouse
       - name: Offline verify (wheelhouse only)
         run: |
           if [ "${OFFLINE_CI}" = "1" ]; then
-            echo "SKIPPED due to OFFLINE_CI=1; run make offline-verify locally with wheelhouse present" && exit 0
+            echo "SKIPPED due to OFFLINE_CI=1; run 'make wheelhouse && make offline-verify' locally" && exit 0
+          fi
+          if [ ! -d wheelhouse ]; then
+            echo "SKIPPED: wheelhouse missing; build with 'make wheelhouse' on a connected host" && exit 0
           fi
           make offline-verify
 

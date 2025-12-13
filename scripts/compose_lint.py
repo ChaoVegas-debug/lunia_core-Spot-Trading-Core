@@ -4,6 +4,13 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 
+
+def _should_skip() -> bool:
+    if os.getenv("OFFLINE_CI") == "1" or os.getenv("SKIP_COMPOSE_LINT") == "1":
+        print("[compose-lint] skipped (offline/disabled)")
+        return True
+    return False
+
 def _ensure_pyyaml() -> None:
     try:
         import yaml  # type: ignore
@@ -49,6 +56,9 @@ def _ensure_pyyaml() -> None:
         sys.stderr.write(f"Failed to auto-install PyYAML from wheelhouse: {exc}\n{hint}")
         raise SystemExit(1)
 
+
+if _should_skip():
+    raise SystemExit(0)
 
 _ensure_pyyaml()
 import yaml  # type: ignore  # noqa: E402

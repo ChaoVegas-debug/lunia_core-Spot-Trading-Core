@@ -30,7 +30,7 @@ make venv
 make install-backend-offline
 ```
 
-This installs all backend dependencies using only the local `wheelhouse/` contents (including PyYAML for compose lint). If a wheel is missing, rebuild the wheelhouse with internet access and retry.
+This installs all backend dependencies using only the local `wheelhouse/` contents (including PyYAML for compose lint). If a wheel is missing, rebuild the wheelhouse with internet access and retry. If no wheelhouse is present, `make offline-verify` will skip with a reminder to build one.
 
 You can also create a dedicated verification environment without touching the host Python:
 
@@ -40,13 +40,13 @@ OFFLINE_VENV=.venv_offline_verify make offline-verify
 
 ## Offline verification / RC gate
 
-After installing from the wheelhouse:
+After installing from the wheelhouse (or skipping when none is available):
 
 ```bash
 # optional: ensure env populated (contains ADMIN_EMAIL/PASSWORD etc.)
 cp lunia_core/.env.example lunia_core/.env
-make offline-verify
-# or run the full RC gate with OFFLINE_CI set
+make offline-verify             # uses wheelhouse-only if present; otherwise skips with guidance
+# or run the full RC gate with OFFLINE_CI set (delegates to offline-verify when air-gapped)
 OFFLINE_CI=1 make rc-verify
 ```
 
