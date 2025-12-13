@@ -34,13 +34,13 @@ verify:
 	OFFLINE_CI=1 python scripts/health/all_checks.py
 
 verify-local:
-        bash scripts/guard_python_version.sh
-        $(PY_CMD) scripts/preflight.py
-        $(PY_CMD) -m compileall lunia_core/app/services
-        bash scripts/no_placeholders.sh
-        bash scripts/no_dead_controls.sh
-        WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) $(PY_CMD) scripts/compose_lint.py
-        $(PYTEST_CMD) tests/test_auth_rbac_endpoints.py tests/test_tenant_admin.py tests/test_panel_wiring_contract.py
+	bash scripts/guard_python_version.sh
+	$(PY_CMD) scripts/preflight.py
+	$(PY_CMD) -m compileall lunia_core/app/services
+	bash scripts/no_placeholders.sh
+	bash scripts/no_dead_controls.sh
+	WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) $(PY_CMD) scripts/compose_lint.py
+	$(PYTEST_CMD) tests/test_auth_rbac_endpoints.py tests/test_tenant_admin.py tests/test_panel_wiring_contract.py
 
 smoke:
 	$(info Running smoke tests)
@@ -51,7 +51,7 @@ local-smoke:
 	bash scripts/local_smoke.sh
 
 test-api:
-$(PYTEST_CMD) tests/test_auth_rbac_endpoints.py tests/test_tenant_admin.py tests/test_panel_wiring_contract.py
+	$(PYTEST_CMD) tests/test_auth_rbac_endpoints.py tests/test_tenant_admin.py tests/test_panel_wiring_contract.py
 
 backup:
 	BACKUP_DIR?=backups bash scripts/backup.sh
@@ -78,34 +78,34 @@ wheelhouse:
 	bash scripts/build_wheelhouse.sh
 
 install-backend-offline: venv
-        $(info Installing backend from local wheelhouse)
-        $(VENV_PIP) install --no-index --find-links wheelhouse -r requirements.txt -r lunia_core/requirements/test.txt
-        $(VENV_PIP) install --no-index --find-links wheelhouse pyyaml
+	$(info Installing backend from local wheelhouse)
+	$(VENV_PIP) install --no-index --find-links wheelhouse -r requirements.txt -r lunia_core/requirements/test.txt
+	$(VENV_PIP) install --no-index --find-links wheelhouse pyyaml
 
 offline-verify:
 	$(info Running offline verification from wheelhouse)
 	bash scripts/offline_verify.sh
 
 no-placeholders:
-        $(info Checking for TODO/placeholder markers)
-        bash scripts/no_placeholders.sh
+	$(info Checking for TODO/placeholder markers)
+	bash scripts/no_placeholders.sh
 
 no-dead-controls:
-        $(info Checking for dead/stub UI controls)
-        bash scripts/no_dead_controls.sh
+	$(info Checking for dead/stub UI controls)
+	bash scripts/no_dead_controls.sh
 
 venv:
 	python -m venv $(VENV)
 	$(VENV_PIP) install --upgrade pip
 
 install-backend: venv
-        $(info Installing backend dependencies into $(VENV))
-        $(VENV_PIP) install -r requirements.txt -r lunia_core/requirements/test.txt
+	$(info Installing backend dependencies into $(VENV))
+	$(VENV_PIP) install -r requirements.txt -r lunia_core/requirements/test.txt
 
 rc-verify: venv
-        $(info Running release-candidate verification pipeline)
-        if [ "$(OFFLINE_CI)" = "1" ]; then \
-          OFFLINE_CI=$(OFFLINE_CI) WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) PY_CMD=$(VENV_PYTHON) bash scripts/rc_verify.sh; \
-        else \
-          $(MAKE) install-backend && OFFLINE_CI=$(OFFLINE_CI) WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) PY_CMD=$(VENV_PYTHON) bash scripts/rc_verify.sh; \
-        fi
+	$(info Running release-candidate verification pipeline)
+	@if [ "$(OFFLINE_CI)" = "1" ]; then \
+		OFFLINE_CI=$(OFFLINE_CI) WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) PY_CMD=$(VENV_PYTHON) bash scripts/rc_verify.sh; \
+	else \
+		$(MAKE) install-backend && OFFLINE_CI=$(OFFLINE_CI) WHEELHOUSE_DIR=$(WHEELHOUSE_DIR) PY_CMD=$(VENV_PYTHON) bash scripts/rc_verify.sh; \
+	fi
