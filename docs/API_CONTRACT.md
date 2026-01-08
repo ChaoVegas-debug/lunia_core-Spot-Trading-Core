@@ -17,8 +17,9 @@
 ## 3. Endpoints by Zone & Role (contract)
 
 ### 1) AUTH / SESSION
-- `POST /auth/login` → body `{email, password}`; returns `{access_token, token_type, role, user_id, expires_at}` (JWT bearer).
-- `GET /auth/me` → returns `{user_id, email, role, is_active}`; requires bearer token.
+- `POST /auth/login` → body `{email, password}`; returns `{access_token, token_type, role, user_id, expires_at, tenant_id?}` (JWT bearer).
+- `GET /auth/me` → returns `{user_id, email, role, is_active, tenant_id?}`; requires bearer token.
+- `GET /branding` → returns `{brand_name, logo_url?, support_email?, primary_color?, environment?, tenant_id?}`; subject to telemetry guard when `AUTH_REQUIRED_FOR_TELEMETRY=1`.
 - `POST /auth/logout` → no-op acknowledgement for UI symmetry.
 
 ### 2) USER PANEL (read-only)
@@ -51,6 +52,9 @@
 - `GET /ops/state` — returns full `OpsState` (auto_mode, global_stop, flags, configs).
 - `POST /ops/state` (admin-token) — partial update `OpsStateUpdate`; merges into state.json.
 - `POST /ops/auto_on|auto_off|stop_all|start_all` (admin-token) — toggles auto/global stop flags.
+- `POST /ops/auto_off` — explicit control alias (admin-token or TRADER role).
+- `POST /ops/start_all` — explicit control alias (admin-token or TRADER role).
+- `POST /ops/stop_all` — explicit control alias (admin-token or TRADER role).
 - `GET/POST /spot/strategies` — read/update strategy weights and enable flag.
 - `GET/POST /spot/risk` — read/update risk limits `{max_positions, max_trade_pct, risk_per_trade_pct, max_symbol_exposure_pct, tp_pct_default, sl_pct_default}`.
 - `POST /spot/backtest` — run strategy backtest (admin-token); body `{strategy?, symbol?, days?}`; returns `{strategy, symbol, trades, pnl_estimate_pct}`.
@@ -58,6 +62,13 @@
 - AI research: `POST /ai/research/analyze_now` (admin-token) — body `ResearchRequest{pairs?}`; returns `ResearchResponse{results}`.
 - Diagnostics: `GET /ops/activity` (components + last actions), `GET /ops/logs` (API log tail).
 - RBAC/admin: `/admin/users` GET/POST (create user, list users), `/admin/users/<id>` PUT (role/active update), `/admin/flags` GET, `/admin/flags/<key>` PUT, `/admin/limits` GET/PUT (upsert), `/admin/audit` GET (filterable by actor/action/result, limit default 100).
+- `GET /admin/users` — list users.
+- `POST /admin/users` — create user (RBAC = ADMIN).
+- `PUT /admin/users/{id}` — update role/activation/tenant (RBAC = ADMIN).
+- `GET /admin/flags` — list feature flags.
+- `PUT /admin/flags/{key}` — upsert feature flag value.
+- `GET /admin/limits` — list advisory limits.
+- `PUT /admin/limits` — upsert advisory limit.
 
 ### 6) SYSTEM / HEALTH
 - Covered by `GET /health`, `GET /status`, `GET /metrics`. No write operations.
@@ -134,3 +145,22 @@
 
 ---
 **Frontend readiness question:** YES — the contract above enumerates every REST endpoint, schema, role guard, state source, error shape, and polling expectation present in the current backend, enabling panel development without further backend clarification.
+
+### Tenant administration (ADMIN)
+- `GET /admin/tenants` → `{ items: Tenant[] }`
+- `POST /admin/tenants` → create tenant (slug, name, status, branding fields, domains[])
+- `PUT /admin/tenants/{id}` → update tenant core fields/domains
+- `GET /admin/tenants/{id}/branding` → `TenantBranding`
+- `PUT /admin/tenants/{id}/branding` → update branding
+- `PUT /admin/tenants/{id}/limits` → `{ items: Limit[] }` (scope=`tenant`, subject=`tenant.slug`)
+
+Schemas:
+- `Tenant`: `{ id, slug, name, status, app_name?, logo_url?, primary_color?, support_email?, environment?, domains[], created_at?, updated_at? }`
+- `TenantBranding`: `{ app_name?, logo_url?, primary_color?, support_email?, environment? }`
+- `TenantLimitsRequest`: `{ limits: [{ key, value }] }`
+
+Tenant resolution precedence for `/branding` and JWT context:
+1. `X-Tenant-Id` header if present and known
+2. Hostname match from `tenant_domains` table
+3. Fallback to `DEFAULT_TENANT_SLUG`
+Non-admin requests must have token tenant match resolved tenant; admin may act cross-tenant.

@@ -8,7 +8,18 @@ production-ready Docker stacks.
 - Frontend: Vite/React/TypeScript panels (User/Trader/Fund/Admin) aligned to `docs/API_CONTRACT.md`
 - Backend docs, CI matrix, and Docker profiles live under `lunia_core/README.md`
 - Frontend registry/proxy guidance lives under `frontend/README.md`
-- Production runbook, smoke suite, restore drills, and monitoring are documented in `docs/`
+- Production runbook, smoke suite, restore drills, offline install, and monitoring are documented in `docs/`
+
+## 100% readiness gates (no-deploy)
+
+- Offline backend install path: `make wheelhouse` → copy `wheelhouse/` → `make venv` → `make install-backend-offline`
+- Deterministic verification (offline): `make offline-verify` or `OFFLINE_CI=1 make rc-verify` (uses `.venv_offline_verify`, installs from wheelhouse, runs compose lint + RBAC tests + local smoke)
+- Release candidate gate (online): `make venv && make install-backend && make rc-verify` (guard → preflight → compileall → placeholder + dead-control scans → compose lint → pytest → local smoke)
+- Placeholder gates: `make no-placeholders` and `make no-dead-controls` (fails on TODO/placeholder markers or stub handlers outside allowlists)
+- Compose lint: `make compose-lint` (requires PyYAML; offline: `make install-backend-offline` first)
+- Load probe: `make load-test BASE_URL=http://localhost:8080`
+- Offline guide: see `docs/OFFLINE_INSTALL.md` for wheelhouse build/transfer and npm alternatives
+- Pre-deploy audit: see `docs/PRE_DEPLOY_AUDIT.md` for the full checklist
 
 ## Production Deploy on VPS (Ubuntu 24.04)
 
@@ -38,6 +49,17 @@ Troubleshooting:
 - Backups: `make backup` (archives DB/logs/env/ACME) and follow `docs/RESTORE_DRILL.md` for restore validation.
 - Uptime/alerts: schedule `DOMAIN=<domain> bash scripts/uptime_check.sh` or `make uptime` via cron/systemd; full smoke via `make smoke`.
 
+One-liners for owners:
+```bash
+make wheelhouse                      # build offline wheels
+make install-backend-offline         # install backend deps from wheelhouse only (uses .venv)
+make offline-verify                  # offline venv install + compose lint + RBAC tests + local smoke
+make install-backend && make rc-verify    # install deps into .venv and run full release-candidate gate
+make no-placeholders                 # ensure no TODO/placeholder strings in API/frontend
+make no-dead-controls                # ensure no stub/disabled UI actions remain
+make local-smoke                     # bring up local API and verify key endpoints
+```
+
 ## Local workflows
 
 - Backend quickstart: see `lunia_core/README.md` (`python scripts/preflight.py`, `python -m flask --app app.services.api.flask_app run`).
@@ -54,7 +76,15 @@ make ps       # service status
 make build    # build images
 make deploy   # idempotent VPS deploy wrapper
 make verify   # guard + preflight + health checks
+make rc-verify # guard + preflight + compileall + placeholders + compose lint + pytest + local smoke (OFFLINE_CI=1 for wheelhouse path)
 make smoke    # domain-based HTTPS smoke across API/auth/admin/frontend
+make local-smoke # start local Flask API + run smoke checks without docker
+make test-api # pytest RBAC/auth/branding contract tests
+make wheelhouse # download wheels + freeze snapshot for offline install
+make install-backend-offline # install backend from local wheelhouse only
+make offline-verify # install from wheelhouse, run contract tests + local smoke
+make no-placeholders # fail on TODO/placeholder markers outside allowlist
+make no-dead-controls # fail on stub/disabled UI controls
 make backup   # archive data/logs/env/ACME with 14-day retention by default
 make restore BACKUP=<path>   # restore from an archive
 make uptime   # curl-based uptime probe against api.<DOMAIN> and app.<DOMAIN>
