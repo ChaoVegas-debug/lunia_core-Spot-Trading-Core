@@ -1,5 +1,7 @@
 # Lunia Core + Spot Trading Bootstrap
-
+ 
+**STATUS: RELEASE CANDIDATE (RC1) - READY FOR DEPLOYMENT**
+ 
 Stabilized snapshot of the Lunia/Aladdin trading core with RBAC/JWT auth, cockpit UI, and
 production-ready Docker stacks.
 

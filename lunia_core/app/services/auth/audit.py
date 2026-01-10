@@ -25,7 +25,7 @@ def record_audit(
         result=result,
         ip=request.headers.get("X-Forwarded-For") or request.remote_addr,
         user_agent=request.headers.get("User-Agent"),
-        metadata=metadata or {},
+        event_metadata=metadata or {},
     )
     session.add(event)
     session.commit()

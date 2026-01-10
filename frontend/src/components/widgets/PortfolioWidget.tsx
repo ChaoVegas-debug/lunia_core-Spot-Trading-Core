@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePolledResource } from '../../hooks/usePolledResource';
-import { getPortfolioSnapshot } from '../../api/endpoints';
+import { getPortfolioSnapshot } from '../../api/adapter';
+import { safeArray } from '../../utils/safe';
 import type { PortfolioAggregate } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 
@@ -60,14 +61,14 @@ export const PortfolioWidget: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {snapshot.data.positions.length === 0 && (
+                  {safeArray(snapshot.data?.positions).length === 0 && (
                     <tr>
                       <td colSpan={4} className="small">
                         No open positions
                       </td>
                     </tr>
                   )}
-                  {snapshot.data.positions.map((pos) => (
+                  {safeArray(snapshot.data?.positions).map((pos) => (
                     <tr key={pos.symbol}>
                       <td>{pos.symbol}</td>
                       <td>{pos.quantity}</td>
@@ -89,14 +90,14 @@ export const PortfolioWidget: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {snapshot.data.balances.length === 0 && (
+                  {safeArray(snapshot.data?.balances).length === 0 && (
                     <tr>
                       <td colSpan={3} className="small">
                         No balances reported
                       </td>
                     </tr>
                   )}
-                  {snapshot.data.balances.map((bal) => (
+                  {safeArray(snapshot.data?.balances).map((bal) => (
                     <tr key={bal.asset}>
                       <td>{bal.asset}</td>
                       <td>{bal.free}</td>

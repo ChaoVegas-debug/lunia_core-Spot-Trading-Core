@@ -12,7 +12,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint src --ext ts,tsx --max-warnings=0",
     "preview": "vite preview",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc --noEmit",
+    "test:parity": "ts-node --esm scripts/test-parity.ts"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -20,6 +21,8 @@
     "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.5",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
@@ -28,7 +31,10 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
-    "typescript": "^5.3.3",
+    "playwright": "^1.57.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
     "vite": "^5.1.0"
   }
 }

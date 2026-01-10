@@ -1,0 +1,115 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4] [cursor=pointer]: PREVIEW MODE | SIMULATION
+  - generic [ref=e6]:
+    - generic [ref=e7]: ADMIN_DEBUG
+    - generic [ref=e8]: "|"
+    - generic [ref=e9]:
+      - text: "TIER:"
+      - strong [ref=e10]: INSTITUTIONAL
+      - text: (INST_LITE)
+    - generic [ref=e11]: "|"
+    - generic [ref=e12]:
+      - text: "AUTO_BETA:"
+      - strong [ref=e13]: "OFF"
+    - generic [ref=e14]: "|"
+    - generic [ref=e15]:
+      - text: "AUTO_ALLOWED:"
+      - strong [ref=e16]: "TRUE"
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - strong [ref=e20]: "Mode:"
+        - text: MANUAL
+      - generic [ref=e21]:
+        - strong [ref=e22]: "Global stop:"
+        - text: "false"
+      - generic [ref=e23]:
+        - strong [ref=e24]: "Health:"
+        - text: ok
+      - generic [ref=e25]:
+        - strong [ref=e26]: "Uptime:"
+        - text: 2.0 min
+    - generic [ref=e27]:
+      - button "⚡ Preview Mode" [ref=e28] [cursor=pointer]
+      - generic [ref=e29]:
+        - text: Livestatus
+        - generic [ref=e30]: Updated 6:24:42 PM
+      - generic [ref=e31]: "API base: http://localhost:8080"
+      - generic [ref=e32]: "Role: ADMIN"
+  - generic [ref=e33]:
+    - heading "LUNIA TERMINAL" [level=3] [ref=e34]
+    - navigation [ref=e35]:
+      - generic [ref=e36]:
+        - generic [ref=e37]: Trading
+        - link "Dashboard" [ref=e38] [cursor=pointer]:
+          - /url: /trader
+        - link "Portfolio" [ref=e39] [cursor=pointer]:
+          - /url: /portfolio
+        - link "Risk" [ref=e40] [cursor=pointer]:
+          - /url: /risk
+        - link "Strategies" [ref=e41] [cursor=pointer]:
+          - /url: /strategies
+      - generic [ref=e42]:
+        - generic [ref=e43]: Management
+        - link "Account" [ref=e44] [cursor=pointer]:
+          - /url: /account
+        - link "Exchange Keys" [ref=e45] [cursor=pointer]:
+          - /url: /exchange-keys
+      - generic [ref=e46]:
+        - generic [ref=e47]: System
+        - link "Fund Panel" [ref=e48] [cursor=pointer]:
+          - /url: /fund
+        - link "Admin Panel" [ref=e49] [cursor=pointer]:
+          - /url: /admin
+        - link "System status" [ref=e50] [cursor=pointer]:
+          - /url: /system
+        - link "Docs" [ref=e51] [cursor=pointer]:
+          - /url: /docs
+      - generic [ref=e52]:
+        - generic [ref=e53]: Preview / Dev
+        - link "Fund Ops (Inst)" [ref=e54] [cursor=pointer]:
+          - /url: /fund
+        - link "UI Gallery" [ref=e55] [cursor=pointer]:
+          - /url: /preview/surfaces
+        - link "Onboarding" [ref=e56] [cursor=pointer]:
+          - /url: /getting-started
+  - generic [ref=e57]:
+    - generic [ref=e58]:
+      - generic [ref=e59]: "Current role: ADMIN"
+      - button "Logout" [ref=e60] [cursor=pointer]
+    - generic [ref=e61]:
+      - banner [ref=e62]:
+        - generic [ref=e63]:
+          - heading "PORTFOLIO ENGINE" [level=1] [ref=e64]
+          - generic [ref=e65]: Lifecycle Management & Construction
+        - generic [ref=e66]:
+          - button "Active Portfolios" [ref=e67] [cursor=pointer]
+          - button "Create New" [active] [ref=e68] [cursor=pointer]
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]: 1. Configuration
+          - generic [ref=e72]: 2. Asset Selection
+          - generic [ref=e73]: 3. AI Analysis
+          - generic [ref=e74]: 4. Deploy
+        - generic [ref=e76]:
+          - 'heading "Step 1: Portfolio Configuration" [level=3] [ref=e77]'
+          - generic [ref=e78]:
+            - text: Investment Horizon
+            - combobox [ref=e79]:
+              - option "Short Term (1 Week)"
+              - option "Medium Term (1 Month)" [selected]
+              - option "Long Term (1 Year)"
+          - generic [ref=e80]:
+            - text: Risk Profile
+            - combobox [ref=e81]:
+              - option "SHIELD (Conservative)"
+              - option "BALANCED (Moderate)" [selected]
+              - option "ROCKET (Aggressive)"
+          - 'button "Next: Asset Selection →" [ref=e82] [cursor=pointer]'
+    - contentinfo [ref=e83]:
+      - generic [ref=e84]: "Build: dev"
+      - generic [ref=e85]: "API: http://localhost:8080"
+```

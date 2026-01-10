@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePolledResource } from '../../hooks/usePolledResource';
-import { getFlags, updateFlag } from '../../api/endpoints';
+import { getFlags, updateFlag } from '../../api/adapter';
 import type { FeatureFlag } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 
@@ -9,7 +9,7 @@ export const FeatureFlagsWidget: React.FC = () => {
   const auth = useAuth();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
   const [refreshKey, setRefreshKey] = useState(0);
-  const flags = usePolledResource<{ items: FeatureFlag[] }>((signal) => getFlags(signal, client), 12000, [auth.role, refreshKey]);
+  const flags = usePolledResource<FeatureFlag[]>((signal) => getFlags(signal, client), 12000, [auth.role, refreshKey]);
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export const FeatureFlagsWidget: React.FC = () => {
     setError(null);
     try {
       const controller = new AbortController();
-      await updateFlag(key, { value: editing[key] ?? '' }, controller.signal, client);
+      await updateFlag(key, editing[key] ?? '', controller.signal, client);
       setRefreshKey((v) => v + 1);
     } catch (err) {
       setError((err as Error).message);
@@ -45,7 +45,7 @@ export const FeatureFlagsWidget: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {flags.data.items.map((flag) => (
+            {flags.data.map((flag) => (
               <tr key={flag.key}>
                 <td>{flag.key}</td>
                 <td>

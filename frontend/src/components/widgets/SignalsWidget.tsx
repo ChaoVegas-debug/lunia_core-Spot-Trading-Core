@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePolledResource } from '../../hooks/usePolledResource';
-import { getArbOpps, getSignalsFeed } from '../../api/endpoints';
+import { getArbOpps, getSignalsFeed } from '../../api/adapter';
+import { safeArray } from '../../utils/safe';
 import type { ArbitrageOpportunities, SignalsFeed } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 
@@ -26,9 +27,9 @@ export const SignalsWidget: React.FC = () => {
         </div>
         <DataStatus loading={signals.loading} error={signals.error} lastUpdated={signals.lastUpdated} staleAfterMs={20000} />
       </div>
-      {signals.data && signals.data.items.length > 0 ? (
+      {safeArray(signals.data?.items).length > 0 ? (
         <ul className="list">
-          {signals.data.items.map((item) => (
+          {safeArray(signals.data?.items).map((item) => (
             <li key={`${item.ts}-${item.symbol}-${item.strategy}`} className="list-row">
               <div>
                 <div className="small">{new Date(item.ts).toLocaleTimeString()} • {item.strategy}</div>
@@ -53,9 +54,9 @@ export const SignalsWidget: React.FC = () => {
           </div>
           <DataStatus loading={opps.loading} error={opps.error} lastUpdated={opps.lastUpdated} staleAfterMs={30000} />
         </div>
-        {opps.data && opps.data.opportunities.length > 0 ? (
+        {safeArray(opps.data?.opportunities).length > 0 ? (
           <ul className="list">
-            {opps.data.opportunities.map((opp, idx) => (
+            {safeArray(opps.data?.opportunities).map((opp, idx) => (
               <li key={idx} className="list-row">
                 <div className="small">{JSON.stringify(opp)}</div>
               </li>

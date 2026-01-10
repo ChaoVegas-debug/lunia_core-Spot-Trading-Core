@@ -5,10 +5,14 @@ import json
 import logging
 import os
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from app.compat.dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    from app.compat.dotenv import load_dotenv
 
 from .metrics import (
     arb_filter_changes_total,
@@ -90,9 +94,33 @@ _DEFAULT_OPS = {
     }
 }
 
+_DEFAULT_EXCHANGES = {
+    "binance": {"enabled": True, "allocation": 0.4},
+    "okx": {"enabled": True, "allocation": 0.3},
+    "bybit": {"enabled": False, "allocation": 0.0},
+    "kraken": {"enabled": False, "allocation": 0.0},
+}
+
+_DEFAULT_EXCHANGE_KEYS = {
+    # exchange_id -> {api_key, api_secret (masked), passphrase, env}
+}
+
+_DEFAULT_PORTFOLIO_DRAFT = {
+    "config": {},
+    "assets": [],
+    "ai_analysis": None
+}
+
+_DEFAULT_PORTFOLIO = {
+    # Map of ID -> Portfolio Definition
+    "definitions": {} 
+}
+
 _DEFAULT_STATE: Dict[str, Any] = {
     "auto_mode": os.getenv("AUTO_MODE", "true").lower() == "true",
     "global_stop": os.getenv("GLOBAL_STOP", "false").lower() == "true",
+    "system_mode": "MANUAL", # Master Traceability
+    "strategies": {"active_profile": "BALANCED"}, # Master Traceability
     "trading_on": True,
     "agent_on": True,
     "arb_on": True,
@@ -106,7 +134,12 @@ _DEFAULT_STATE: Dict[str, Any] = {
     "spot": deepcopy(_DEFAULT_SPOT),
     "reserves": deepcopy(_DEFAULT_RESERVES),
     "ops": deepcopy(_DEFAULT_OPS),
+    "exchanges": deepcopy(_DEFAULT_EXCHANGES),
+    "exchange_keys": deepcopy(_DEFAULT_EXCHANGE_KEYS),
+    "portfolios": deepcopy(_DEFAULT_PORTFOLIO),
+    "portfolio_draft": deepcopy(_DEFAULT_PORTFOLIO_DRAFT), # New
 }
+
 
 _CURRENT_STATE: Dict[str, Any] | None = None
 
@@ -231,6 +264,46 @@ def _apply_ops_update(state: Dict[str, Any], payload: Dict[str, Any]) -> None:
     state["ops"] = ops_state
 
 
+def _apply_exchange_update(state: Dict[str, Any], payload: Dict[str, Any]) -> None:
+    ex_state = state.get("exchanges") or deepcopy(_DEFAULT_EXCHANGES)
+    for exchange_id, config in payload.items():
+        if isinstance(config, dict) and exchange_id in ex_state:
+            current = ex_state[exchange_id]
+            for key, value in config.items():
+                if key == "allocation":
+                    try:
+                        val = float(value)
+                        current[key] = max(0.0, min(1.0, val))
+                    except (ValueError, TypeError):
+                        continue
+                elif key == "enabled":
+                    current[key] = bool(value)
+                ops_state_changes_total.labels(key=f"exchanges.{exchange_id}.{key}").inc()
+    state["exchanges"] = ex_state
+
+
+def _apply_exchange_keys_update(state: Dict[str, Any], payload: Dict[str, Any]) -> None:
+    keys_state = state.get("exchange_keys") or {}
+    exchange_id = payload.get("exchange_id")
+    if not exchange_id:
+        return
+        
+    # We store the keys. In prod this should be Vault.
+    # Here we just store them in the state file (Task Requirement).
+    keys_state[exchange_id] = {
+        "api_key": payload.get("api_key"),
+        "api_secret": payload.get("api_secret"),
+        "passphrase": payload.get("passphrase"),
+        "is_testnet": payload.get("is_testnet", False),
+        "updated_at": datetime.utcnow().isoformat(),
+        "status": "CONNECTED" 
+    }
+    state["exchange_keys"] = keys_state
+    logger.info("state update exchange_keys.%s updated", exchange_id)
+    ops_state_changes_total.labels(key=f"exchange_keys.{exchange_id}").inc()
+
+
+
 def _parse_filter_value(key: str, value: object, current: Dict[str, Any]) -> Any | None:
     if key in {"min_net_roi_pct", "max_net_roi_pct", "min_net_usd"}:
         try:
@@ -294,6 +367,14 @@ def set_state(update: Dict[str, Any]) -> Dict[str, Any]:
             continue
         if key == "reserves" and isinstance(value, dict):
             _apply_reserve_update(state, value)
+            changed[key] = deepcopy(state[key])
+            continue
+        if key == "exchanges" and isinstance(value, dict):
+            _apply_exchange_update(state, value)
+            changed[key] = deepcopy(state[key])
+            continue
+        if key == "exchange_keys" and isinstance(value, dict):
+            _apply_exchange_keys_update(state, value)
             changed[key] = deepcopy(state[key])
             continue
         if key == "ops" and isinstance(value, dict):
