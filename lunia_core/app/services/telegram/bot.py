@@ -201,7 +201,7 @@ def spot_status() -> Dict[str, object]:
 
 
 def build_status_report() -> str:
-    active = {name: cfg for name, cfg in supervisor.price_history.__dict__.items() if cfg}
+    active = {name: cfg for name, cfg in supervisor.price_history.items() if cfg}
     report = ["<b>Lunia Status</b>", _format_state()]
     positions = agent.portfolio.positions
     if positions:

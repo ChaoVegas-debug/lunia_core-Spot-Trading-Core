@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { hasControlAccess, useAuth } from '../../hooks/useAuth';
-import { postAutoOff, postAutoOn, postStartAll, postStopAll } from '../../api/endpoints';
+import { postAutoOff, postAutoOn, postStartAll, postStopAll } from '../../api/adapter';
 import { APIError } from '../../api/errors';
 import { addAuditEntry } from '../../utils/auditLog';
 

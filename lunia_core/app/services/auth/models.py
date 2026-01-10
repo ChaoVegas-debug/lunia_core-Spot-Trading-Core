@@ -65,6 +65,6 @@ class AuditEvent(Base):
     result = Column(String(16), nullable=False, default="OK")
     ip = Column(String(64), nullable=True)
     user_agent = Column(String(255), nullable=True)
-    metadata = Column(JSONType, nullable=True)
+    event_metadata = Column("metadata", JSONType, nullable=True)
 
     actor = relationship("User", back_populates="audit_events")

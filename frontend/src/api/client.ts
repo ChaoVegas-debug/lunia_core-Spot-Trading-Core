@@ -55,3 +55,12 @@ export async function apiFetch<T>(
 export function apiBaseUrl(): string {
   return DEFAULT_API_BASE;
 }
+
+export function buildClient(auth: { role: Role; adminToken?: string; opsToken?: string; bearerToken?: string }): ClientOptions {
+  return {
+    role: auth.role,
+    adminToken: auth.adminToken,
+    opsToken: auth.opsToken,
+    bearerToken: auth.bearerToken
+  };
+}

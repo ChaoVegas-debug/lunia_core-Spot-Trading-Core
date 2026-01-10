@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/neomind/alladin/lunia_core-Spot-Trading-Core/lunia_core/app/services/api/flask_app.py", line 22, in <module>
+    from ...boot import CORES
+ImportError: attempted relative import with no known parent package

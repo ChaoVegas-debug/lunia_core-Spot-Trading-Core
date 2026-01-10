@@ -9,10 +9,13 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 BASE_DIR = Path(__file__).resolve().parents[3]
 DATA_DIR = BASE_DIR / "data"
+print(f"DEBUG: BASE_DIR={BASE_DIR}")
+print(f"DEBUG: DATA_DIR={DATA_DIR}")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_SQLITE_PATH = DATA_DIR / "lunia.db"
 DATABASE_URL = os.getenv("DATABASE_URL") or f"sqlite:///{DEFAULT_SQLITE_PATH}"
+print(f"DEBUG: DATABASE_URL={DATABASE_URL}")
 DB_MODE = os.getenv("DB_MODE", "sqlite")
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}

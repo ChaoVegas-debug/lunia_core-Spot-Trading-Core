@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePolledResource } from '../../hooks/usePolledResource';
-import { getLogs } from '../../api/endpoints';
+import { getLogs } from '../../api/adapter';
 import type { LogsResponse } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 import { UiAuditEntry, addAuditEntry, subscribeAudit } from '../../utils/auditLog';

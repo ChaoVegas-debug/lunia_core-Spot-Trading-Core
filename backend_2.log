@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/neomind/alladin/lunia_core-Spot-Trading-Core/lunia_core/app/services/api/flask_app.py", line 20, in <module>
+    from sqlalchemy.orm import Session
+ModuleNotFoundError: No module named 'sqlalchemy'

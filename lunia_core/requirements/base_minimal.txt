@@ -10,6 +10,9 @@ prometheus-client>=0.17.0
 #  - apscheduler is used for scheduling background tasks.
 #  - sqlalchemy provides the ORM and database abstractions.
 apscheduler>=3.10
-sqlalchemy>=1.4
+sqlalchemy>=1.4,<2.0
 pyjwt>=2.8
 passlib[bcrypt]>=1.7
+bcrypt<4.0
+setuptools
+wheel

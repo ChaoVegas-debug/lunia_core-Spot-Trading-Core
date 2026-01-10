@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePolledResource } from '../../hooks/usePolledResource';
-import { getAudit } from '../../api/endpoints';
-import type { AuditEvent } from '../../api/types';
+import { getAudit } from '../../api/adapter';
+import type { SystemEvent } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 
 export const AuditWidget: React.FC = () => {
   const auth = useAuth();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
-  const [filters, setFilters] = useState<{ actor?: string; action?: string; result?: string }>({});
-  const audit = usePolledResource<{ items: AuditEvent[] }>(
-    (signal) => getAudit(signal, client, { limit: 100, ...filters }),
+
+  // Note: getAudit (alias for getSystemEvents) returns { items: SystemEvent[] }
+  const audit = usePolledResource<{ items: SystemEvent[] }>(
+    (signal) => getAudit(signal, client),
     12000,
-    [auth.role, filters]
+    [auth.role]
   );
 
   return (
@@ -24,34 +25,24 @@ export const AuditWidget: React.FC = () => {
         </div>
         <DataStatus loading={audit.loading} error={audit.error} lastUpdated={audit.lastUpdated} staleAfterMs={15000} />
       </div>
-      <div className="grid cols-3" style={{ gap: 8 }}>
-        <input value={filters.actor ?? ''} onChange={(e) => setFilters((prev) => ({ ...prev, actor: e.target.value }))} placeholder="actor role" />
-        <input value={filters.action ?? ''} onChange={(e) => setFilters((prev) => ({ ...prev, action: e.target.value }))} placeholder="action" />
-        <select value={filters.result ?? ''} onChange={(e) => setFilters((prev) => ({ ...prev, result: e.target.value || undefined }))}>
-          <option value="">all</option>
-          <option value="OK">OK</option>
-          <option value="FAIL">FAIL</option>
-        </select>
-      </div>
-      {audit.data ? (
+
+      {audit.data && audit.data.items ? (
         <table className="table" style={{ marginTop: 8 }}>
           <thead>
             <tr>
               <th>Time</th>
-              <th>Actor</th>
-              <th>Action</th>
-              <th>Target</th>
-              <th>Result</th>
+              <th>Type</th>
+              <th>Payload</th>
             </tr>
           </thead>
           <tbody>
-            {audit.data.items.map((ev) => (
+            {audit.data.items.slice().reverse().map((ev) => (
               <tr key={ev.id}>
-                <td className="small">{ev.ts}</td>
-                <td>{ev.actor_role ?? 'n/a'}</td>
-                <td>{ev.action}</td>
-                <td>{ev.target ?? ''}</td>
-                <td>{ev.result}</td>
+                <td className="small">{new Date(ev.timestamp).toLocaleTimeString()}</td>
+                <td>{ev.type}</td>
+                <td className="code tiny" style={{ maxWidth: '300px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  {JSON.stringify(ev.payload)}
+                </td>
               </tr>
             ))}
           </tbody>

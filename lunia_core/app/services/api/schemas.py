@@ -308,4 +308,85 @@ class AuditEventSchema(BaseModel):
     result: str
     ip: Optional[str]
     user_agent: Optional[str]
-    metadata: Optional[Dict[str, Any]]
+
+# -------- Admin Panel Schemas --------
+
+class RoleUpdate(BaseModel):
+    role: str
+
+    @validator("role")
+    def validate_role(cls, v: str) -> str:
+        if v not in {"USER", "TRADER", "FUND", "ADMIN"}:
+            raise ValueError("Invalid role")
+        return v
+
+
+class TenantConfig(BaseModel):
+    name: str = "Default Tenant"
+    plan: str = "INSTITUTIONAL"
+    limits: Dict[str, Any] = Field(default_factory=dict)
+    branding: Dict[str, Any] = Field(default_factory=dict)
+    feature_flags: Dict[str, Any] = Field(default_factory=dict)
+
+
+class AdminOverview(BaseModel):
+    total_tenants: int
+    total_users: int
+    active_sessions: int
+    system_health: Dict[str, str]
+    alerts: List[Dict[str, Any]]
+
+
+# -------- Portfolio & Traceability Models --------
+
+class PortfolioConfig(BaseModel):
+    horizon: str
+    risk_profile: str
+
+class PortfolioAssets(BaseModel):
+    assets: List[str]
+
+class PortfolioAnalysisRequest(BaseModel):
+    config: PortfolioConfig
+    assets: List[str]
+
+class PortfolioDefinition(BaseModel):
+    id: str
+    type: str # 'LONG_TERM' | 'TACTICAL'
+    risk_profile: str
+    horizon: str
+    assets: List[Dict[str, Any]] # AssetCard
+    status: str # 'ACTIVE' | 'PAUSED' | 'DE_RISKING'
+    base_currency: str
+    total_capital_allocation: float
+    created_at: str
+
+class PortfolioAction(BaseModel):
+    action: str # 'PAUSE' | 'RESUME' | 'DERISK' | 'REBALANCE'
+
+class SystemModeRequest(BaseModel):
+    mode: str # 'MANUAL' | 'SEMI' | 'AUTO' | 'STOP'
+
+class StrategyProfileRequest(BaseModel):
+    profile: str # 'SHIELD' | 'BALANCED' | 'ROCKET'
+
+class ManualTradeIntent(BaseModel):
+    exchange_id: str
+    symbol: str
+    side: str
+    amount_usd: float
+    strategy_id: Optional[str] = None
+    risk_notes: Optional[str] = None
+
+class ExchangeKeyRequest(BaseModel):
+    exchange_id: str
+    api_key: str
+    api_secret: str
+    passphrase: Optional[str] = None
+    is_testnet: bool = False
+    
+    @validator("exchange_id")
+    def validate_exchange(cls, v: str) -> str:
+        if v.lower() not in {"binance", "okx", "bybit", "kraken"}:
+            raise ValueError("Invalid exchange ID")
+        return v.lower()

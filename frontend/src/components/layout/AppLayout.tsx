@@ -4,6 +4,9 @@ import { Nav } from './Nav';
 import { StatusStrip } from './StatusStrip';
 import { useAuth } from '../../hooks/useAuth';
 import { apiBaseUrl } from '../../api/client';
+import { TourHelper } from '../common/TourHelper';
+import { TierDebugBanner } from '../widgets/admin/TierDebugBanner';
+import { PreviewStatusBadge } from '../widgets/PreviewStatusBadge';
 
 const buildInfo = import.meta.env.VITE_APP_BUILD || 'dev';
 
@@ -11,6 +14,8 @@ export const AppLayout: React.FC = () => {
   const { logout, role } = useAuth();
   return (
     <div className="layout">
+      <PreviewStatusBadge />
+      <TierDebugBanner />
       <StatusStrip />
       <Nav />
       <div className="content">
@@ -26,6 +31,7 @@ export const AppLayout: React.FC = () => {
           <span className="small">API: {apiBaseUrl()}</span>
         </footer>
       </div>
+      <TourHelper />
     </div>
   );
 };

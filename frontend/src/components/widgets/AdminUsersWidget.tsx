@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePolledResource } from '../../hooks/usePolledResource';
-import { createUser, getUsers, updateUser } from '../../api/endpoints';
+import { createUser, getUsers, updateUser } from '../../api/adapter';
 import type { UserProfile } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 
@@ -9,8 +9,8 @@ export const AdminUsersWidget: React.FC = () => {
   const auth = useAuth();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
   const [refreshKey, setRefreshKey] = useState(0);
-  const users = usePolledResource<{ items: UserProfile[] }>((signal) => getUsers(signal, client), 15000, [auth.role, refreshKey]);
-
+  const users = usePolledResource<UserProfile[]>((signal) => getUsers(signal, client), 15000, [auth.role, refreshKey]);
+  const [editing, setEditing] = useState<Record<string, string>>({});
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserProfile['role']>('USER');
@@ -78,7 +78,7 @@ export const AdminUsersWidget: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {users.data.items.map((user) => (
+            {users.data.map((user) => (
               <tr key={user.id}>
                 <td>{user.email}</td>
                 <td>{user.role}</td>
