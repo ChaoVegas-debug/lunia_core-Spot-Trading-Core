@@ -3,10 +3,12 @@ import { usePolledResource } from '../../hooks/usePolledResource';
 import { getSystemEvents } from '../../api/adapter';
 import { useAuth } from '../../hooks/useAuth';
 import { usePreview } from '../../hooks/usePreview'; // New hook import
+import { useDashboard } from '../../context/DashboardContext';
 import type { SystemEvent } from '../../api/types';
 
 export const AdminIncidentsPage: React.FC = () => {
     const auth = useAuth();
+    const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken };
     const { isPreview, previewStore } = usePreview();
     const { data: events, loading, refresh } = usePolledResource<{ items: SystemEvent[] }>((s) => getSystemEvents(s, client), 5000, [auth.role]);
@@ -25,7 +27,7 @@ export const AdminIncidentsPage: React.FC = () => {
         if (isPreview) {
             previewStore.resolveIncident(id);
         } else {
-            alert('Incident Resolution not yet wired to Backend API.');
+            addToast({ type: 'WARNING', message: 'Incident Resolution not yet wired to Backend API.' });
         }
     };
 

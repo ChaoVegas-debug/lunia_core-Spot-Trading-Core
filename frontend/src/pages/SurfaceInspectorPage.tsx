@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useDashboard } from '../context/DashboardContext';
 
 interface InventoryItem {
     name: string;
@@ -52,6 +53,7 @@ const INVENTORY: InventoryItem[] = [
 
 export const SurfaceInspectorPage: React.FC = () => {
     const navigate = useNavigate();
+    const { addToast } = useDashboard();
     const [filterDomain, setFilterDomain] = useState<string>('ALL');
     const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
@@ -131,10 +133,10 @@ export const SurfaceInspectorPage: React.FC = () => {
                         <h3>Simulation Seeding</h3>
                     </div>
                     <div className="p-4 flex flex-wrap gap-2">
-                        <button className="button secondary" onClick={() => alert('Reset to Seed 1337')}>Reset Seed</button>
-                        <button className="button secondary" onClick={() => alert('Seeded Trader Data')}>Seed: TRADER</button>
-                        <button className="button secondary" onClick={() => alert('Seeded Risk Data')}>Seed: RISK</button>
-                        <button className="button secondary" onClick={() => alert('Seeded Fund KPI Data')}>Seed: FUND</button>
+                        <button className="button secondary" onClick={() => addToast({ type: 'INFO', message: 'Reset to Seed 1337' })}>Reset Seed</button>
+                        <button className="button secondary" onClick={() => addToast({ type: 'INFO', message: 'Seeded Trader Data' })}>Seed: TRADER</button>
+                        <button className="button secondary" onClick={() => addToast({ type: 'INFO', message: 'Seeded Risk Data' })}>Seed: RISK</button>
+                        <button className="button secondary" onClick={() => addToast({ type: 'INFO', message: 'Seeded Fund KPI Data' })}>Seed: FUND</button>
                     </div>
                 </div>
 
