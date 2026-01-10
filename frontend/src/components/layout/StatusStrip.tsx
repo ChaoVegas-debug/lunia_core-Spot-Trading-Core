@@ -4,9 +4,11 @@ import { usePolledResource } from '../../hooks/usePolledResource';
 import { getHealth, getOpsState, getStatus } from '../../api/adapter';
 import { apiBaseUrl } from '../../api/client';
 import { DataStatus } from '../common/DataStatus';
+import { useDashboard } from '../../context/DashboardContext';
 
 export const StatusStrip: React.FC = () => {
   const auth = useAuth();
+  const { toggleDiagnostics, showDiagnostics, addToast } = useDashboard();
   const client = {
     role: auth.role,
     adminToken: auth.adminToken,
@@ -18,42 +20,48 @@ export const StatusStrip: React.FC = () => {
   const ops = usePolledResource((signal) => getOpsState(signal, client), 8000, [auth.role]);
 
   const stale = ops.lastUpdated ? Date.now() - ops.lastUpdated > 12000 : false;
+  const isHealthy = health.data?.status === 'ok';
 
   return (
     <div className="topbar">
-      <div className="flex-row" style={{ gap: 12 }}>
-        <span><strong>Mode:</strong> {ops.data?.auto_mode ? 'AUTO' : 'MANUAL'}</span>
-        <span><strong>Global stop:</strong> {String(ops.data?.global_stop ?? false)}</span>
-        <span><strong>Health:</strong> {health.data?.status ?? 'unknown'}</span>
-        <span><strong>Uptime:</strong> {status.data ? `${(status.data.uptime / 60).toFixed(1)} min` : 'n/a'}</span>
+      <div className="flex-row" style={{ gap: 12, alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: isHealthy ? '#22c55e' : '#ef4444' }} />
+          <span className="tiny font-bold uppercase">{isHealthy ? 'SYSTEM ONLINE' : 'DISCONNECTED'}</span>
+        </div>
+        <div className="separator" style={{ width: 1, height: 16, background: '#333' }}></div>
+        <span><strong>Mode:</strong> <span className={ops.data?.auto_mode ? 'text-primary' : 'text-muted'}>{ops.data?.auto_mode ? 'AUTO' : 'MANUAL'}</span></span>
+        <span><strong>Stop:</strong> <span className={ops.data?.global_stop ? 'text-danger' : 'text-muted'}>{String(ops.data?.global_stop ?? false)}</span></span>
+        <span><strong>Uptime:</strong> {status.data ? `${(status.data.uptime / 60).toFixed(1)}m` : '-'}</span>
         {stale && <span className="status-chip warn">data stale</span>}
       </div>
       <div className="flex-row" style={{ gap: 12, alignItems: 'center' }}>
         <button
-          className="button small"
-          style={{
-            border: '1px solid var(--accent-primary)',
-            color: 'var(--accent-primary)',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)'
-          }}
+          className={`button tiny ${showDiagnostics ? 'active' : 'ghost'}`}
+          onClick={toggleDiagnostics}
+          title="Toggle API Wiring Inspector"
+        >
+          🐞 DIAG
+        </button>
+
+        <button
+          className="button tiny outline"
           onClick={async () => {
             if (window.confirm("Enter Preview Mode? This will RESET data and seed a demo state.")) {
               try {
                 const { postSeedDemo } = await import('../../api/endpoints');
-                // No signal needed for fire-and-forget/reload
                 await postSeedDemo(new AbortController().signal, client);
-                window.location.reload();
+                addToast({ type: 'SUCCESS', message: 'Preview Mode Seeded. Reloading...' });
+                setTimeout(() => window.location.reload(), 1000);
               } catch (e) {
-                alert("Failed to enter Preview Mode");
+                addToast({ type: 'ERROR', message: "Failed to enter Preview Mode" });
               }
             }
           }}
         >
-          ⚡ Preview Mode
+          ⚡ RSIM
         </button>
-        <DataStatus loading={status.loading} error={status.error} lastUpdated={status.lastUpdated} staleAfterMs={12000} label="status" />
-        <span className="small">API base: {apiBaseUrl()}</span>
-        <span className="small">Role: {auth.role}</span>
+        <span className="small muted">v{import.meta.env.VITE_APP_BUILD || 'dev'}</span>
       </div>
     </div>
   );

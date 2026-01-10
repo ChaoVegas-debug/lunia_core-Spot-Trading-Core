@@ -10,8 +10,8 @@ import {
 import type { StrategyConfig } from '../api/types';
 import { useLocation } from 'react-router-dom';
 import { StrategyPerformanceMetrics } from '../components/widgets/StrategyPerformanceMetrics';
-import { journalStore } from '../store/JournalStore';
 import { usePreview } from '../hooks/usePreview';
+import { useDashboard } from '../context/DashboardContext';
 import { StrategyOrdersDrawer } from '../components/drawers/StrategyOrdersDrawer';
 import { DuplicateStrategyModal } from '../components/modals/DuplicateStrategyModal';
 
@@ -19,6 +19,7 @@ export const StrategiesPage: React.FC = () => {
     const auth = useAuth();
     const location = useLocation() as { state: any };
     const { isPreview, previewStore } = usePreview();
+    const { addToast } = useDashboard();
 
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
@@ -43,17 +44,21 @@ export const StrategiesPage: React.FC = () => {
     const [duplicateStrategy, setDuplicateStrategy] = useState<StrategyConfig | null>(null);
 
     const handleProfile = async (profile: 'SHIELD' | 'BALANCED' | 'ROCKET') => {
-        if (!confirm(`Switch entire strategy profile to ${profile}? This will adjust all weights.`)) return;
+        // if (!confirm(`Switch entire strategy profile to ${profile}? This will adjust all weights.`)) return;
         setLoading(true);
         try {
             if (isPreview) {
-                journalStore.addLog('MODE_CHANGE', `Profile Switched to ${profile} (SIM)`, 'HUMAN');
-                // Could implement profile logic in previewStore if detailed simulation needed
+                // journalStore.addLog('MODE_CHANGE', `Profile Switched to ${profile} (SIM)`, 'HUMAN');
+                previewStore.deployStrategy(profile, 0.2); // Mock helper with default weight
+                addToast({ type: 'SUCCESS', message: `Profile switched to ${profile}` });
             } else {
                 await setStrategyProfile(profile, new AbortController().signal, client);
+                addToast({ type: 'SUCCESS', message: `Profile switched to ${profile}` });
             }
             strategiesResource.refresh();
-        } catch (e) { alert(String(e)); } finally { setLoading(false); }
+        } catch (e) {
+            addToast({ type: 'ERROR', message: `Failed: ${String(e)}` });
+        } finally { setLoading(false); }
     };
 
     const handleHalt = async () => {
@@ -62,11 +67,13 @@ export const StrategiesPage: React.FC = () => {
         try {
             if (isPreview) {
                 previewStore.flattenPortfolio(); // Reuse flatten as "Halt" or setGlobalStop
+                addToast({ type: 'WARNING', message: "All Strategies HALTED (Simulated)" });
             } else {
                 await haltStrategies(new AbortController().signal, client);
+                addToast({ type: 'WARNING', message: "All Strategies HALTED" });
             }
             strategiesResource.refresh();
-        } catch (e) { alert(String(e)); } finally { setLoading(false); }
+        } catch (e) { addToast({ type: 'ERROR', message: String(e) }); } finally { setLoading(false); }
     };
 
     const toggleStrategy = async (id: string, currentEnabled: boolean, weight: number) => {
@@ -74,20 +81,21 @@ export const StrategiesPage: React.FC = () => {
         try {
             if (isPreview) {
                 previewStore.toggleStrategy(id, !currentEnabled);
+                addToast({ type: 'INFO', message: `Strategy ${id} ${!currentEnabled ? 'Enabled' : 'Paused'}` });
             } else {
                 await updateStrategies([{ id, enabled: !currentEnabled, weight }], new AbortController().signal, client);
+                addToast({ type: 'INFO', message: `Strategy ${id} updated` });
             }
             strategiesResource.refresh();
-        } catch (e) { alert(String(e)); } finally { setLoading(false); }
+        } catch (e) { addToast({ type: 'ERROR', message: String(e) }); } finally { setLoading(false); }
     };
 
     const handleSimulate = (id: string) => {
         if (isPreview) {
             previewStore.simulateStrategyRun(id);
-            alert(`Simulation Run Triggered for ${id}. Check Audit Log.`);
+            addToast({ type: 'SUCCESS', message: `Simulation run for ${id}` });
         } else {
-            // Check if backend supports sim? If not, show unavailable
-            alert("Simulation endpoint not available in Production Env.");
+            addToast({ type: 'WARNING', message: "Simulation endpoint not available in Production Env." });
         }
     };
 
@@ -100,8 +108,9 @@ export const StrategiesPage: React.FC = () => {
         if (isPreview) {
             previewStore.archiveStrategy(id);
             strategiesResource.refresh();
+            addToast({ type: 'INFO', message: `Strategy ${id} archived` });
         } else {
-            alert("Archive Endpoint unavailable / not enabled in Production.");
+            addToast({ type: 'WARNING', message: "Archive Endpoint unavailable / not enabled in Production." });
         }
     };
 
@@ -109,9 +118,9 @@ export const StrategiesPage: React.FC = () => {
         if (isPreview && duplicateStrategy) {
             previewStore.duplicateStrategy(duplicateStrategy.id, newConfig);
             strategiesResource.refresh();
+            addToast({ type: 'SUCCESS', message: "Strategy Duplicated (Sim)" });
         } else {
-            // Production wiring would accept new config
-            alert("Create Strategy Endpoint unavailable / not enabled in Production.");
+            addToast({ type: 'WARNING', message: "Create Strategy Endpoint unavailable / not enabled in Production." });
         }
     };
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useDashboard } from '../context/DashboardContext';
 import { usePolledResource } from '../hooks/usePolledResource';
 import { getSystemEvents, setGlobalCapitalCap, getOpsCapital, getOpsState } from '../api/adapter';
 import { SystemEvent, OpsState } from '../api/types';
@@ -16,20 +17,22 @@ export const SystemPage: React.FC = () => {
   const [globalCapInput, setGlobalCapInput] = useState<string>('5000000');
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const { addToast } = useDashboard();
+
   const handleSetCap = async () => {
     const amount = parseFloat(globalCapInput);
     if (isNaN(amount) || amount <= 0) {
-      alert("Invalid Amount");
+      addToast({ type: 'ERROR', message: "Invalid Amount" });
       return;
     }
-    if (!confirm(`Warning: Setting Global Capital Deployment Cap to $${amount.toLocaleString()}? This will affect all strategies immediately.`)) return;
+    // if (!confirm(`Warning: Setting Global Capital Deployment Cap to $${amount.toLocaleString()}? This will affect all strategies immediately.`)) return;
 
     setIsUpdating(true);
     try {
       await setGlobalCapitalCap(amount);
-      alert("Global Cap Updated. Event logged to immutable audit trail.");
+      addToast({ type: 'SUCCESS', message: `Global Cap Set: $${amount.toLocaleString()}` });
     } catch (e) {
-      alert("Failed to update cap");
+      addToast({ type: 'ERROR', message: "Failed to update cap" });
     } finally {
       setIsUpdating(false);
     }
