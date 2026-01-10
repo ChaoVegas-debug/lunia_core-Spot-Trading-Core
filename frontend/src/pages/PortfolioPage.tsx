@@ -12,6 +12,7 @@ import {
 import type { PortfolioDefinition } from '../api/types';
 
 import { useLocation } from 'react-router-dom';
+import { useDashboard } from '../context/DashboardContext';
 
 import { PortfolioDetailDrawer } from '../components/portfolio/PortfolioDetailDrawer';
 import { AIResearchCards } from '../components/widgets/AIResearchCards';
@@ -43,14 +44,17 @@ export const PortfolioPage: React.FC = () => {
     const [analysis, setAnalysis] = useState<any>(null);
     const [loading, setLoading] = useState(false);
 
+    const { addToast } = useDashboard();
+
     const handleAction = async (e: React.MouseEvent, id: string, action: 'PAUSE' | 'RESUME' | 'DERISK' | 'REBALANCE') => {
         e.stopPropagation(); // Prevent drawer open
-        if (!confirm(`Confirm ${action} for portfolio ${id}?`)) return;
+        // if (!confirm(`Confirm ${action} for portfolio ${id}?`)) return;
         try {
             await runPortfolioAction(id, action, new AbortController().signal, client);
             portfolios.refresh();
+            addToast({ type: 'SUCCESS', message: `Portfolio ${id} ${action}ED` });
         } catch (e) {
-            alert(`Action failed: ${e}`);
+            addToast({ type: 'ERROR', message: `Action failed: ${e}` });
         }
     };
 
@@ -59,7 +63,8 @@ export const PortfolioPage: React.FC = () => {
         try {
             await setPortfolioDraftConfig(config, new AbortController().signal, client);
             setStep(2);
-        } catch (e) { alert(String(e)); } finally { setLoading(false); }
+            addToast({ type: 'INFO', message: "Configuration Set" });
+        } catch (e) { addToast({ type: 'ERROR', message: String(e) }); } finally { setLoading(false); }
     };
 
     const runStep2 = async () => {
@@ -68,7 +73,8 @@ export const PortfolioPage: React.FC = () => {
         try {
             await setPortfolioDraftAssets(assetList, new AbortController().signal, client);
             setStep(3);
-        } catch (e) { alert(String(e)); } finally { setLoading(false); }
+            addToast({ type: 'INFO', message: `Assets selected: ${assetList.length}` });
+        } catch (e) { addToast({ type: 'ERROR', message: String(e) }); } finally { setLoading(false); }
     };
 
     const runStep3 = async () => {
@@ -76,20 +82,21 @@ export const PortfolioPage: React.FC = () => {
         try {
             const result = await analyzePortfolioDraft(new AbortController().signal, client);
             setAnalysis(result);
-        } catch (e) { alert(String(e)); } finally { setLoading(false); }
+            addToast({ type: 'SUCCESS', message: "AI Analysis Complete" });
+        } catch (e) { addToast({ type: 'ERROR', message: String(e) }); } finally { setLoading(false); }
     };
 
     const runDeploy = async () => {
-        if (!confirm("Deploy this portfolio to LIVE trading?")) return;
+        // if (!confirm("Deploy this portfolio to LIVE trading?")) return;
         setLoading(true);
         try {
             await createPortfolio(new AbortController().signal, client);
-            alert("Portfolio Created Successfully!");
+            addToast({ type: 'SUCCESS', message: "Portfolio Created Successfully!" });
             setView('ACTIVE');
             setStep(1);
             setAnalysis(null);
             portfolios.refresh();
-        } catch (e) { alert(String(e)); } finally { setLoading(false); }
+        } catch (e) { addToast({ type: 'ERROR', message: String(e) }); } finally { setLoading(false); }
     };
 
     return (
