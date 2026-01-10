@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePolledResource } from '../../hooks/usePolledResource';
 import { getExchanges, updateExchange, getOpsState } from '../../api/adapter';
+import { safeArray } from '../../utils/safe';
 import type { ExchangeConfig, OpsState } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 import { useSemiAuto } from '../../hooks/useSemiAuto';
@@ -11,9 +12,11 @@ import { undoAction } from '../../api/adapter';
 import { useState } from 'react';
 import { getPlan } from '../../domain/subscription/plans';
 import { LockedFeatureModal } from '../modals/LockedFeatureModal';
+import { useDashboard } from '../../context/DashboardContext';
 
 export const ExchangeControlsWidget: React.FC = () => {
     const auth = useAuth();
+    const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
     const { data, error, loading, lastUpdated } = usePolledResource<ExchangeConfig[]>((signal) => getExchanges(signal, client), 5000, [auth.role]);
@@ -51,7 +54,7 @@ export const ExchangeControlsWidget: React.FC = () => {
             await undoAction(undoToken, new AbortController().signal, client);
             setUndoToken(null);
         } catch (e) {
-            alert("Undo Failed");
+            addToast({ type: 'ERROR', message: "Undo Failed" });
         }
     };
 

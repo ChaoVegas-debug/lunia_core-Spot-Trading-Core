@@ -7,11 +7,13 @@ import { usePolledResource } from '../hooks/usePolledResource';
 import { getSystemEvents } from '../api/adapter';
 import type { SystemEvent } from '../api/types';
 import { useLocation } from 'react-router-dom';
+import { useDashboard } from '../context/DashboardContext';
 
 export const RiskPage: React.FC = () => {
     const location = useLocation() as { state: any };
     const navigate = useNavigate();
     const events = usePolledResource(getSystemEvents, 2000);
+    const { addToast } = useDashboard();
     const [tab, setTab] = useState<'DASHBOARD' | 'RULES' | 'LOGS'>('DASHBOARD');
 
     const riskEvents = React.useMemo(() => {
@@ -107,7 +109,10 @@ export const RiskPage: React.FC = () => {
                                                     <td className="font-bold text-warn">{e.type}</td>
                                                     <td className="text-muted text-xs font-mono">{JSON.stringify(e.payload)}</td>
                                                     <td>
-                                                        <button className="button tiny secondary" onClick={() => alert(JSON.stringify(e, null, 2))}>Inspect</button>
+                                                        <button className="button tiny secondary" onClick={() => {
+                                                            console.log('Risk Event Payload:', e);
+                                                            addToast({ type: 'INFO', message: 'Event details logged to console' });
+                                                        }}>Inspect</button>
                                                     </td>
                                                 </tr>
                                             ))}

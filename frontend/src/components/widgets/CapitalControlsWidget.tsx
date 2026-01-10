@@ -7,9 +7,11 @@ import { DataStatus } from '../common/DataStatus';
 import { useSemiAuto } from '../../hooks/useSemiAuto';
 import { ProposalPreviewModal } from '../common/ProposalPreviewModal';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { useDashboard } from '../../context/DashboardContext';
 
 export const CapitalControlsWidget: React.FC = () => {
     const auth = useAuth();
+    const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
     const { data, error, loading, lastUpdated } = usePolledResource<OpsCapital>((signal) => getOpsCapital(signal, client), 4000, [auth.role]);
@@ -36,7 +38,7 @@ export const CapitalControlsWidget: React.FC = () => {
             // Refresh data immediately
             flow.cancelFlow(); // Reset local state
         } catch (e) {
-            alert("Undo failed: " + e);
+            addToast({ type: 'ERROR', message: `Undo failed: ${e}` });
         }
     };
 

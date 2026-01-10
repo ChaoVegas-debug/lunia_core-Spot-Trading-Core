@@ -4,8 +4,11 @@ import { usePolledResource } from '../hooks/usePolledResource';
 import { getAdminStats, getUsers, updateUserRole } from '../api/adapter';
 import { AdminOverview, UserProfile, Role } from '../api/types';
 
+import { useDashboard } from '../context/DashboardContext';
+
 export const AdminPage: React.FC = () => {
     const { role } = useAuth();
+    const { addToast } = useDashboard();
     const client = { role };
 
     const statsRes = usePolledResource<AdminOverview>((s) => getAdminStats(s, client), 5000, []);
@@ -25,10 +28,10 @@ export const AdminPage: React.FC = () => {
         if (!confirm(`Confirm ${action} for User ${userId}?`)) return;
         try {
             await updateUserRole(userId, action === 'ROLE' ? newVal : 'TRADER', action === 'TIER' ? newVal : 'STD_RETAIL');
-            alert('User updated successfully');
+            addToast({ type: 'SUCCESS', message: 'User updated successfully' });
             // Force refresh logic would go here or rely on poll
         } catch (e) {
-            alert('Update failed');
+            addToast({ type: 'ERROR', message: 'Update failed' });
         }
     };
 

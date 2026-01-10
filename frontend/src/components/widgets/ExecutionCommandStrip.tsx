@@ -5,6 +5,7 @@ import { getHealth, getOpsState, setSystemMode, setArbitrage } from '../../api/a
 import type { OpsState } from '../../api/types';
 import { WhyPanel } from '../modals/WhyPanel';
 import { AirlockModal } from '../modals/AirlockModal';
+import { useDashboard } from '../../context/DashboardContext';
 import { FlattenPortfolioModal } from '../modals/FlattenPortfolioModal';
 import { usePreview } from '../../context/PreviewModeContext';
 import { journalStore } from '../../store/JournalStore';
@@ -13,6 +14,7 @@ export const ExecutionCommandStrip: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, opsToken: auth.opsToken };
     const { isPreview, isSimulation, simHealth, simOps, setSimExecMode, setSimGlobalStop } = usePreview();
+    const { addToast } = useDashboard();
 
     // Polling
     const health = usePolledResource((s) => getHealth(s, client), 5000, []);
@@ -27,9 +29,13 @@ export const ExecutionCommandStrip: React.FC = () => {
     const [lastJournalEvent, setLastJournalEvent] = useState(journalStore.getLastEvent());
 
     useEffect(() => {
-        return journalStore.subscribe(() => {
+        const unsub = journalStore.subscribe(() => {
+            // Force re-render on log update
+            // In a real app we'd use useExternalStore or similar
+            // Here we just accept the subscription trigger
             setLastJournalEvent(journalStore.getLastEvent());
         });
+        return () => { unsub(); };
     }, []);
 
     // Local State
@@ -61,7 +67,7 @@ export const ExecutionCommandStrip: React.FC = () => {
             ops.refresh();
         } catch (err) {
             console.error(err);
-            alert("Failed to toggle Arbitrage");
+            addToast({ type: 'ERROR', message: "Failed to toggle Arbitrage" });
         }
     };
 
@@ -115,7 +121,7 @@ export const ExecutionCommandStrip: React.FC = () => {
                 journalStore.addLog('MODE_CHANGE', `Mode changed to ${newMode} (Real)`, 'HUMAN');
             }
         } catch (e) {
-            alert("Mode change failed: " + e);
+            addToast({ type: 'ERROR', message: "Mode change failed: " + e });
         } finally {
             setBusy(false);
         }

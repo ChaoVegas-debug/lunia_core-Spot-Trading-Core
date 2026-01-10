@@ -4,9 +4,11 @@ import { getOpsState } from '../../api/adapter';
 import { useAuth } from '../../hooks/useAuth';
 import type { OpsState } from '../../api/types';
 import { usePreview } from '../../context/PreviewModeContext';
+import { useDashboard } from '../../context/DashboardContext';
 
 export const HumanInterventionDecisionPanel: React.FC = () => {
     const auth = useAuth();
+    const { addToast } = useDashboard();
     const ops = usePolledResource<OpsState>((s) => getOpsState(s, { role: auth.role, opsToken: auth.opsToken }), 3000, []);
     const { isPreview } = usePreview();
 
@@ -35,7 +37,7 @@ export const HumanInterventionDecisionPanel: React.FC = () => {
         // In real backend, we'd call an endpoint here.
         // For now, we "Resolve" it client-side to unblock the UI.
         console.log(`[AUDIT] Intervention Resolution: ${action}`);
-        alert(`Resolution Recorded: ${msg} (Backend Integration Pending)`);
+        addToast({ type: 'SUCCESS', message: `Resolution Recorded: ${msg} (Backend Integration Pending)` });
 
         setResolved(true);
         setBusy(false);

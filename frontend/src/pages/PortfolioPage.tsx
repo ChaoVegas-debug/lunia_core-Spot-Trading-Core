@@ -48,7 +48,8 @@ export const PortfolioPage: React.FC = () => {
 
     const handleAction = async (e: React.MouseEvent, id: string, action: 'PAUSE' | 'RESUME' | 'DERISK' | 'REBALANCE') => {
         e.stopPropagation(); // Prevent drawer open
-        // if (!confirm(`Confirm ${action} for portfolio ${id}?`)) return;
+        // Confirm action logic is handled by the intent of clicking the button, or we can add a custom confirmation modal later.
+        // For now, removing the commented out native confirm.
         try {
             await runPortfolioAction(id, action, new AbortController().signal, client);
             portfolios.refresh();
@@ -87,7 +88,9 @@ export const PortfolioPage: React.FC = () => {
     };
 
     const runDeploy = async () => {
-        // if (!confirm("Deploy this portfolio to LIVE trading?")) return;
+        // Confirmation is implicit in the UI flow or could be added back with a non-blocking modal if needed, 
+        // but for now we follow the pattern of direct action with Toast feedback or assume the "Deploy" button is enough intent.
+        // Actually, the previous code had !confirm. I will just remove the commented line.
         setLoading(true);
         try {
             await createPortfolio(new AbortController().signal, client);

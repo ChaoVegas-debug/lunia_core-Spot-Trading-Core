@@ -9,12 +9,14 @@ import { useSemiAuto } from '../../hooks/useSemiAuto';
 import { FlattenPortfolioModal } from '../modals/FlattenPortfolioModal';
 import { getPlan } from '../../domain/subscription/plans';
 import { LockedFeatureModal } from '../modals/LockedFeatureModal';
+import { useDashboard } from '../../context/DashboardContext';
 
 // REAL Feature Flag from Env
 const FEATURE_AUTO_BETA = import.meta.env.VITE_FRONTEND_FEATURE_AUTO_BETA_FOR_ALL === '1';
 
 export const SystemStateWidget: React.FC = () => {
   const auth = useAuth();
+  const { addToast } = useDashboard();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken };
   const ops = usePolledResource<OpsState>((signal) => getOpsState(signal, client), 2000, [auth.role]);
   const status = usePolledResource<StatusSnapshot>((signal) => getStatus(signal, client), 4000, [auth.role]);
@@ -32,8 +34,9 @@ export const SystemStateWidget: React.FC = () => {
       await undoAction(undoToken, new AbortController().signal, client);
       setUndoToken(null);
       ops.refresh(); // immediate refresh
+      ops.refresh(); // immediate refresh
     } catch (e: any) {
-      alert("Undo Failed: " + (e.message || "Unknown error"));
+      addToast({ type: 'ERROR', message: "Undo Failed: " + (e.message || "Unknown error") });
     }
   };
 
@@ -56,7 +59,7 @@ export const SystemStateWidget: React.FC = () => {
 
     } catch (err: any) {
       console.error(err);
-      alert(`Mode Switch Failed: ${err.message || 'Check logs'}`);
+      addToast({ type: 'ERROR', message: `Mode Switch Failed: ${err.message || 'Check logs'}` });
     }
   };
 

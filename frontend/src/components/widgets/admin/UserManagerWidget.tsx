@@ -4,9 +4,11 @@ import { usePolledResource } from '../../../hooks/usePolledResource';
 import { getAdminUsers, updateUserRole } from '../../../api/endpoints';
 import type { UserProfile } from '../../../api/types';
 import { DataStatus } from '../../common/DataStatus';
+import { useDashboard } from '../../../context/DashboardContext';
 
 export const UserManagerWidget: React.FC = () => {
     const auth = useAuth();
+    const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
     const { data, error, loading, lastUpdated, refresh } = usePolledResource<UserProfile[]>((signal) => getAdminUsers(signal, client), 15000, [auth]);
 
@@ -16,7 +18,7 @@ export const UserManagerWidget: React.FC = () => {
             await updateUserRole(userId, newRole, new AbortController().signal, client);
             refresh();
         } catch (e) {
-            alert("Failed to update role");
+            addToast({ type: 'ERROR', message: "Failed to update role" });
         }
     };
 

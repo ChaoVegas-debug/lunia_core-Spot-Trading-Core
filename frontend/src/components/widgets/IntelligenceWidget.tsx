@@ -7,9 +7,11 @@ import type { AIProposal, ManualTradeProposal } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 import { ProposalPreviewModal } from '../common/ProposalPreviewModal';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { useDashboard } from '../../context/DashboardContext';
 
 export const IntelligenceWidget: React.FC = () => {
     const auth = useAuth();
+    const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
     const { data: proposals, error, loading, lastUpdated, refresh } = usePolledResource<AIProposal[]>((signal) => getAiProposals(signal, client), 5000, [auth.role]);
@@ -51,7 +53,7 @@ export const IntelligenceWidget: React.FC = () => {
             await acknowledgeAiProposal(selectedProposal.id, signal, client);
             refresh();
         } catch (e) {
-            alert("Execution Failed: " + e);
+            addToast({ type: 'ERROR', message: `Execution Failed: ${e}` });
         } finally {
             setViewState('IDLE');
             setSelectedProposal(null);

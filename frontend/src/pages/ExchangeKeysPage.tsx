@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getExchangeKeys, updateExchangeKeys, testExchangeConnection, deleteExchangeKey } from '../api/adapter';
 import { useAuth } from '../hooks/useAuth';
 import { useLocation } from 'react-router-dom';
+import { useDashboard } from '../context/DashboardContext';
 import { ExchangeKey } from '../api/types';
 import { useWhy } from '../contexts/WhyContext';
 
@@ -16,6 +17,7 @@ export const ExchangeKeysPage: React.FC = () => {
     const { role } = useAuth();
     const location = useLocation() as { state: any };
     const { openWhy } = useWhy();
+    const { addToast } = useDashboard();
     const [keys, setKeys] = useState<ExchangeKey[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -49,6 +51,7 @@ export const ExchangeKeysPage: React.FC = () => {
             const data = await getExchangeKeys(new AbortController().signal);
             setKeys(data);
         } catch (err) {
+            addToast({ type: 'ERROR', message: 'Failed to load keys' });
             setError('Failed to load keys');
         } finally {
             setLoading(false);
@@ -90,10 +93,13 @@ export const ExchangeKeysPage: React.FC = () => {
                 api_secret: formData.api_secret || (editingKey ? '***' : '')
             }, new AbortController().signal);
 
+            addToast({ type: 'SUCCESS', message: 'Exchange key configuration saved' });
             setIsModalOpen(false);
             await loadKeys();
         } catch (err: any) {
-            setError(err.message || 'Failed to update key');
+            const msg = err.message || 'Failed to update key';
+            addToast({ type: 'ERROR', message: msg });
+            setError(msg);
         } finally {
             setSubmitting(false);
         }
@@ -122,12 +128,25 @@ export const ExchangeKeysPage: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm(`Are you sure you want to revoke keys for ${id}? This cannot be undone.`)) return;
+        // In a real app we might want a nicer modal, but for now we replace the native confirm with a Toast-based flow?
+        // Actually, native confirm is blocking. Non-blocking replacement usually requires a separate modal state.
+        // Given the instructions to "replace native alerts", replacing confirm with a custom modal is best.
+        // However, for speed, if we want to just remove it or acknowledge it's blocking...
+        // "Implementing a global Toast notification system to replace native alerts."
+        // Native confirm is also annoying.
+        // I'll leave the confirm for DELETION as it is critical, OR I can use a Toast to say "Deleted" after.
+        // But better to use `window.confirm` explicitly if we must, or even better, no confirm but an "Undo" toast?
+        // No, key revocation is destructive.
+        // Let's use a simple window.confirm but wrapped or just keep it for now but add Toast on success/error.
+        // Use window.confirm for now but add Toasts.
+        if (!window.confirm(`Are you sure you want to revoke keys for ${id}? This cannot be undone.`)) return;
+
         try {
             await deleteExchangeKey(id, new AbortController().signal);
             setKeys(prev => prev.filter(k => k.exchange_id !== id));
+            addToast({ type: 'SUCCESS', message: `Revoked keys for ${id}` });
         } catch (e: any) {
-            alert(e.message);
+            addToast({ type: 'ERROR', message: e.message });
         }
     };
 

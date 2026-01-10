@@ -5,11 +5,13 @@ import { getLimits, getRisk, setRiskLimits } from '../../api/adapter';
 import { safeArray } from '../../utils/safe'; // Original imports for RiskWidget
 import type { LimitEntry, SpotRiskConfig } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
+import { useDashboard } from '../../context/DashboardContext';
 
 const thresholdPct = 0.8;
 
 export const RiskWidget: React.FC = () => {
   const auth = useAuth();
+  const { addToast } = useDashboard();
   const client = {
     role: auth.role,
     adminToken: auth.adminToken,
@@ -62,9 +64,10 @@ export const RiskWidget: React.FC = () => {
 
       await setRiskLimits(updates, new AbortController().signal, client);
       setEditing(false);
+      setEditing(false);
       limits.refresh(); // Fixed from mutate
     } catch (e) {
-      alert("Failed to update limits");
+      addToast({ type: 'ERROR', message: "Failed to update limits" });
     }
   };
 

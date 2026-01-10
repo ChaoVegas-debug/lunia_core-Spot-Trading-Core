@@ -6,6 +6,8 @@ import { requestUpgrade, getUserProfile } from '../api/adapter';
 import { usePolledResource } from '../hooks/usePolledResource';
 import type { UserProfile } from '../api/types';
 
+import { useDashboard } from '../context/DashboardContext';
+
 export const SubscriptionPage: React.FC = () => {
     const { role } = useAuth();
     // Re-fetch user to ensure fresh tier if it changed (simulated)
@@ -13,6 +15,7 @@ export const SubscriptionPage: React.FC = () => {
     const user = userRes.data;
     const currentPlan = getPlan(user?.tier);
     const navigate = useNavigate();
+    const { addToast } = useDashboard();
 
     const [isUpgrading, setIsUpgrading] = useState(false);
 
@@ -30,10 +33,10 @@ export const SubscriptionPage: React.FC = () => {
 
         try {
             await requestUpgrade(targetTier, new AbortController().signal);
-            alert(`Upgrade Request Logged for ${targetTier}. Compliance has been notified.`);
+            addToast({ type: 'SUCCESS', message: `Upgrade Request Logged for ${targetTier}. Compliance has been notified.` });
             // In a real app we might poll or wait for WebSocket, here we just show success.
         } catch (e) {
-            alert("Upgrade request failed or requires manual sales contact.");
+            addToast({ type: 'ERROR', message: "Upgrade request failed or requires manual sales contact." });
         } finally {
             setIsUpgrading(false);
         }

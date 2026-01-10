@@ -6,9 +6,11 @@ import type { ExchangeConfig, StrategyConfig, ManualTradeProposal, ManualTradePr
 import { useSemiAuto } from '../../hooks/useSemiAuto';
 import { ProposalPreviewModal } from '../common/ProposalPreviewModal';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { useDashboard } from '../../context/DashboardContext';
 
 export const ManualTradeWidget: React.FC = () => {
     const auth = useAuth();
+    const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
     // Fetch dependencies
@@ -45,14 +47,14 @@ export const ManualTradeWidget: React.FC = () => {
         const currentForm = { ...form, side };
         setForm(currentForm); // Sync UI
 
-        if (!currentForm.exchange_id) { alert("Select an Exchange"); return; }
-        if (currentForm.amount_usd <= 0) { alert("Invalid Amount"); return; }
+        if (!currentForm.exchange_id) { addToast({ type: 'ERROR', message: "Select an Exchange" }); return; }
+        if (currentForm.amount_usd <= 0) { addToast({ type: 'ERROR', message: "Invalid Amount" }); return; }
 
         try {
             const res = await previewManualTrade(currentForm, new AbortController().signal, client);
 
             if (!res.allowed) {
-                alert(`BLOCKED: ${res.blocking_reason}`);
+                addToast({ type: 'ERROR', message: `BLOCKED: ${res.blocking_reason}` });
                 return;
             }
 
@@ -63,8 +65,13 @@ export const ManualTradeWidget: React.FC = () => {
                 flow.previewProposal();
             }
         } catch (e: any) {
-            alert(`Preview Failed: ${e.message}`);
+            addToast({ type: 'ERROR', message: `Preview Failed: ${e.message}` });
         }
+    };
+
+    const getRiskDisplay = () => {
+        if (!previewData?.risk_flags) return [];
+        return previewData.risk_flags;
     };
 
 

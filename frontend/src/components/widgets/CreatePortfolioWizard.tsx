@@ -3,12 +3,14 @@ import { getResearchCards, createPortfolio } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import { ResearchCard } from '../../api/types';
 import { AssetResearchCard } from './AssetResearchCard';
+import { useDashboard } from '../../context/DashboardContext';
 
 interface Props {
     onClose: () => void;
 }
 
 export const CreatePortfolioWizard: React.FC<Props> = ({ onClose }) => {
+    const { addToast } = useDashboard();
     const [step, setStep] = useState(1);
     const [cards, setCards] = useState<ResearchCard[]>([]);
     const [selected, setSelected] = useState<string[]>([]);
@@ -37,7 +39,7 @@ export const CreatePortfolioWizard: React.FC<Props> = ({ onClose }) => {
         await createPortfolio(new AbortController().signal);
         setAnalyzing(false);
         onClose(); // In real app, route to new portfolio
-        alert("Portfolio Deployed Successfully!");
+        addToast({ type: 'SUCCESS', message: "Portfolio Deployed Successfully!" });
     };
 
     return (

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useDashboard } from '../../context/DashboardContext';
 
 const LANGUAGES = [
     { code: 'EN', label: 'English' },
@@ -8,6 +9,7 @@ const LANGUAGES = [
 ];
 
 export const SettingsWidget: React.FC = () => {
+    const { addToast } = useDashboard();
     const [lang, setLang] = useState(localStorage.getItem('LUNIA_LANG') || 'EN');
 
     const handleLang = (code: string) => {
@@ -15,7 +17,7 @@ export const SettingsWidget: React.FC = () => {
         localStorage.setItem('LUNIA_LANG', code);
         // In a real app, this would trigger global context update.
         // For visual proof, we show state change.
-        if (code !== 'EN') alert(`UI Language Switched to ${code} (Preview Placeholder)`);
+        if (code !== 'EN') addToast({ type: 'INFO', message: `UI Language Switched to ${code} (Preview Placeholder)` });
     };
 
     return (

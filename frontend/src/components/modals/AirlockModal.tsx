@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getHealth, getStatus } from '../../api/adapter';
+import { useDashboard } from '../../context/DashboardContext';
 
 interface AirlockModalProps {
     onConfirm: () => Promise<void>;
@@ -9,6 +10,7 @@ interface AirlockModalProps {
 
 export const AirlockModal: React.FC<AirlockModalProps> = ({ onConfirm, onCancel, isOpen }) => {
     const [step, setStep] = useState(1);
+    const { addToast } = useDashboard();
 
     const [diagnostics, setDiagnostics] = useState({
         heartbeat: { status: 'PENDING', value: '', ok: false },
@@ -169,7 +171,7 @@ export const AirlockModal: React.FC<AirlockModalProps> = ({ onConfirm, onCancel,
                                     className="tiny text-muted underline"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        alert("Airlock Protocol: A mandatory 5-step verification process to ensure system integrity, risk engine availability, and operator presence before releasing autonomous agents.");
+                                        addToast({ type: 'INFO', message: "Airlock Protocol: A mandatory 5-step verification process to ensure system integrity, risk engine availability, and operator presence before releasing autonomous agents." });
                                     }}
                                 >
                                     Why is this required?

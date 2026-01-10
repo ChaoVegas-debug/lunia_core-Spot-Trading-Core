@@ -535,21 +535,21 @@ export function executePortfolioAction(id: string, action: string) {
     );
 }
 
-export function updateExchange(payload: any) {
+export function updateExchange(id: string, payload: any, signal?: AbortSignal, client?: any, key?: string) {
     return tryRealOrFallback(
-        () => Promise.resolve({ status: 'updated' }),
-        () => Promise.resolve({ status: 'updated' }) // Sim stub
+        () => Promise.resolve({ status: 'updated', undo_token: 'sim-undo-token', undo_ttl: 60 }),
+        () => Promise.resolve({ status: 'updated', undo_token: 'sim-undo-token', undo_ttl: 60 }) // Sim stub
     );
 }
 
-export function acknowledgeAiProposal(id: string, decision: string) {
+export function acknowledgeAiProposal(id: string, signal?: AbortSignal, client?: any) {
     return tryRealOrFallback(
         () => Promise.resolve({ status: 'ack' }),
         () => Promise.resolve({ status: 'ack' })
     );
 }
 
-export function updateOpsCapital(payload: any) {
+export function updateOpsCapital(payload: any, signal?: AbortSignal, client?: any) {
     return tryRealOrFallback(
         () => Promise.resolve({ status: 'ok' }),
         () => {
@@ -559,14 +559,31 @@ export function updateOpsCapital(payload: any) {
     );
 }
 
-export function getLimits() {
+export function getLimits(signal?: AbortSignal, client?: any) {
     return tryRealOrFallback(
         () => Promise.resolve([]),
-        () => Promise.resolve(simulatedBackend.getRiskMandates())
+        () => {
+            // Convert Risk Config to LimitEntry[]
+            const risk = simulatedBackend.getRisk();
+            const entries: any[] = [];
+            if (risk) {
+                Object.entries(risk).forEach(([k, v]) => {
+                    if (typeof v === 'number') {
+                        entries.push({
+                            scope: 'GLOBAL',
+                            key: k,
+                            value: v,
+                            updated_at: new Date().toISOString()
+                        });
+                    }
+                });
+            }
+            return Promise.resolve(entries);
+        }
     );
 }
 
-export function setRiskLimits(payload: any) {
+export function setRiskLimits(payload: any, signal?: AbortSignal, client?: any) {
     return tryRealOrFallback(
         () => Promise.resolve({ status: 'ok' }),
         () => Promise.resolve({ status: 'ok' })

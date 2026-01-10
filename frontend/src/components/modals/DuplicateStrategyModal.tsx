@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePreview } from '../../hooks/usePreview';
 import { journalStore } from '../../store/JournalStore';
 import { StrategyConfig } from '../../api/types';
+import { useDashboard } from '../../context/DashboardContext';
 
 interface DuplicateStrategyModalProps {
     strategy: StrategyConfig;
@@ -12,6 +13,7 @@ interface DuplicateStrategyModalProps {
 
 export const DuplicateStrategyModal: React.FC<DuplicateStrategyModalProps> = ({ strategy, isOpen, onClose, onSave }) => {
     const { isPreview } = usePreview();
+    const { addToast } = useDashboard();
     const [name, setName] = useState('');
     const [weight, setWeight] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -38,7 +40,7 @@ export const DuplicateStrategyModal: React.FC<DuplicateStrategyModalProps> = ({ 
             journalStore.addLog('INFO', `Strategy Duplicated: ${name}`, isPreview ? 'SYSTEM' : 'HUMAN');
             onClose();
         } catch (e) {
-            alert("Failed to duplicate strategy: " + e);
+            addToast({ type: 'ERROR', message: "Failed to duplicate strategy: " + e });
         } finally {
             setLoading(false);
         }

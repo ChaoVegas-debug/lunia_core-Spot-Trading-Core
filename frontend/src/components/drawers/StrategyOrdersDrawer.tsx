@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePreview } from '../../hooks/usePreview';
 import { journalStore } from '../../store/JournalStore';
 import { SimOrder } from '../../preview/PreviewStore';
+import { useDashboard } from '../../context/DashboardContext';
 
 interface StrategyOrdersDrawerProps {
     strategyId: string;
@@ -11,6 +12,7 @@ interface StrategyOrdersDrawerProps {
 
 export const StrategyOrdersDrawer: React.FC<StrategyOrdersDrawerProps> = ({ strategyId, isOpen, onClose }) => {
     const { isPreview, previewStore, state } = usePreview();
+    const { addToast } = useDashboard();
     const [orders, setOrders] = useState<SimOrder[]>([]);
 
     useEffect(() => {
@@ -32,7 +34,7 @@ export const StrategyOrdersDrawer: React.FC<StrategyOrdersDrawerProps> = ({ stra
             previewStore.cancelSimOrder(orderId);
             // State update happens via subscription/effect
         } else {
-            alert("Production Order Cancellation: Not enabled in this view. Use Trade Terminal.");
+            addToast({ type: 'WARNING', message: "Production Order Cancellation: Not enabled in this view. Use Trade Terminal." });
         }
     };
 

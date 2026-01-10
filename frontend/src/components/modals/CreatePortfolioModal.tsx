@@ -10,6 +10,7 @@ import {
 import { buildClient } from '../../api/client';
 import { getPlan, isUiRiskAllowed, type UIRiskProfile } from '../../domain/subscription/plans';
 import { LockedFeatureModal } from './LockedFeatureModal';
+import { useDashboard } from '../../context/DashboardContext';
 
 interface CreatePortfolioModalProps {
     onClose: () => void;
@@ -20,6 +21,7 @@ const ASSETS = ['BTC', 'ETH', 'SOL', 'MATIC', 'NEAR', 'AVAX', 'LINK', 'UNI', 'AA
 
 export const CreatePortfolioModal: React.FC<CreatePortfolioModalProps> = ({ onClose, onDeploy }) => {
     const auth = useAuth();
+    const { addToast } = useDashboard();
     const client = buildClient(auth);
     const plan = getPlan(auth.user?.tier);
 
@@ -115,7 +117,7 @@ export const CreatePortfolioModal: React.FC<CreatePortfolioModalProps> = ({ onCl
             } else if (step === 3) {
                 // Check if ROCKET is denied (example logic, if AI returns HIGH risk logic could be here)
                 if (riskProfile === 'ROCKET' && aiAnalysis && aiAnalysis.risk_class === 'HIGH' && aiAnalysis.confidence < 0.7) {
-                    alert("Governance Veto: 'ROCKET' profile rejected due to low confidence score.");
+                    addToast({ type: 'WARNING', message: "Governance Veto: 'ROCKET' profile rejected due to low confidence score." });
                     // Don't advance
                 } else {
                     setStep(4);
@@ -144,7 +146,7 @@ export const CreatePortfolioModal: React.FC<CreatePortfolioModalProps> = ({ onCl
             }, 500);
         } catch (e) {
             console.error("Deploy failed", e);
-            alert("Deployment Failed: " + String(e));
+            addToast({ type: 'ERROR', message: "Deployment Failed: " + String(e) });
         } finally {
             setLoading(false);
         }

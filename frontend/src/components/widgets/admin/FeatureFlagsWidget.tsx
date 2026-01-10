@@ -5,10 +5,12 @@ import { useAuth } from '../../../hooks/useAuth';
 import { usePreview } from '../../../hooks/usePreview';
 import type { FeatureFlag } from '../../../api/types';
 import { ConfirmDialog } from '../../common/ConfirmDialog';
+import { useDashboard } from '../../../context/DashboardContext';
 
 export const FeatureFlagsWidget: React.FC = () => {
     const auth = useAuth();
     const { isPreview, previewStore } = usePreview();
+    const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken };
 
     const { data: apiFlags, loading, refresh } = usePolledResource<FeatureFlag[]>((s) => getAdminFlags(s, client), 5000, [auth.role]);
@@ -41,7 +43,7 @@ export const FeatureFlagsWidget: React.FC = () => {
             }
             setPendingFlag(null);
         } catch (e) {
-            alert("Failed to update flag");
+            addToast({ type: 'ERROR', message: "Failed to update flag" });
         }
     };
 

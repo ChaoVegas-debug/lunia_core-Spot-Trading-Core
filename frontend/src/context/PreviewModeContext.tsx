@@ -14,6 +14,9 @@ interface PreviewModeContextType {
     simOps: OpsState;    // Shortcut for frequent access
     simHealth: HealthcheckResponse;
 
+    setSimExecMode: (mode: string) => void;
+    setSimGlobalStop: (stop: boolean) => void;
+
     // Actions
     actions: typeof previewStore; // Access to store methods like setExecMode
 }
@@ -35,7 +38,7 @@ export const PreviewModeProvider: React.FC<{ children: ReactNode }> = ({ childre
         const unsubscribe = previewStore.subscribe(() => {
             setStoreState({ ...previewStore.getState() }); // Clone to trigger re-render
         });
-        return unsubscribe;
+        return () => { unsubscribe(); };
     }, []);
 
     // 4. Persistence of toggle

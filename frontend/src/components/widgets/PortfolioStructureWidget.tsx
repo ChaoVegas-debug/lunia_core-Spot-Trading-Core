@@ -10,10 +10,12 @@ import { ReduceRiskModal } from '../modals/ReduceRiskModal';
 import { FreezeAssetModal } from '../modals/FreezeAssetModal';
 import { ConvertToStableModal } from '../modals/ConvertToStableModal';
 import { journalStore } from '../../store/JournalStore';
+import { useDashboard } from '../../context/DashboardContext';
 
 export const PortfolioStructureWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
+    const { addToast } = useDashboard();
 
     const { data: portfolios, loading, error, lastUpdated, refresh } = usePolledResource<PortfolioDefinition[]>(
         (signal) => getPortfolioStructure(signal, client),
@@ -36,7 +38,7 @@ export const PortfolioStructureWidget: React.FC = () => {
             refresh();
             journalStore.addLog('MODE_CHANGE', `Portfolio ${id} Action: ${action}`, 'HUMAN');
         } catch (e: any) {
-            alert("Action failed: " + (e.message || e));
+            addToast({ type: 'ERROR', message: "Action failed: " + (e.message || e) });
         }
     };
 
@@ -245,7 +247,7 @@ const AssetRow: React.FC<{ asset: AssetCard }> = ({ asset }) => {
                     symbol={asset.symbol}
                     onClose={() => setActiveModal(null)}
                     onConfirm={() => {
-                        journalStore.addLog('FLATTEN', `Asset Liquidated: ${asset.symbol}`, 'HUMAN', 'CRITICAL');
+                        journalStore.addLog('INTERVENTION', `Asset Liquidated: ${asset.symbol}`, 'HUMAN', 'CRITICAL');
                         setActiveModal(null);
                     }}
                 />

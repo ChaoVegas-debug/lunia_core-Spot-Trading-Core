@@ -6,6 +6,7 @@ import { safeArray } from '../../utils/safe';
 import { buildClient } from '../../api/client';
 import type { PortfolioAggregate, BalancesResponse, OpsCapital } from '../../api/types';
 import { useNavigate } from 'react-router-dom';
+import { useDashboard } from '../../context/DashboardContext';
 
 // Helper for symbol normalization
 const getBaseAsset = (symbol: string): string => {
@@ -20,6 +21,7 @@ const getBaseAsset = (symbol: string): string => {
 export const GovernanceBanners: React.FC = () => {
     const auth = useAuth();
     const navigate = useNavigate();
+    const { addToast } = useDashboard();
     const client = buildClient(auth); // Unified Client
 
     const portfolio = usePolledResource<PortfolioAggregate>((s) => getPortfolioSnapshot(s, client), 5000, []);
@@ -66,7 +68,7 @@ export const GovernanceBanners: React.FC = () => {
     const handleReSync = async () => {
         portfolio.refresh();
         balances.refresh();
-        alert("State Refreshed. If drift persists, external resolution is required.");
+        addToast({ type: 'SUCCESS', message: "State Refreshed. If drift persists, external resolution is required." });
     };
 
     const handleEmergencyStop = async () => {
@@ -75,7 +77,7 @@ export const GovernanceBanners: React.FC = () => {
         try {
             await setSystemMode('STOP', new AbortController().signal, client);
         } catch (e) {
-            alert("Stop Failed: Check API Connectivity");
+            addToast({ type: 'ERROR', message: "Stop Failed: Check API Connectivity" });
         } finally {
             setProcessing(false);
         }
@@ -83,7 +85,7 @@ export const GovernanceBanners: React.FC = () => {
 
     const handleConvertToStable = () => {
         // GAP Handling
-        alert("Feature Unavailable: 'Liquidate to Stable' endpoint requires backend implementation.\n\nPlease perform this action manually on the exchange.");
+        addToast({ type: 'WARNING', message: "Feature Unavailable: 'Liquidate to Stable' endpoint requires backend implementation. Please perform this action manually on the exchange." });
     };
 
     if (!driftWarning && !allocationWarning) return null;
