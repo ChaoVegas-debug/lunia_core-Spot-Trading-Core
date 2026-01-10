@@ -24,6 +24,8 @@ import { SubscriptionPage } from './pages/SubscriptionPage';
 import { ExchangeKeysPage } from './pages/ExchangeKeysPage';
 import { GettingStartedPage } from './pages/GettingStartedPage';
 import { SurfaceInspectorPage } from './pages/SurfaceInspectorPage';
+import { IntelligenceDashboard } from './pages/IntelligenceDashboard';
+import { StrategyMarketplace } from './pages/StrategyMarketplace';
 
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -181,6 +183,24 @@ const App: React.FC = () => {
                 path="/preview/surfaces"
                 element={
                   <SurfaceInspectorPage />
+                }
+              />
+
+              {/* INTELLIGENCE MODES */}
+              <Route
+                path="/intelligence"
+                element={
+                  <ProtectedRoute allowed={['TRADER', 'ADMIN', 'FUND']}>
+                    <IntelligenceDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/marketplace"
+                element={
+                  <ProtectedRoute allowed={['TRADER', 'ADMIN', 'FUND']}>
+                    <StrategyMarketplace />
+                  </ProtectedRoute>
                 }
               />
 

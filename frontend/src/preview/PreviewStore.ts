@@ -85,6 +85,20 @@ export interface PreviewState {
     // Admin / System Preview Data
     incidents: SimIncident[];
     feature_flags: SimFeatureFlag[];
+
+    // Phase 1: Intelligence Ecosystem
+    intelligence: {
+        confidence_score: number; // 0-100
+        market_regime: 'VOLATILE' | 'TRENDING' | 'RANGE_BOUND' | 'CRASH_RISK';
+        last_optimization: string;
+        active_insights: {
+            id: string;
+            type: 'OPPORTUNITY' | 'RISK' | 'OPTIMIZATION';
+            message: string;
+            confidence: number;
+        }[];
+    };
+
     // Flags for simulation behavior
     sim_latency_ms: number;
     sim_offline: boolean;
@@ -192,6 +206,19 @@ class PreviewStoreService {
             risk_mandates: { max_leverage: 3.0, global_drawdown_limit: 0.15, auto_trading_allowed: true, capital_cap_pct: 100 },
             incidents: [...INITIAL_INCIDENTS],
             feature_flags: [...INITIAL_FLAGS],
+
+            // Intelligence Data
+            intelligence: {
+                confidence_score: 87,
+                market_regime: 'TRENDING',
+                last_optimization: new Date().toISOString(),
+                active_insights: [
+                    { id: 'ins-1', type: 'OPPORTUNITY', message: 'Detected arb spread divergence on ETH/USDT > 0.5%', confidence: 0.92 },
+                    { id: 'ins-2', type: 'RISK', message: 'Liquidity thinning on SOL pairs', confidence: 0.76 },
+                    { id: 'ins-3', type: 'OPTIMIZATION', message: 'Rebalancing Portfolio "Main Fund A" recommended', confidence: 0.88 }
+                ]
+            },
+
             sim_latency_ms: 200,
             sim_offline: false,
             backend_reachable: true,

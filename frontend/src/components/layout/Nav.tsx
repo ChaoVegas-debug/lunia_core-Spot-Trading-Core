@@ -42,6 +42,13 @@ const sections: NavSection[] = [
     ]
   },
   {
+    title: 'Intelligence',
+    items: [
+      { to: '/intelligence', label: 'AI Ecosystem', roles: ['TRADER', 'ADMIN', 'FUND'] },
+      { to: '/marketplace', label: 'Strategy Market', roles: ['TRADER', 'ADMIN', 'FUND'] }
+    ]
+  },
+  {
     title: 'Preview / Dev',
     items: [
       { to: '/fund', label: 'Fund Ops (Inst)', roles: ['TRADER', 'ADMIN', 'FUND'], previewOnly: true },

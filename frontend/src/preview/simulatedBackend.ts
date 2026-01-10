@@ -619,6 +619,25 @@ export const simulatedBackend = {
         };
         return { status: 'executed', result: { id: 'sim-tx-' + Date.now() } };
     },
+
+    // --- PHASE 8: INTELLIGENCE & MARKETPLACE (EVOLUTION) ---
+    getIntelligenceState: () => ({
+        confidence_score: 87,
+        market_regime: 'TRENDING',
+        last_optimization: new Date().toISOString(),
+        active_insights: [
+            { id: 'ins-1', type: 'OPPORTUNITY', message: 'Detected arb spread divergence on ETH/USDT > 0.5%', confidence: 0.92 },
+            { id: 'ins-2', type: 'RISK', message: 'Liquidity thinning on SOL pairs', confidence: 0.76 },
+            { id: 'ins-3', type: 'OPTIMIZATION', message: 'Rebalancing Portfolio "Main Fund A" recommended', confidence: 0.88 }
+        ]
+    }),
+
+    getMarketStrategies: () => [
+        { id: 'm-1', title: 'Delta Neutral Yield Farm', risk: 'LOW', installs: 1240 },
+        { id: 'm-2', title: 'Volatility Crusher (Iron Condor)', risk: 'MEDIUM', installs: 850 },
+        { id: 'm-3', title: 'Meme Coin Sniper', risk: 'HIGH', installs: 3200 },
+        { id: 'm-4', title: 'Institutional TWAP', risk: 'LOW', installs: 500 }
+    ],
     // --- PHASE 7: FUND ---
     getFundOverview: (): FundOverview => ({
         total_aum: 15400000,
