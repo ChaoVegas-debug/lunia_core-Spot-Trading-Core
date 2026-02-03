@@ -6,6 +6,16 @@ import { Role } from './types';
 
 // Helper to determine if we should use simulation
 function shouldUseSim() {
+    // PHASE 6 UPLINK FIX: Never use simulation when backend is localhost
+    // (local dev should always attempt real API and fail fast if backend down)
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    const isLocalhostBackend = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
+
+    if (isLocalhostBackend) {
+        console.debug('[Adapter] Localhost backend detected - simulation disabled, forcing real API');
+        return false;
+    }
+
     if (!isPreviewEnabled()) return false;
     if (!isSimulationEnabled()) return false;
 
