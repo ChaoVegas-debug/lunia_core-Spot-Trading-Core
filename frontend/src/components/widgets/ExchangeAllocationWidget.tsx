@@ -104,7 +104,7 @@ export const ExchangeAllocationWidget: React.FC = () => {
     const { data, error } = usePoller({
         key: 'exchange_allocations',
         endpoint: '/api/exchange/allocations',
-        fetcher: () => getExchangeAllocations(),
+        fetcher: () => getExchangeAllocations(new AbortController().signal),
         interval_ms: 5000,
         critical: false
     });
@@ -123,6 +123,9 @@ export const ExchangeAllocationWidget: React.FC = () => {
         addToast({ type: 'ERROR', message: msg });
     }, [addToast]);
 
+    // Defensive guard: ensure data is always an array
+    const safeData = Array.isArray(data) ? data : [];
+
     return (
         <WidgetWrapper
             id="ExchangeAllocationWidget"
@@ -130,17 +133,23 @@ export const ExchangeAllocationWidget: React.FC = () => {
             loading={loading}
             error={error}
         >
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                {data?.map((exch: ExchangeAllocationRow) => (
-                    <ExchangeCard
-                        key={exch.id}
-                        exch={exch}
-                        onRiskUpdate={handleRiskUpdate}
-                        onToggle={handleToggle}
-                        onError={handleError}
-                    />
-                ))}
-            </div>
+            {safeData.length === 0 && !loading && !error ? (
+                <div style={{ padding: '1rem', textAlign: 'center', color: '#666', fontSize: '0.875rem' }}>
+                    No exchange allocations configured
+                </div>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    {safeData.map((exch: ExchangeAllocationRow) => (
+                        <ExchangeCard
+                            key={exch.id}
+                            exch={exch}
+                            onRiskUpdate={handleRiskUpdate}
+                            onToggle={handleToggle}
+                            onError={handleError}
+                        />
+                    ))}
+                </div>
+            )}
         </WidgetWrapper>
     );
 };

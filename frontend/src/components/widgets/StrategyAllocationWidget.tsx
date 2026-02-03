@@ -97,7 +97,7 @@ export const StrategyAllocationWidget: React.FC = () => {
     const { data, error } = usePoller({
         key: 'strategy_allocations',
         endpoint: '/api/strategy/allocations',
-        fetcher: () => getStrategyAllocations(),
+        fetcher: () => getStrategyAllocations(new AbortController().signal),
         interval_ms: 3000,
         critical: false
     });
@@ -115,6 +115,9 @@ export const StrategyAllocationWidget: React.FC = () => {
     const handleError = useCallback((msg: string) => {
         addToast({ type: 'ERROR', message: msg });
     }, [addToast]);
+
+    // Defensive guard: ensure data is always an array
+    const safeData = Array.isArray(data) ? data : [];
 
     return (
         <WidgetWrapper
@@ -137,15 +140,23 @@ export const StrategyAllocationWidget: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {data?.map((row: StrategyAllocationRow) => (
-                            <StrategyRow
-                                key={row.id}
-                                row={row}
-                                onAllocUpdate={handleAllocUpdate}
-                                onToggle={handleToggle}
-                                onError={handleError}
-                            />
-                        ))}
+                        {safeData.length === 0 && !loading && !error ? (
+                            <tr>
+                                <td colSpan={6} style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>
+                                    No strategy allocations configured
+                                </td>
+                            </tr>
+                        ) : (
+                            safeData.map((row: StrategyAllocationRow) => (
+                                <StrategyRow
+                                    key={row.id}
+                                    row={row}
+                                    onAllocUpdate={handleAllocUpdate}
+                                    onToggle={handleToggle}
+                                    onError={handleError}
+                                />
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
