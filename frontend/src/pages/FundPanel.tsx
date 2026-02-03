@@ -10,33 +10,33 @@ export const FundPanel: React.FC = () => {
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
   // Poll resources
-  const { data, error, refresh } = usePoller<FundOverview>({
-        key: 'data_FundPanel',
-        endpoint: '/api/fund/overview',
-        fetcher: () => getFundOverview(new AbortController().signal, client),
-        interval_ms: 5000,
-        critical: false
-    });
-    const loading = false;
-    const lastUpdated = undefined;
-  const { data, error, refresh } = usePoller<FundPortfolio>({
-        key: 'data_FundPanel',
-        endpoint: '/api/fund/portfolio',
-        fetcher: () => getFundPortfolio(new AbortController().signal, client),
-        interval_ms: 10000,
-        critical: false
-    });
-    const loading = false;
-    const lastUpdated = undefined;
-  const { data, error, refresh } = usePoller<FundStrategy[]>({
-        key: 'data_FundPanel',
-        endpoint: '/api/fund/strategies',
-        fetcher: () => getFundStrategies(new AbortController().signal, client),
-        interval_ms: 10000,
-        critical: false
-    });
-    const loading = false;
-    const lastUpdated = undefined;
+  const { data: overview, error: errorOverview, refresh: refreshOverview } = usePoller<FundOverview>({
+    key: 'fund_overview',
+    endpoint: '/api/fund/overview',
+    fetcher: () => getFundOverview(new AbortController().signal, client),
+    interval_ms: 5000,
+    critical: false
+  });
+  const loadingOverview = false;
+  const lastUpdatedOverview = undefined;
+  const { data: portfolio, error: errorPortfolio, refresh: refreshPortfolio } = usePoller<FundPortfolio>({
+    key: 'fund_portfolio',
+    endpoint: '/api/fund/portfolio',
+    fetcher: () => getFundPortfolio(new AbortController().signal, client),
+    interval_ms: 10000,
+    critical: false
+  });
+  const loadingPortfolio = false;
+  const lastUpdatedPortfolio = undefined;
+  const { data: strategies, error: errorStrategies, refresh: refreshStrategies } = usePoller<FundStrategy[]>({
+    key: 'fund_strategies',
+    endpoint: '/api/fund/strategies',
+    fetcher: () => getFundStrategies(new AbortController().signal, client),
+    interval_ms: 10000,
+    critical: false
+  });
+  const loadingStrategies = false;
+  const lastUpdatedStrategies = undefined;
 
   return (
     <div className="page-container p-6 max-w-[1600px] mx-auto space-y-8">
@@ -51,7 +51,7 @@ export const FundPanel: React.FC = () => {
             <p className="text-sm text-gray-400">Global Aggregation Layer</p>
           </div>
         </div>
-        <DataStatus loading={loadingOverview} error={errorOverview} lastUpdated={lastUpdated} />
+        <DataStatus loading={loadingOverview} error={errorOverview || undefined} lastUpdated={lastUpdatedOverview} />
       </div>
 
       {/* KPI Grid */}
