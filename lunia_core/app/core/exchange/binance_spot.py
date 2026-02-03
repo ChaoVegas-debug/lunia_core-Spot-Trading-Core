@@ -9,7 +9,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
-from app.compat.requests import requests
+import requests
 
 from .base import IExchange
 
@@ -36,20 +36,77 @@ class BinanceSpot(IExchange):
     mock: bool = True
     session: requests.Session = field(default_factory=requests.Session)
 
+    time_offset: int = 0
+    auth_proven: str = "UNVERIFIED" # UNVERIFIED, VERIFIED, FAILED
+    
     def __post_init__(self) -> None:
-        self.base_url = "https://testnet.binance.vision"
+        if self.api_key:
+            self.api_key = self.api_key.strip()
+        if self.api_secret:
+            self.api_secret = self.api_secret.strip()
+
+        if self.use_testnet:
+             self.base_url = "https://testnet.binance.vision"
+        else:
+             self.base_url = "https://api.binance.com"
+             
         self.timeout = 10
         self.retries = 3
-        if not self.use_testnet:
-            self.mock = True
-            logger.info("BinanceSpot testnet disabled; using mock mode")
+
+        if not self.use_testnet and not (self.api_key and self.api_secret):
+            # STRICT MODE: Do not fallback to mock.
+            if not self.mock:
+                logger.warning("BinanceSpot Mainnet requested without credentials. Calls will FAIL (Fail-Closed).")
         elif not self.api_key or not self.api_secret:
-            self.mock = True
-            logger.warning("Missing Binance API credentials; falling back to mock mode")
+            if not self.mock:
+                logger.warning("BinanceSpot initialized without credentials. Calls will FAIL (Fail-Closed).")
         elif self.mock:
             logger.info("BinanceSpot forced into mock mode")
         else:
-            logger.info("BinanceSpot initialized for testnet API calls")
+            mode = "TESTNET" if self.use_testnet else "MAINNET"
+            logger.info(f"BinanceSpot initialized for {mode} API calls")
+            
+    def verify_auth(self) -> bool:
+        """
+        Attempts a signed request to prove credentials are valid.
+        Updates self.auth_proven state.
+        """
+        if self.mock:
+            self.auth_proven = "VERIFIED" # Mock is always verified
+            return True
+            
+        if not self.api_key or not self.api_secret:
+            self.auth_proven = "FAILED"
+            return False
+
+        try:
+            # Lightweight signed call
+            self.get_balances(force_real=True)
+            self.auth_proven = "VERIFIED"
+            logger.info("BinanceSpot Authentication PROVEN (VERIFIED).")
+            return True
+        except Exception as e:
+            logger.error(f"BinanceSpot Authentication FAILED: {e}")
+            self.auth_proven = "FAILED"
+            return False
+
+
+    def _sync_time(self) -> None:
+        """Synchronize client time with Binance server time."""
+        try:
+            resp = self.session.get(f"{self.base_url}/api/v3/time", timeout=5)
+            resp.raise_for_status()
+            server_time = resp.json()["serverTime"]
+            local_time = int(time.time() * 1000)
+            self.time_offset = server_time - local_time
+            self._time_synced = True
+            logger.info(f"Binance time synced. Offset: {self.time_offset}ms")
+        except Exception as e:
+            logger.error(f"Failed to sync time with Binance: {e}")
+            # Do not raise, just warn. We will default to local time.
+
+    def _get_timestamp(self) -> int:
+        return int(time.time() * 1000) + self.time_offset
 
     # Utilities
     def _build_headers(self) -> Dict[str, str]:
@@ -72,6 +129,14 @@ class BinanceSpot(IExchange):
             response.raise_for_status()
         except requests.RequestException as exc:  # pragma: no cover - error path
             logger.error("Binance API request failed: %s", exc)
+            if response.text:
+                 logger.error("Binance Error Body: %s", response.text)
+                 
+                 # Check for Timestamp error (-1021)
+                 if "-1021" in response.text:
+                     logger.warning("Timestamp error detected. Triggering re-sync.")
+                     self._sync_time()
+                     
             raise BinanceSpotError(str(exc)) from exc
         try:
             payload = response.json()
@@ -97,8 +162,9 @@ class BinanceSpot(IExchange):
         path: str,
         params: Optional[Dict[str, object]] = None,
         signed: bool = False,
+        force_real: bool = False,
     ) -> Dict[str, object]:
-        if self.mock:
+        if self.mock and not force_real:
             raise BinanceSpotError("mock-mode")
         if signed and (not self.api_key or not self.api_secret):
             raise BinanceSpotError("credentials-missing")
@@ -107,7 +173,10 @@ class BinanceSpot(IExchange):
         request_params = params
         if signed:
             params_with_timestamp = dict(params)
-            params_with_timestamp.setdefault("timestamp", int(time.time() * 1000))
+            # Use synced timestamp
+            params_with_timestamp.setdefault("timestamp", self._get_timestamp())
+            params_with_timestamp.setdefault("recvWindow", 5000)
+            
             signed_params = self._signed_params(params_with_timestamp)
             if signed_params is None:
                 raise BinanceSpotError("signing-failed")
@@ -116,8 +185,15 @@ class BinanceSpot(IExchange):
         url = f"{self.base_url}{path}"
         headers = self._build_headers()
         last_exc: Optional[Exception] = None
+        
+        # [DIAGNOSTIC] Log Request Details
+        if force_real:
+            safe_params = {k:v for k,v in request_params.items() if k != "signature"}
+            logger.info(f"[BINANCE_REQ] {method} {url} Params={safe_params} Signed={signed}")
+
         for attempt in range(1, self.retries + 1):
             try:
+                t0 = time.time()
                 if method.upper() == "GET":
                     resp = self.session.get(url, params=request_params, headers=headers, timeout=self.timeout)
                 elif method.upper() == "POST":
@@ -126,6 +202,15 @@ class BinanceSpot(IExchange):
                     resp = self.session.delete(url, params=request_params, headers=headers, timeout=self.timeout)
                 else:
                     raise ValueError(f"Unsupported method {method}")
+                
+                latency = (time.time() - t0) * 1000
+                
+                # [DIAGNOSTIC] Log Response Details for REAL requests
+                if force_real or not self.mock:
+                    logger.info(f"[BINANCE_RESP] Status={resp.status_code} Latency={latency:.1f}ms URL={resp.url}")
+                    if resp.status_code != 200:
+                        logger.error(f"[BINANCE_ERR_BODY] {resp.text[:500]}") # Log first 500 chars of error
+                
                 return self._handle_response(resp)
             except (requests.RequestException, BinanceSpotError) as exc:
                 last_exc = exc
@@ -171,7 +256,30 @@ class BinanceSpot(IExchange):
         type: str = "MARKET",
     ) -> Dict[str, object]:
         side_upper = self._validate_side(side)
-        logger.info("Placing %s order for %s qty=%.8f type=%s", side_upper, symbol, qty, type)
+        
+        # SAFETY: Dry Run Check
+        import os
+        is_dry_run = os.getenv("TRADING_DRY_RUN", "true").lower() == "true"
+        
+        logger.info("Placing %s order for %s qty=%.8f type=%s [DryRun=%s]", side_upper, symbol, qty, type, is_dry_run)
+        
+        if is_dry_run:
+             # Return a fake order receipt that looks real but denotes dry run
+             order_id = f"dry-{int(time.time() * 1000)}"
+             price = self.get_price(symbol) # Fetch real price for realism if possible
+             return {
+                    "symbol": symbol.upper(),
+                    "orderId": order_id,
+                    "side": side_upper,
+                    "type": type,
+                    "origQty": qty,
+                    "status": "FILLED_DRY_RUN", # Distinct status
+                    "price": price,
+                    "executedQty": qty,
+                    "cummulativeQuoteQty": price * qty,
+                    "transactTime": int(time.time() * 1000),
+                }
+
         if self.mock:
             order_id = f"mock-{int(time.time() * 1000)}"
             price = self._mock_price(symbol)
@@ -195,6 +303,10 @@ class BinanceSpot(IExchange):
             self.mock = True
             return self.place_order(symbol, side, qty, type)
 
+        # STRICT GATE
+        if not self.mock and self.auth_proven != "VERIFIED":
+             raise BinanceSpotError("auth-not-proven: LIVE Trading requires verified credentials")
+
         try:
             payload = self._request(
                 "POST",
@@ -210,9 +322,10 @@ class BinanceSpot(IExchange):
             return payload
         except BinanceSpotError as exc:  # pragma: no cover - network issues
             logger.warning("Order placement failed (%s); using mock", exc)
-            self.mock = True
-            return self.place_order(symbol, side, qty, type)
-
+            # Do NOT fall back to mock for real errors when trying to trade real money
+            # Raise the error to let the UI know it failed
+            raise
+    
     def cancel_order(self, order_id: str) -> Dict[str, object]:
         logger.info("Cancelling order %s", order_id)
         if self.mock:
@@ -249,6 +362,7 @@ class BinanceSpot(IExchange):
                     "symbol": symbol.upper(),
                     "free": balance,
                     "locked": 0.0,
+                    "time_offset": self.time_offset
                 }
             )
 
@@ -275,10 +389,24 @@ class BinanceSpot(IExchange):
             "locked": asset.get("locked", 0.0),
         }
 
-    def get_balances(self) -> Dict[str, Dict[str, float]]:
-        if self.mock:
+    def get_balances(self, force_real: bool = False) -> Dict[str, Dict[str, float]]:
+        if self.mock and not force_real:
             return {"USDT": {"free": 1000.0, "locked": 0.0}}
-        account = self._request("GET", "/api/v3/account", signed=True)
+        
+        # STRICT LIVE GATE
+        # We allow the initial verify_auth() call to pass (it calls this method),
+        # but subsequent calls should generally respect state. 
+        # Actually, verifying by *calling* this method means we rely on _request to fail.
+        # But let's add an explicit gate for safety if we are FAILED.
+        if not self.mock and self.auth_proven == "FAILED":
+             raise BinanceSpotError("auth-not-proven: Credentials previously rejected")
+
+        # If force_real is True, we attempt request regardless of self.mock
+        # But we must have keys.
+        if force_real and (not self.api_key or not self.api_secret):
+             raise BinanceSpotError("Cannot force real balances without keys")
+
+        account = self._request("GET", "/api/v3/account", signed=True, force_real=force_real)
         balances: Dict[str, Dict[str, float]] = {}
         for balance in account.get("balances", []):
             balances[balance["asset"]] = {

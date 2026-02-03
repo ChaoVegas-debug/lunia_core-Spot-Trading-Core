@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getPortfolioSnapshot, getStrategies, getExchanges } from '../../api/adapter';
 import type { PortfolioDefinition, PortfolioAggregate, StrategyConfig, ExchangeConfig } from '../../api/types';
 
@@ -11,9 +11,30 @@ interface PortfolioDetailDrawerProps {
 
 export const PortfolioDetailDrawer: React.FC<PortfolioDetailDrawerProps> = ({ portfolio, onClose, client }) => {
     // Poll for real-time data
-    const snapshot = usePolledResource<PortfolioAggregate>((s) => getPortfolioSnapshot(s, client), 3000, []);
-    const strategies = usePolledResource<StrategyConfig[]>((s) => getStrategies(s, client), 10000, []);
-    const exchanges = usePolledResource<ExchangeConfig[]>((s) => getExchanges(s, client), 10000, []);
+    const { data: snapshotData, error: snapshotError, refresh: snapshotRefresh } = usePoller<PortfolioAggregate>({
+        key: 'snapshot_PortfolioDetailDrawer',
+        endpoint: '/api/portfolio/snapshot',
+        fetcher: () => getPortfolioSnapshot(new AbortController().signal, client),
+        interval_ms: 3000,
+        critical: false
+    });
+    const snapshot = { data: snapshotData, error: snapshotError, loading: false, refresh: snapshotRefresh };
+    const { data: strategiesData, error: strategiesError, refresh: strategiesRefresh } = usePoller<StrategyConfig[]>({
+        key: 'strategies_PortfolioDetailDrawer',
+        endpoint: '/api/strategies',
+        fetcher: () => getStrategies(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const strategies = { data: strategiesData, error: strategiesError, loading: false, refresh: strategiesRefresh };
+    const { data: exchangesData, error: exchangesError, refresh: exchangesRefresh } = usePoller<ExchangeConfig[]>({
+        key: 'exchanges_PortfolioDetailDrawer',
+        endpoint: '/api/exchanges',
+        fetcher: () => getExchanges(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const exchanges = { data: exchangesData, error: exchangesError, loading: false, refresh: exchangesRefresh };
 
     // Derived Data
     const positions = snapshot.data?.positions || [];

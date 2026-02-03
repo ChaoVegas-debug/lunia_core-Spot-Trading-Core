@@ -115,7 +115,7 @@ export const PreviewStatusBadge: React.FC = () => {
 
                             <div className="bg-darker p-3 rounded font-mono small">
                                 <div className="mb-2"><strong>Simulated State (In-Memory)</strong></div>
-                                <div>Ops Mode: <span style={{ color: 'var(--accent-primary)' }}>{state.ops.exec_mode}</span></div>
+                                <div>System Mode: <span style={{ color: 'var(--accent-primary)' }}>{state.ops.system_mode || 'MANUAL'}</span></div>
                                 <div>Health: <span style={{ color: '#4caf50' }}>{JSON.stringify(simHealth.status, null, 2)}</span></div>
                                 <div>Users: {safeArray(state.users).length} | Strategies: {safeArray(state.strategies).length}</div>
                             </div>

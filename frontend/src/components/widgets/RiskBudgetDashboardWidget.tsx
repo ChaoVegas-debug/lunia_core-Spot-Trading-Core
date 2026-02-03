@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getOpsState, getOpsCapital, getRisk } from '../../api/adapter';
 import type { OpsState, OpsCapital, SpotRiskConfig } from '../../api/types';
 
@@ -35,9 +35,30 @@ export const RiskBudgetDashboardWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, opsToken: auth.opsToken };
 
-    const ops = usePolledResource<OpsState>((s) => getOpsState(s, client), 3000, []);
-    const capital = usePolledResource<OpsCapital>((s) => getOpsCapital(s, client), 5000, []);
-    const risk = usePolledResource<SpotRiskConfig>((s) => getRisk(s, client), 10000, []);
+    const { data: opsData, error: opsError, refresh: opsRefresh } = usePoller<OpsState>({
+        key: 'ops_RiskBudgetDashboardWidget',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 3000,
+        critical: true
+    });
+    const ops = { data: opsData, error: opsError, loading: false, refresh: opsRefresh };
+    const { data: capitalData, error: capitalError, refresh: capitalRefresh } = usePoller<OpsCapital>({
+        key: 'capital_RiskBudgetDashboardWidget',
+        endpoint: '/api/capital',
+        fetcher: () => getOpsCapital(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const capital = { data: capitalData, error: capitalError, loading: false, refresh: capitalRefresh };
+    const { data: riskData, error: riskError, refresh: riskRefresh } = usePoller<SpotRiskConfig>({
+        key: 'risk_RiskBudgetDashboardWidget',
+        endpoint: '/api/risk',
+        fetcher: () => getRisk(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const risk = { data: riskData, error: riskError, loading: false, refresh: riskRefresh };
 
     // Derived Metrics
     const capPct = capital.data?.cap_pct || 100;

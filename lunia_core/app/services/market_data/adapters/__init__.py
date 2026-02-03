@@ -1,0 +1,1 @@
+"""Market Data Adapters package"""

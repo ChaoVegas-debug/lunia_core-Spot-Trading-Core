@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { getExchangeKeys, updateExchangeKeys, testExchangeConnection, deleteExchangeKey } from '../api/adapter';
+import { getBalances, getExchangeKeys, updateExchangeKeys, testExchangeConnection, deleteExchangeKey } from '../api/adapter';
 import { useAuth } from '../hooks/useAuth';
 import { useLocation } from 'react-router-dom';
 import { useDashboard } from '../context/DashboardContext';
 import { ExchangeKey } from '../api/types';
 import { useWhy } from '../contexts/WhyContext';
+import { previewStore } from '../preview/PreviewStore';
 
 // Helper for masking
 const maskSecret = (secret: string) => {
@@ -14,10 +15,28 @@ const maskSecret = (secret: string) => {
 };
 
 export const ExchangeKeysPage: React.FC = () => {
-    const { role } = useAuth();
+    const auth = useAuth();
+    // Construct client object for adapter authentication
+    const client = {
+        role: auth.role,
+        adminToken: auth.adminToken,
+        opsToken: auth.opsToken,
+        bearerToken: auth.bearerToken
+    };
+
     const location = useLocation() as { state: any };
     const { openWhy } = useWhy();
     const { addToast } = useDashboard();
+
+    // Preview Store Source State (Hybrid Mode)
+    const [useRealData, setUseRealDataState] = useState(previewStore.getState().use_real_data);
+    const setUseRealData = (val: boolean) => {
+        previewStore.setUseRealData(val);
+        setUseRealDataState(val);
+        // Trigger re-fetch with delay to allow prop
+        setTimeout(() => fetchBalances(), 500);
+    };
+
     const [keys, setKeys] = useState<ExchangeKey[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -40,15 +59,66 @@ export const ExchangeKeysPage: React.FC = () => {
     // Test Results State
     const [testResults, setTestResults] = useState<Record<string, { status: string; latency?: number; message?: string }>>({});
 
+    // Balance State
+    const [balances, setBalances] = useState<{ asset: string; free: number; locked: number }[]>([]);
+    const [balancesLoading, setBalancesLoading] = useState(false);
+    const [showZeroBalances, setShowZeroBalances] = useState(false);
+    // Explicit Proof: Store last fetch status/source
+    const [fetchStatus, setFetchStatus] = useState<{ code: number, source: 'REAL' | 'SIM', requestId?: string, error?: string } | null>(null);
+
     useEffect(() => {
         loadKeys();
     }, []);
+
+    const fetchBalances = async () => {
+        setBalancesLoading(true);
+        // Clear previous balance errors if we are retrying
+        // Note: We don't have a specific balanceError state, we use toast. 
+        // But for "Inline" message requested, maybe we should add one?
+        // Let's stick to Toast + maybe render detail if empty.
+        try {
+            // Check Explicit Source
+            const isReal = previewStore.getState().use_real_data;
+            const requestId = crypto.randomUUID();
+
+            // @ts-ignore
+            const res = await getBalances(new AbortController().signal, client, requestId);
+
+            setBalances(res.balances || []);
+            setFetchStatus({
+                code: res.upstream_status || 200,
+                source: (res.source as 'REAL' | 'SIM') || (isReal ? 'REAL' : 'SIM'),
+                requestId: res.request_id || requestId
+            });
+            addToast({ type: 'SUCCESS', message: 'Live balances updated successfully' });
+        } catch (err: any) {
+            console.error(err);
+            const isReal = previewStore.getState().use_real_data;
+
+            // Fix: APIError has .status, not .response.status
+            const status = err.status || err.response?.status || 500;
+
+            // Extract detailed message from payload if available (Flask returns "error" in body)
+            let detailedMsg = err.message || 'Unknown Error';
+            if (err.payload && typeof err.payload === 'object') {
+                const p = err.payload as any;
+                if (p.error) detailedMsg = p.error;
+                // Add upstream status if available for debugging
+                if (p.upstream_status) detailedMsg += ` (Upstream: ${p.upstream_status})`;
+            }
+
+            setFetchStatus({ code: status, source: isReal ? 'REAL' : 'SIM', error: detailedMsg });
+            addToast({ type: 'ERROR', message: `Fetch Failed: ${detailedMsg}` });
+        } finally {
+            setBalancesLoading(false);
+        }
+    };
 
     const loadKeys = async () => {
         setLoading(true);
         try {
             // @ts-ignore
-            const data = await getExchangeKeys(new AbortController().signal);
+            const data = await getExchangeKeys(new AbortController().signal, client);
             setKeys(data);
         } catch (err) {
             addToast({ type: 'ERROR', message: 'Failed to load keys' });
@@ -91,7 +161,7 @@ export const ExchangeKeysPage: React.FC = () => {
             await updateExchangeKeys({
                 ...formData,
                 api_secret: formData.api_secret || (editingKey ? '***' : '')
-            }, new AbortController().signal);
+            }, new AbortController().signal, client);
 
             addToast({ type: 'SUCCESS', message: 'Exchange key configuration saved' });
             setIsModalOpen(false);
@@ -108,7 +178,7 @@ export const ExchangeKeysPage: React.FC = () => {
     const handleTest = async (key: ExchangeKey) => {
         setTestResults(prev => ({ ...prev, [key.exchange_id]: { status: 'loading' } }));
         try {
-            const res = await testExchangeConnection(key.exchange_id, new AbortController().signal) as { latency_ms: number; status: string; message?: string };
+            const res = await testExchangeConnection(key.exchange_id, new AbortController().signal, client) as { latency_ms: number; status: string; message?: string };
             setTestResults(prev => ({
                 ...prev,
                 [key.exchange_id]: {
@@ -142,7 +212,7 @@ export const ExchangeKeysPage: React.FC = () => {
         if (!window.confirm(`Are you sure you want to revoke keys for ${id}? This cannot be undone.`)) return;
 
         try {
-            await deleteExchangeKey(id, new AbortController().signal);
+            await deleteExchangeKey(id, new AbortController().signal, client);
             setKeys(prev => prev.filter(k => k.exchange_id !== id));
             addToast({ type: 'SUCCESS', message: `Revoked keys for ${id}` });
         } catch (e: any) {
@@ -256,10 +326,17 @@ export const ExchangeKeysPage: React.FC = () => {
                                                 <span className="tiny">Testing...</span>
                                             ) : (
                                                 <div className="flex-col">
-                                                    <span className={`status-chip ${k.status === 'CONNECTED' ? 'success' : 'error'}`}>
+                                                    <span className={`status-chip ${k.status === 'CONNECTED' || k.status === 'CONFIGURED' ? 'success' : 'error'}`}>
                                                         {k.status}
                                                     </span>
-                                                    {k.last_latency_ms && (
+                                                    {/* Show Live Test Result if available */}
+                                                    {testRes && (
+                                                        <span className={`tiny ${testRes.status === 'ok' ? 'success' : 'danger'}`}>
+                                                            {testRes.message || (testRes.status === 'ok' ? 'Connected' : 'Failed')}
+                                                        </span>
+                                                    )}
+                                                    {/* Fallback to stored latency */}
+                                                    {!testRes && k.last_latency_ms && (
                                                         <span className="tiny muted">{k.last_latency_ms}ms</span>
                                                     )}
                                                 </div>
@@ -291,6 +368,132 @@ export const ExchangeKeysPage: React.FC = () => {
                         </tbody>
                     </table>
                 )}
+            </div>
+
+            {/* LIVE BALANCE SNAPSHOT */}
+            <div className="card" style={{ marginTop: '2rem' }}>
+                <div className="card-header flex-between">
+                    <div className="flex-row gap-2">
+                        <h3>Live Binance Account Snapshot</h3>
+                        {/* Source Indicator */}
+                        <div className="flex-row gap-2" style={{ alignItems: 'center' }}>
+                            <div className="tiny uppercase font-bold text-muted">SOURCE:</div>
+                            <div className="flex-row" style={{ background: '#111', borderRadius: '4px', padding: '2px' }}>
+                                <button
+                                    className={`button tiny ${!useRealData ? 'primary' : 'ghost'}`}
+                                    style={{ padding: '2px 8px' }}
+                                    onClick={() => setUseRealData(false)}
+                                >
+                                    SIM
+                                </button>
+                                <button
+                                    className={`button tiny ${useRealData ? 'warn' : 'ghost'}`}
+                                    style={{ padding: '2px 8px' }}
+                                    onClick={() => {
+                                        if (keys.length === 0) {
+                                            addToast({ type: 'ERROR', message: "No Exchange Keys configured. Cannot switch to Real Data." });
+                                            return;
+                                        }
+                                        setUseRealData(true);
+                                    }}
+                                >
+                                    REAL
+                                </button>
+                            </div>
+                        </div>
+                        {/* Status Chip */}
+                        {useRealData ? (
+                            <span className="status-chip warn">READ-ONLY (REAL)</span>
+                        ) : (
+                            <span className="status-chip success">SIMULATED</span>
+                        )}
+                    </div>
+                    <div className="flex-row gap-2">
+                        <label className="flex-row gap-1 tiny muted pointer">
+                            <input
+                                type="checkbox"
+                                checked={showZeroBalances}
+                                onChange={e => setShowZeroBalances(e.target.checked)}
+                            />
+                            Show Zero Balances
+                        </label>
+                        <button className="button secondary small" onClick={fetchBalances} disabled={balancesLoading}>
+                            {balancesLoading ? 'Fetching...' : 'Refresh Balances'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Security Banner */}
+                <div className="padding-2" style={{ background: 'rgba(255, 165, 0, 0.1)', borderBottom: '1px solid var(--border-color)' }}>
+                    <div className="flex-row gap-2" style={{ color: 'var(--status-warn)' }}>
+                        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                        <div>
+                            <strong>LIVE DATA READING ENABLED — TRADING STILL IN DRY-RUN MODE</strong>
+                            <div className="tiny" style={{ opacity: 0.8 }}>
+                                The balances below are real-time data from your Binance account.
+                                By default, the system remains in <code>TRADING_DRY_RUN=true</code> mode, meaning no executing orders will be sent to the exchange.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Explicit Fetch Proof */}
+                {fetchStatus && (
+                    <div className="padding-1 tiny flex-row gap-2" style={{ background: fetchStatus.code === 200 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderBottom: '1px solid var(--border-color)' }}>
+                        <span style={{ fontWeight: 'bold', color: fetchStatus.code === 200 ? 'var(--status-ok)' : 'var(--status-error)' }}>
+                            [{useRealData ? 'REAL API' : 'SIMULATION'}] Response: {fetchStatus.code}
+                        </span>
+                        {fetchStatus.error && <span className="text-danger">{fetchStatus.error}</span>}
+                    </div>
+                )}
+
+                {/* Content */}
+                {(() => {
+                    const filtered = balances.filter(b => {
+                        if (showZeroBalances) return true;
+                        return parseFloat(b.free as any) > 0 || parseFloat(b.locked as any) > 0;
+                    });
+
+                    if (filtered.length === 0 && !balancesLoading) {
+                        return (
+                            <div className="padding-2 muted text-center">
+                                {balances.length > 0 ? (
+                                    <p>No non-zero balances found. <a onClick={() => setShowZeroBalances(true)} className="pointer text-primary">Show zero balances</a>?</p>
+                                ) : (
+                                    <p>No balances loaded. Click "Refresh Balances" to inspect active assets.</p>
+                                )}
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
+                                    <th className="small muted uppercase" style={{ padding: '1rem' }}>Asset</th>
+                                    <th className="small muted uppercase" style={{ padding: '1rem', textAlign: 'right' }}>Free</th>
+                                    <th className="small muted uppercase" style={{ padding: '1rem', textAlign: 'right' }}>Locked</th>
+                                    <th className="small muted uppercase" style={{ padding: '1rem', textAlign: 'right' }}>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.map((b) => {
+                                    const free = typeof b.free === 'string' ? parseFloat(b.free) : b.free;
+                                    const locked = typeof b.locked === 'string' ? parseFloat(b.locked) : b.locked;
+                                    const total = free + locked;
+                                    return (
+                                        <tr key={b.asset} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                            <td style={{ padding: '1rem', fontWeight: 600 }}>{b.asset}</td>
+                                            <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'monospace' }}>{free.toLocaleString(undefined, { maximumFractionDigits: 8 })}</td>
+                                            <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{locked > 0 ? locked.toLocaleString(undefined, { maximumFractionDigits: 8 }) : '-'}</td>
+                                            <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'monospace' }}>{total.toLocaleString(undefined, { maximumFractionDigits: 8 })}</td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    );
+                })()}
             </div>
 
             {/* ADD/EDIT MODAL */}

@@ -21,7 +21,7 @@ export const FlattenPortfolioModal: React.FC<FlattenPortfolioModalProps> = ({ on
         try {
             if (portfolioId) {
                 // Try the specific portfolio action endpoint
-                await executePortfolioAction(portfolioId, 'DERISK', new AbortController().signal);
+                await executePortfolioAction(portfolioId, 'DERISK');
                 setStatus('DONE');
             } else {
                 // Global flatten? No endpoint for global flatten yet.

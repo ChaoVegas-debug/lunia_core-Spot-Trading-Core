@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getOpsCapital, setGlobalCapitalCap, undoAction } from '../../api/adapter';
 import type { OpsCapital } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
@@ -14,7 +14,15 @@ export const CapitalControlsWidget: React.FC = () => {
     const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
-    const { data, error, loading, lastUpdated } = usePolledResource<OpsCapital>((signal) => getOpsCapital(signal, client), 4000, [auth.role]);
+    const { data, error, refresh } = usePoller<OpsCapital>({
+        key: 'data_CapitalControlsWidget',
+        endpoint: '/api/capital',
+        fetcher: () => getOpsCapital(new AbortController().signal, client),
+        interval_ms: 4000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     const [undoToken, setUndoToken] = React.useState<string | null>(null);
 

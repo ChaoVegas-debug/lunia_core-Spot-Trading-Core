@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getSystemEvents } from '../../api/adapter';
 import type { SystemEvent } from '../../api/types';
 
 export const SystemFeedWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
-    const { data } = usePolledResource<{ items: SystemEvent[] }>((signal) => getSystemEvents(signal, client), 3000, [auth]);
+    const { data, error, refresh } = usePoller<{ items: SystemEvent[] }>({
+        key: 'data_SystemFeedWidget',
+        endpoint: '/api/events/system',
+        fetcher: () => getSystemEvents(new AbortController().signal, client),
+        interval_ms: 3000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     const messages = data?.items?.slice().reverse().slice(0, 5) || [];
 

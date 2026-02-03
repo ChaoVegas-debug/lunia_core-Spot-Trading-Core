@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getHealth, getOpsState, getStatus, postSpotMode, setSystemMode, undoAction } from '../../api/adapter';
 import type { OpsState, StatusSnapshot } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
@@ -10,17 +10,68 @@ import { FlattenPortfolioModal } from '../modals/FlattenPortfolioModal';
 import { getPlan } from '../../domain/subscription/plans';
 import { LockedFeatureModal } from '../modals/LockedFeatureModal';
 import { useDashboard } from '../../context/DashboardContext';
+import { openAirlock } from '../../lib/airlock/airlockHelper';
 
 // REAL Feature Flag from Env
 const FEATURE_AUTO_BETA = import.meta.env.VITE_FRONTEND_FEATURE_AUTO_BETA_FOR_ALL === '1';
 
-export const SystemStateWidget: React.FC = () => {
+// Phase F3.2: Props interface for wrapper integration
+interface SystemStateWidgetProps {
+  opsData?: OpsState | null;
+  opsError?: Error | null;
+  opsLoading?: boolean;
+  opsRefresh?: () => void;
+}
+
+export const SystemStateWidget: React.FC<SystemStateWidgetProps> = ({
+  opsData: propsOpsData,
+  opsError: propsOpsError,
+  opsLoading: propsOpsLoading,
+  opsRefresh: propsOpsRefresh,
+}) => {
   const auth = useAuth();
   const { addToast } = useDashboard();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken };
-  const ops = usePolledResource<OpsState>((signal) => getOpsState(signal, client), 2000, [auth.role]);
-  const status = usePolledResource<StatusSnapshot>((signal) => getStatus(signal, client), 4000, [auth.role]);
-  const health = usePolledResource((signal) => getHealth(signal, client), 7000, [auth.role]);
+
+  // Phase F3.2: Use props if provided, otherwise fall back to internal polling (backward compat)
+  // MIGRATED: usePoller (canonical primitive)
+  const { data: internalOpsData, error: internalOpsError, refresh: internalOpsRefresh } = usePoller<OpsState>({
+    key: 'system_state_ops',
+    endpoint: '/api/ops/state',
+    fetcher: () => getOpsState(new AbortController().signal, client),
+    interval_ms: 2000,
+    critical: true  // Core system health
+  });
+
+  const ops = propsOpsData !== undefined ? {
+    data: propsOpsData,
+    error: propsOpsError || null,
+    loading: false,  // usePoller doesn't have loading state
+    refresh: propsOpsRefresh || (() => { }),
+  } : {
+    data: internalOpsData,
+    error: internalOpsError,
+    loading: false,
+    refresh: internalOpsRefresh,
+  };
+
+  const { data: statusData, error: statusError, refresh: statusRefresh } = usePoller<StatusSnapshot>({
+    key: 'system_state_status',
+    endpoint: '/api/status',
+    fetcher: () => getStatus(new AbortController().signal, client),
+    interval_ms: 4000,
+    critical: false
+  });
+  const status = { data: statusData, error: statusError, loading: false, refresh: statusRefresh };
+
+  const { data: healthData, error: healthError, refresh: healthRefresh } = usePoller({
+    key: 'system_state_health',
+    endpoint: '/api/health',
+    fetcher: () => getHealth(new AbortController().signal, client),
+    interval_ms: 7000,
+    critical: false
+  });
+  const health = { data: healthData, error: healthError, loading: false, refresh: healthRefresh };
 
   const [undoToken, setUndoToken] = useState<string | null>(null);
   const [showAirlock, setShowAirlock] = useState(false);
@@ -65,9 +116,36 @@ export const SystemStateWidget: React.FC = () => {
 
   const handleModeRequest = (requestMode: 'MANUAL' | 'SEMI' | 'AUTO' | 'STOP') => {
     if (requestMode === 'STOP') {
-      if (window.confirm("ENGAGE GLOBAL STOP? TRADING WILL HALT IMMEDIATELY.")) {
-        executeModeChange('STOP');
-      }
+      // STOP goes through Airlock with FAST PATH
+      openAirlock({
+        actionType: 'GLOBAL_EMERGENCY_STOP',
+        severity: 'CRITICAL',
+        fastPath: true,
+        state_before: {
+          mode: ops.data?.mode || 'MANUAL',
+          trading_on: true
+        },
+        state_after: {
+          mode: 'STOP',
+          trading_on: false
+        },
+        dependencies: ['AllTradingEngines', 'StrategyExecution', 'OrderRouter'],
+        entry_exit_plan: {
+          entry_conditions: ['Operator authority confirmed'],
+          exit_triggers: ['Manual restart only'],
+          reversion_method: 'Requires explicit mode change'
+        },
+        executor: async () => {
+          const startTime = Date.now();
+          try {
+            await executeModeChange('STOP');
+            return { status: 200, latency_ms: Date.now() - startTime, request_id: 'stop-' + Date.now() };
+          } catch (error: any) {
+            addToast({ type: 'ERROR', message: `Stop failed: ${error.message}` });
+            throw error;
+          }
+        }
+      });
       return;
     }
 
@@ -106,13 +184,17 @@ export const SystemStateWidget: React.FC = () => {
   };
 
   // Authoritative Mode Derivation
-  let derivedMode = 'MANUAL';
-  if (ops.data?.global_stop) {
-    derivedMode = 'STOP';
-  } else if (ops.data?.auto_mode) {
-    derivedMode = 'AUTO';
-  } else if (ops.data?.manual_strategy || ops.data?.exec_mode === 'SEMI') {
-    derivedMode = 'SEMI';
+  // VARIANT A: Use system_mode as source of truth, with fallback derivation
+  let derivedMode = ops.data?.system_mode || 'MANUAL';
+  if (!ops.data?.system_mode) {
+    // Backwards compat: derive from legacy fields if system_mode not present
+    if (ops.data?.global_stop) {
+      derivedMode = 'STOP';
+    } else if (ops.data?.auto_mode) {
+      derivedMode = 'AUTO';
+    } else if (ops.data?.manual_strategy) {
+      derivedMode = 'SEMI';
+    }
   }
 
   // Check if we are in Beta Override State (Auto On but Plan doesn't allow)
@@ -226,7 +308,7 @@ export const SystemStateWidget: React.FC = () => {
               ☢️ FLATTEN
             </button>
           )}
-          <DataStatus loading={ops.loading} error={ops.error} lastUpdated={ops.lastUpdated} staleAfterMs={8000} />
+          <DataStatus loading={false} error={ops.error || undefined} lastUpdated={undefined} staleAfterMs={8000} />
         </div>
       </div>
 

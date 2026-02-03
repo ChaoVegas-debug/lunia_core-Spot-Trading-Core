@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getStrategies, updateStrategies, haltStrategies, setStrategyProfile } from '../../api/adapter';
 import type { StrategyConfig } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
@@ -17,7 +17,15 @@ export const StrategyControlsWidget: React.FC<StrategyControlsWidgetProps> = ({ 
     const auth = useAuth();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
-    const { data, error, loading, lastUpdated } = usePolledResource<StrategyConfig[]>((signal) => getStrategies(signal, client), 5000, [auth.role]);
+    const { data, error, refresh } = usePoller<StrategyConfig[]>({
+        key: 'data_StrategyControlsWidget',
+        endpoint: '/api/strategies',
+        fetcher: () => getStrategies(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     const executeUpdate = async (finalData: StrategyConfig[], key?: string) => {
         await updateStrategies(finalData, new AbortController().signal, client, key);

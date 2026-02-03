@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getActivity, getSystemEvents } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import type { SystemEvent, ActivityComponent } from '../../api/types';
@@ -10,8 +10,22 @@ export const SystemActivityWidget: React.FC = () => {
   const auth = useAuth();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
-  const activity = usePolledResource((signal) => getActivity(signal, client), 5000, [auth.role]);
-  const events = usePolledResource((signal) => getSystemEvents(signal, client), 2000, [auth.role]);
+  const { data: activityData, error: activityError, refresh: activityRefresh } = usePoller({
+        key: 'activity_SystemActivityWidget',
+        endpoint: '/api/activity',
+        fetcher: () => getActivity(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const activity = { data: activityData, error: activityError, loading: false, refresh: activityRefresh };
+  const { data: eventsData, error: eventsError, refresh: eventsRefresh } = usePoller({
+        key: 'events_SystemActivityWidget',
+        endpoint: '/api/events/system',
+        fetcher: () => getSystemEvents(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: false
+    });
+    const events = { data: eventsData, error: eventsError, loading: false, refresh: eventsRefresh };
 
   return (
     <div className="card">

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getPortfolioSnapshot, getBalances, getOpsCapital, setSystemMode } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import { buildClient } from '../../api/client';
@@ -24,9 +24,30 @@ export const GovernanceBanners: React.FC = () => {
     const { addToast } = useDashboard();
     const client = buildClient(auth); // Unified Client
 
-    const portfolio = usePolledResource<PortfolioAggregate>((s) => getPortfolioSnapshot(s, client), 5000, []);
-    const balances = usePolledResource<BalancesResponse>((s) => getBalances(s, client), 5000, []);
-    const capital = usePolledResource<OpsCapital>((s) => getOpsCapital(s, client), 5000, []);
+    const { data: portfolioData, error: portfolioError, refresh: portfolioRefresh } = usePoller<PortfolioAggregate>({
+        key: 'portfolio_GovernanceBanners',
+        endpoint: '/api/portfolio/snapshot',
+        fetcher: () => getPortfolioSnapshot(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const portfolio = { data: portfolioData, error: portfolioError, loading: false, refresh: portfolioRefresh };
+    const { data: balancesData, error: balancesError, refresh: balancesRefresh } = usePoller<BalancesResponse>({
+        key: 'balances_GovernanceBanners',
+        endpoint: '/api/balances',
+        fetcher: () => getBalances(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: true
+    });
+    const balances = { data: balancesData, error: balancesError, loading: false, refresh: balancesRefresh };
+    const { data: capitalData, error: capitalError, refresh: capitalRefresh } = usePoller<OpsCapital>({
+        key: 'capital_GovernanceBanners',
+        endpoint: '/api/capital',
+        fetcher: () => getOpsCapital(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const capital = { data: capitalData, error: capitalError, loading: false, refresh: capitalRefresh };
 
     const [processing, setProcessing] = useState(false);
     const [showFixModal, setShowFixModal] = useState(false);

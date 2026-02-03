@@ -1,6 +1,7 @@
 import React from 'react';
+import { WidgetBlocker } from '../common/WidgetBlocker';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getLimits, getRisk, setRiskLimits } from '../../api/adapter';
 import { safeArray } from '../../utils/safe'; // Original imports for RiskWidget
 import type { LimitEntry, SpotRiskConfig } from '../../api/types';
@@ -18,8 +19,22 @@ export const RiskWidget: React.FC = () => {
     opsToken: auth.opsToken,
     bearerToken: auth.bearerToken
   };
-  const risk = usePolledResource<SpotRiskConfig>((signal) => getRisk(signal, client), 7000, [auth.role]);
-  const limits = usePolledResource<LimitEntry[]>((signal) => getLimits(signal, client), 12000, [auth.role]);
+  const { data: riskData, error: riskError, refresh: riskRefresh } = usePoller<SpotRiskConfig>({
+        key: 'risk_RiskWidget',
+        endpoint: '/api/risk',
+        fetcher: () => getRisk(new AbortController().signal, client),
+        interval_ms: 7000,
+        critical: false
+    });
+    const risk = { data: riskData, error: riskError, loading: false, refresh: riskRefresh };
+  const { data: limitsData, error: limitsError, refresh: limitsRefresh } = usePoller<LimitEntry[]>({
+        key: 'limits_RiskWidget',
+        endpoint: '/api/limits',
+        fetcher: () => getLimits(new AbortController().signal, client),
+        interval_ms: 12000,
+        critical: false
+    });
+    const limits = { data: limitsData, error: limitsError, loading: false, refresh: limitsRefresh };
 
   const warnings: string[] = [];
   if (risk.data?.max_positions && risk.data.max_positions < 1) {
@@ -142,7 +157,15 @@ export const RiskWidget: React.FC = () => {
           ))}
         </div>
       )}
-      {risk.error && <div className="alert">Risk endpoint error: {risk.error.message}</div>}
+      {risk.error && (
+        <div style={{ padding: '12px' }}>
+          <WidgetBlocker
+            reason="Risk Engine Offline"
+            detail={risk.error.message}
+            action="Verify Admin Token or Backend Status"
+          />
+        </div>
+      )}
       {risk.data ? (
         <table className="table">
           <thead>

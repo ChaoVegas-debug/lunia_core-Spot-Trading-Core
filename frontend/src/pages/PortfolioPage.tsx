@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import {
     getPortfolioStructure,
     runPortfolioAction,
@@ -28,7 +28,14 @@ export const PortfolioPage: React.FC = () => {
         bearerToken: auth.bearerToken
     };
 
-    const portfolios = usePolledResource<PortfolioDefinition[]>((signal) => getPortfolioStructure(signal, client), 4000, [auth]);
+    const { data: portfoliosData, error: portfoliosError, refresh: portfoliosRefresh } = usePoller<PortfolioDefinition[]>({
+        key: 'portfolios_PortfolioPage',
+        endpoint: '/api/portfolio/structure',
+        fetcher: () => getPortfolioStructure(new AbortController().signal, client),
+        interval_ms: 4000,
+        critical: false
+    });
+    const portfolios = { data: portfoliosData, error: portfoliosError, loading: false, refresh: portfoliosRefresh };
     const [view, setView] = useState<'ACTIVE' | 'WIZARD'>(
         location.state?.tourActive && location.state?.stepId === 'portfolio-wizard' ? 'WIZARD' : 'ACTIVE'
     );

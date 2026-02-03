@@ -1,13 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { getOpsState } from '../../api/adapter';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import type { OpsState } from '../../api/types';
 
 export const ControlAuthorityBanner: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, opsToken: auth.opsToken };
-    const ops = usePolledResource<OpsState>((s) => getOpsState(s, client), 2000, []);
+    const { data: opsData } = usePoller<OpsState>({
+        key: 'control_authority_ops',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: true  // Core system health
+    });
+    const ops = { data: opsData };
 
     const [autoStartTime, setAutoStartTime] = useState<number | null>(null);
     const [elapsed, setElapsed] = useState<string>('');

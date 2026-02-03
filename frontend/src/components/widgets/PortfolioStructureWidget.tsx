@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getPortfolioStructure, runPortfolioAction } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import type { PortfolioDefinition, AssetCard } from '../../api/types';
@@ -11,17 +11,22 @@ import { FreezeAssetModal } from '../modals/FreezeAssetModal';
 import { ConvertToStableModal } from '../modals/ConvertToStableModal';
 import { journalStore } from '../../store/JournalStore';
 import { useDashboard } from '../../context/DashboardContext';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const PortfolioStructureWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
     const { addToast } = useDashboard();
 
-    const { data: portfolios, loading, error, lastUpdated, refresh } = usePolledResource<PortfolioDefinition[]>(
-        (signal) => getPortfolioStructure(signal, client),
-        10000,
-        [auth.role]
-    );
+    const { data: portfolios, error, refresh } = usePoller<PortfolioDefinition[]>({
+        key: 'portfolio_structure',
+        endpoint: '/api/portfolio/structure',
+        fetcher: () => getPortfolioStructure(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const toggleExpand = (id: string) => {
@@ -43,15 +48,18 @@ export const PortfolioStructureWidget: React.FC = () => {
     };
 
     return (
-        <div className="card decision">
-            <div className="card-header">
+        <WidgetWrapper
+            id="PortfolioStructureWidget"
+            title="Active Portfolios"
+            loading={loading}
+            error={error}
+            rightElem={
                 <div>
-                    <h3>Active Portfolios</h3>
-                    <p className="tiny muted uppercase" style={{ letterSpacing: '0.1em' }}>Engine-Constructed Strategies & Assets</p>
+                    <p className="tiny muted uppercase" style={{ letterSpacing: '0.1em', display: 'inline' }}>Engine-Constructed Strategies</p>
+                    <DataStatus loading={loading} error={error} lastUpdated={lastUpdated} />
                 </div>
-                <DataStatus loading={loading} error={error} lastUpdated={lastUpdated} />
-            </div>
-
+            }
+        >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {(portfolios || []).map(p => (
                     <div key={p.id} className="card subtle" style={{ padding: '0', overflow: 'hidden' }}>
@@ -157,7 +165,7 @@ export const PortfolioStructureWidget: React.FC = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </WidgetWrapper>
     );
 };
 

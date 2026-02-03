@@ -1,0 +1,782 @@
+=== EPOCH F.2.1 GENESIS (CONTINUOUS WATCHDOG) ===
+Config: SEED=42, CAPITAL=10000, MAX_DD=0.20
+
+[DD_TRACE] bar=0 | price=50013.942679845786 | cash=10000 | qty=0 | pos_val=0 | equity=10000 | peak=10000 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 0: price=50013.94, equity=10000.00, peak=10000.00, dd=0.00%, pos=0, halted=False
+[DD_TRACE] bar=10 | price=50315.75642362659 | cash=10000 | qty=0 | pos_val=0 | equity=10000 | peak=10000 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 10: price=50315.76, equity=10000.00, peak=10000.00, dd=0.00%, pos=0, halted=False
+[DD_TRACE] bar=20 | price=50606.11018333086 | cash=10000 | qty=0 | pos_val=0 | equity=10000 | peak=10000 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 20: price=50606.11, equity=10000.00, peak=10000.00, dd=0.00%, pos=0, halted=False
+[DD_TRACE] bar=25 | price=50608.65945451126 | cash=10000 | qty=0 | pos_val=0 | equity=10000 | peak=10000 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=26 | price=50588.287948552155 | cash=10000 | qty=0 | pos_val=0 | equity=10000 | peak=10000 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=27 | price=50590.72898834058 | cash=10000 | qty=0 | pos_val=0 | equity=10000 | peak=10000 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=28 | price=50665.89306199909 | cash=10000 | qty=0 | pos_val=0 | equity=10000 | peak=10000 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=29 | price=50639.664183701 | cash=10000 | qty=0 | pos_val=0 | equity=10000 | peak=10000 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[SIZING_FORENSIC] side=BUY balance=10000 price=50639.664183701 computed_qty=0.187 current_position=0 step_size=0.001
+[GATE_V] F.2.2.3.1 REACHABILITY MARKER ACTIVE | side=BUY qty=0.187 price=50639.664183701 emergency=False
+[GATE_CURRENT_CHECK] equity=10000 peak=10000 dd=0 limit=0.20 pos_qty=0
+[GATE_PROJECTED_CHECK] proj_equity=9985.7908393878706934565 proj_dd=0.00142091606121293065435 BLOCKED=False
+[FILL_APPLY_FORENSIC] side=BUY qty=0.187 price=50639.66 notional=9469.61642 fee=0.000187 cash_before=10000 cash_after=530.383393 pos_qty_before=0 pos_qty_after=0.187 equity_before=10000 equity_after=10000.000595352087 delta_equity=0.000595352087
+[DD_TRACE] bar=30 | price=50656.24108547501 | cash=530.383393 | qty=0.187 | pos_val=9472.71708298382687 | equity=10003.10047598382687 | peak=10003.10047598382687 | dd=0 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 30: price=50656.24, equity=10003.10, peak=10003.10, dd=0.00%, pos=0.187, halted=False
+[DD_TRACE] bar=31 | price=50642.86142161351 | cash=530.383393 | qty=0.187 | pos_val=9470.21508584172637 | equity=10000.59847884172637 | peak=10003.10047598382687 | dd=0.0002501221644336650626162586834 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=32 | price=50616.03633537848 | cash=530.383393 | qty=0.187 | pos_val=9465.19879471577576 | equity=9995.58218771577576 | peak=10003.10047598382687 | dd=0.0007515957963335032741624093302 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=33 | price=50650.46491641987 | cash=530.383393 | qty=0.187 | pos_val=9471.63693937051569 | equity=10002.02033237051569 | peak=10003.10047598382687 | dd=0.0001079808821179460867832642789 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=34 | price=50580.01740047184 | cash=530.383393 | qty=0.187 | pos_val=9458.46325388823408 | equity=9988.84664688823408 | peak=10003.10047598382687 | dd=0.001424941109990289750420999096 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=35 | price=50584.712560314794 | cash=530.383393 | qty=0.187 | pos_val=9459.341248778866478 | equity=9989.724641778866478 | peak=10003.10047598382687 | dd=0.001337168834510267115044869718 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=36 | price=50598.1970878132 | cash=530.383393 | qty=0.187 | pos_val=9461.8628554210684 | equity=9992.2462484210684 | peak=10003.10047598382687 | dd=0.001085086327865854302975592453 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=37 | price=50561.33628894713 | cash=530.383393 | qty=0.187 | pos_val=9454.96988603311331 | equity=9985.35327903311331 | peak=10003.10047598382687 | dd=0.001774169618042158499645829827 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=38 | price=50568.44424299542 | cash=530.383393 | qty=0.187 | pos_val=9456.29907344014354 | equity=9986.68246644014354 | peak=10003.10047598382687 | dd=0.001641292075702017054307982597 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=39 | price=50521.447209400016 | cash=530.383393 | qty=0.187 | pos_val=9447.510628157802992 | equity=9977.894021157802992 | peak=10003.10047598382687 | dd=0.002519864204757452252483591758 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=40 | price=50514.34980976773 | cash=530.383393 | qty=0.187 | pos_val=9446.18341442656551 | equity=9976.56680742656551 | peak=10003.10047598382687 | dd=0.002652544440692695881911293546 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 40: price=50514.35, equity=9976.57, peak=10003.10, dd=0.27%, pos=0.187, halted=False
+[DD_TRACE] bar=41 | price=50427.495835855065 | cash=530.383393 | qty=0.187 | pos_val=9429.941721304897155 | equity=9960.325114304897155 | peak=10003.10047598382687 | dd=0.004276210339147139713857091000 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=42 | price=50423.66666461601 | cash=530.383393 | qty=0.187 | pos_val=9429.22566628319387 | equity=9959.60905928319387 | peak=10003.10047598382687 | dd=0.004347793647084757867013498936 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=43 | price=50406.82844214275 | cash=530.383393 | qty=0.187 | pos_val=9426.07691868069425 | equity=9956.46031168069425 | peak=10003.10047598382687 | dd=0.004662570811430888636799040910 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=44 | price=50362.041474034704 | cash=530.383393 | qty=0.187 | pos_val=9417.701755644489648 | equity=9948.085148644489648 | peak=10003.10047598382687 | dd=0.005499827525617885378676205990 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=45 | price=50352.78758582358 | cash=530.383393 | qty=0.187 | pos_val=9415.97127854900946 | equity=9946.35467154900946 | peak=10003.10047598382687 | dd=0.005672821598768989240050066523 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[SIZING_FORENSIC] side=SELL balance=530.383393 price=50352.78758582358 computed_qty=0.187 current_position=0.187 step_size=0.001
+[GATE_V] F.2.2.3.1 REACHABILITY MARKER ACTIVE | side=SELL qty=0.187 price=50352.78758582358 emergency=False
+[GATE_CURRENT_CHECK] equity=9946.35467154900946 peak=10003.10047598382687 dd=0.005672821598768989240050066523 limit=0.20 pos_qty=0.187
+[GATE_PROJECTED_CHECK] proj_equity=9932.235422616825220314730 proj_dd=0.007084308863750757863874483919 BLOCKED=False
+[FILL_APPLY_FORENSIC] side=SELL qty=0.187 price=50352.78 notional=9415.96986 fee=0.000187 cash_before=530.383393 cash_after=9946.353066 pos_qty_before=0.187 pos_qty_after=0 equity_before=9946.35467154900946 equity_after=9946.353066 delta_equity=-0.00160554900946
+[DD_TRACE] bar=46 | price=50314.4450865234 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=47 | price=50306.48801760387 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=48 | price=50316.235061208594 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=49 | price=50262.87847766167 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=50 | price=50237.01809671169 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 50: price=50237.02, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=51 | price=50194.55544331249 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=52 | price=50174.031165422755 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=53 | price=50214.97480147838 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=54 | price=50160.45859494223 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=55 | price=50131.404603379226 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=56 | price=50063.05158847747 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=57 | price=50095.0230340125 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=58 | price=50015.463412325335 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=59 | price=50015.032146686266 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+[DD_TRACE] bar=60 | price=50055.059708917426 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 60: price=50055.06, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=70 | price=49845.570026211055 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 70: price=49845.57, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=80 | price=49930.60855526874 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 80: price=49930.61, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50056.81738825303 computed_qty=0.188 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50080.99964266813 computed_qty=0.188 current_position=0 step_size=0.001
+[DD_TRACE] bar=90 | price=50117.072286888826 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 90: price=50117.07, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50117.072286888826 computed_qty=0.188 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50199.83120668081 computed_qty=0.188 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50248.33109938544 computed_qty=0.188 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50244.32635089743 computed_qty=0.188 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50242.29049427286 computed_qty=0.188 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50308.65343146318 computed_qty=0.187 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50405.26719444158 computed_qty=0.187 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50394.22077721705 computed_qty=0.187 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50474.441220979206 computed_qty=0.187 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50499.682710458794 computed_qty=0.187 current_position=0 step_size=0.001
+[DD_TRACE] bar=100 | price=50451.14810219428 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 100: price=50451.15, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50451.14810219428 computed_qty=0.187 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50558.467441700675 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50590.83765368481 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50612.387690333744 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50621.02746257769 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50693.604677045456 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50675.21749370192 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50741.36617084945 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50776.24920768377 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50858.29499024161 computed_qty=0.185 current_position=0 step_size=0.001
+[DD_TRACE] bar=110 | price=50881.47792018405 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 110: price=50881.48, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50881.47792018405 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50850.05089994945 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50902.33216426938 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50897.349501763725 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50996.519405322375 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51016.56035417115 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50982.00844189587 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51037.04828950854 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51053.31054737682 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51025.172169799094 computed_qty=0.185 current_position=0 step_size=0.001
+[DD_TRACE] bar=120 | price=51101.779338155095 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 120: price=51101.78, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51101.779338155095 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51093.22948357627 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51129.0062732274 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51114.09271787676 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51069.07055382693 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51107.415605700466 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51080.96103845272 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51173.9672122837 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51169.01581314667 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51162.45813350043 computed_qty=0.184 current_position=0 step_size=0.001
+[DD_TRACE] bar=130 | price=51106.27967068784 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 130: price=51106.28, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51106.27967068784 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51075.680759593546 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51150.21448615341 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51147.848284551736 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51050.729307957794 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51078.10754351914 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51022.17787323474 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51075.54453023643 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51058.85699589505 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50976.551141324315 computed_qty=0.185 current_position=0 step_size=0.001
+[DD_TRACE] bar=140 | price=50991.42086395611 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 140: price=50991.42, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50991.42086395611 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50977.893756838996 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50927.38249994486 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50965.13294989106 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50896.37607036243 computed_qty=0.185 current_position=0 step_size=0.001
+[DD_TRACE] bar=150 | price=50799.51493566609 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 150: price=50799.51, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=160 | price=50463.20668245467 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 160: price=50463.21, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=170 | price=50418.02316591049 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 170: price=50418.02, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=180 | price=50447.37932679841 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 180: price=50447.38, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50566.74733787974 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50621.14935990897 computed_qty=0.186 current_position=0 step_size=0.001
+[DD_TRACE] bar=190 | price=50648.2955378372 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 190: price=50648.30, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50648.2955378372 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50664.94111697719 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50694.10380773735 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50794.43691414506 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50780.250798163004 computed_qty=0.186 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50856.62641328871 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50860.687587662556 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50846.36817565963 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50977.26163005912 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=50997.20749874334 computed_qty=0.185 current_position=0 step_size=0.001
+[DD_TRACE] bar=200 | price=51046.899625728474 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 200: price=51046.90, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51046.899625728474 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51079.03195806547 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51107.53619022358 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51075.32176835326 computed_qty=0.185 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51142.9090561275 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51150.88322710739 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51204.16630559728 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51203.75318577975 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51268.77414894855 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51361.44428186747 computed_qty=0.183 current_position=0 step_size=0.001
+[DD_TRACE] bar=210 | price=51320.412931963445 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 210: price=51320.41, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51320.412931963445 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51402.1190550692 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51397.774389698265 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51421.785062309726 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51500.988385473865 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51529.050766136745 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51507.74079509157 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51544.994167551566 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51507.89320876042 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51539.55902549359 computed_qty=0.183 current_position=0 step_size=0.001
+[DD_TRACE] bar=220 | price=51622.399194644495 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 220: price=51622.40, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51622.399194644495 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51597.209609645935 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51605.363145501775 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51635.854906695145 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51574.72989150489 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51633.417759445896 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51629.29840250609 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51666.329339862066 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51596.88689815829 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51675.36947089176 computed_qty=0.182 current_position=0 step_size=0.001
+[DD_TRACE] bar=230 | price=51583.53940467163 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 230: price=51583.54, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51583.53940467163 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51588.470739042205 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51621.91703687801 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51620.67459538234 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51565.684352251104 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51541.497158582184 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51604.28535280084 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51524.10584848957 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51541.725468317694 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51525.65014590755 computed_qty=0.183 current_position=0 step_size=0.001
+[DD_TRACE] bar=240 | price=51485.81511767983 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 240: price=51485.82, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51485.81511767983 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51481.28062641862 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51453.15510860405 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51471.36027155618 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51374.48819628469 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51401.12767726641 computed_qty=0.183 current_position=0 step_size=0.001
+[DD_TRACE] bar=250 | price=51231.61771962718 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 250: price=51231.62, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=260 | price=51044.19379122241 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 260: price=51044.19, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=270 | price=50906.18215536397 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 270: price=50906.18, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=280 | price=50946.2329605663 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 280: price=50946.23, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51090.084024292024 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51103.95602752288 computed_qty=0.184 current_position=0 step_size=0.001
+[DD_TRACE] bar=290 | price=51106.46194276254 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 290: price=51106.46, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51106.46194276254 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51214.19852481246 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51232.83450067928 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51228.305880460895 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51310.060814492455 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51325.65954492516 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51348.42374831564 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51342.27631266797 computed_qty=0.184 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51384.85776922522 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51501.915379565355 computed_qty=0.183 current_position=0 step_size=0.001
+[DD_TRACE] bar=300 | price=51540.39285715599 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 300: price=51540.39, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51540.39285715599 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51540.95428868521 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51606.12611877076 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51616.941613941846 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51609.15432213918 computed_qty=0.183 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51642.25304911569 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51694.88811133535 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51787.7877946568 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51810.48906753966 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51848.98365568959 computed_qty=0.182 current_position=0 step_size=0.001
+[DD_TRACE] bar=310 | price=51883.78508979888 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 310: price=51883.79, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51883.78508979888 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51844.71964870832 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51877.22652688664 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51889.76367587788 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51983.26824557504 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52017.92196733258 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51992.80170173422 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52035.21949103701 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52007.86886006623 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52102.8763445135 computed_qty=0.181 current_position=0 step_size=0.001
+[DD_TRACE] bar=320 | price=52111.98882776957 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 320: price=52111.99, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52111.98882776957 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52136.91218385741 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52132.220797358386 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52149.19897112357 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52071.49200040396 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52148.656447175505 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52112.23191100878 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52174.13893926207 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52161.36713925806 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52165.69798340184 computed_qty=0.181 current_position=0 step_size=0.001
+[DD_TRACE] bar=330 | price=52156.60318980501 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 330: price=52156.60, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52156.60318980501 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52096.56881390358 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52141.15097714656 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52063.96290266223 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52129.380641041615 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52115.367822321256 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52037.49999314246 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52081.1429742704 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52028.30387643224 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51994.23108160821 computed_qty=0.181 current_position=0 step_size=0.001
+[DD_TRACE] bar=340 | price=52023.42717606152 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 340: price=52023.43, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52023.42717606152 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51945.672946230276 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51903.243280521 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51897.202624615304 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51886.88847146211 computed_qty=0.182 current_position=0 step_size=0.001
+[DD_TRACE] bar=350 | price=51798.11496871983 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 350: price=51798.11, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=360 | price=51528.961879919036 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 360: price=51528.96, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=370 | price=51378.3169415617 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 370: price=51378.32, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=380 | price=51446.44716815382 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 380: price=51446.45, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51641.76281410867 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51644.01979965293 computed_qty=0.182 current_position=0 step_size=0.001
+[DD_TRACE] bar=390 | price=51696.387928427015 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 390: price=51696.39, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51696.387928427015 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51698.638094105634 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51699.2181504057 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51756.90407553103 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51735.97831762739 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51799.18287449942 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51848.643871416556 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51899.3078208267 computed_qty=0.182 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51942.80394558815 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51960.103559260046 computed_qty=0.181 current_position=0 step_size=0.001
+[DD_TRACE] bar=400 | price=51994.21597993048 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 400: price=51994.22, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=51994.21597993048 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52007.765399863565 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52069.98523537309 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52148.80873987569 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52173.947419595104 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52146.47763680728 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52172.54183001485 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52249.434846774064 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52294.17092262743 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52296.43222303048 computed_qty=0.180 current_position=0 step_size=0.001
+[DD_TRACE] bar=410 | price=52375.7349725999 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 410: price=52375.73, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52375.7349725999 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52398.82580862842 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52419.553120020064 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52401.94838031043 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52425.16961466055 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52431.951035960155 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52476.64821715884 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52520.66697444381 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52577.38729569548 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52517.17106586259 computed_qty=0.179 current_position=0 step_size=0.001
+[DD_TRACE] bar=420 | price=52566.972359247346 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 420: price=52566.97, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52566.972359247346 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52602.26811863809 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52570.58714903832 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52630.69277570629 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52618.45108111518 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52599.39844395784 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52644.61916532532 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52581.61183247104 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52656.240073026194 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52656.29619942172 computed_qty=0.179 current_position=0 step_size=0.001
+[DD_TRACE] bar=430 | price=52586.18698780393 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 430: price=52586.19, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52586.18698780393 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52612.4028623384 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52580.00219440366 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52648.949944249885 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52593.95973779538 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52534.53033570154 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52540.176449353894 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52584.317948445874 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52527.919735511365 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52543.853655046565 computed_qty=0.179 current_position=0 step_size=0.001
+[DD_TRACE] bar=440 | price=52510.650399404876 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 440: price=52510.65, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52510.650399404876 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52521.70264279615 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52460.422068897795 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52472.89360662686 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52443.204868923385 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52390.77372946365 computed_qty=0.180 current_position=0 step_size=0.001
+[DD_TRACE] bar=450 | price=52289.72081032333 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 450: price=52289.72, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=460 | price=51963.85570924023 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 460: price=51963.86, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=470 | price=51865.23167881908 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 470: price=51865.23, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=480 | price=51912.5098447452 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 480: price=51912.51, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52102.33967800904 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52136.613264019776 computed_qty=0.181 current_position=0 step_size=0.001
+[DD_TRACE] bar=490 | price=52128.161243286144 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 490: price=52128.16, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52128.161243286144 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52159.02876597265 computed_qty=0.181 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52212.70676055381 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52205.01283621214 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52269.5506780275 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52338.40569131536 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52346.08672333133 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52357.81381582749 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52424.07239814108 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52426.36751996346 computed_qty=0.180 current_position=0 step_size=0.001
+[DD_TRACE] bar=500 | price=52512.225696097405 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 500: price=52512.23, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52512.225696097405 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52489.091904955174 computed_qty=0.180 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52562.068642416125 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52615.12985559534 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52597.05514821646 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52693.78346198841 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52677.6322250654 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52744.05949018768 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52735.90530039972 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52800.82378390831 computed_qty=0.178 current_position=0 step_size=0.001
+[DD_TRACE] bar=510 | price=52815.05865456739 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 510: price=52815.06, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52815.05865456739 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52856.39657536247 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52928.39652375375 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52917.39693526711 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52980.45760374337 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53012.700925703 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52977.39111592925 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52981.343963298095 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52994.35185493801 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53063.830147736386 computed_qty=0.178 current_position=0 step_size=0.001
+[DD_TRACE] bar=520 | price=53125.5190409985 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 520: price=53125.52, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53125.5190409985 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53074.28761493633 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53116.15803468933 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53139.18065561833 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53134.18882973852 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53150.42332040595 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53173.97453748574 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53100.99341889349 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53083.181627096375 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53094.52981514279 computed_qty=0.177 current_position=0 step_size=0.001
+[DD_TRACE] bar=530 | price=53088.150355635 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 530: price=53088.15, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53088.150355635 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53136.83412740612 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53118.81048442601 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53074.94979411258 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53112.11045987562 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53106.1983070231 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53032.03553572467 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53060.20906309979 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53057.06611815988 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52975.16528201223 computed_qty=0.178 current_position=0 step_size=0.001
+[DD_TRACE] bar=540 | price=53025.82274357735 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 540: price=53025.82, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53025.82274357735 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53019.3854747929 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52911.68671201661 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52880.45748833228 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52885.25800078181 computed_qty=0.178 current_position=0 step_size=0.001
+[DD_TRACE] bar=550 | price=52769.0614415933 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 550: price=52769.06, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=560 | price=52498.94517517724 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 560: price=52498.95, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=570 | price=52395.20260622303 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 570: price=52395.20, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=580 | price=52401.311295657346 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 580: price=52401.31, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52585.62537744848 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52579.15800490267 computed_qty=0.179 current_position=0 step_size=0.001
+[DD_TRACE] bar=590 | price=52691.20265748501 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 590: price=52691.20, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52691.20265748501 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52655.27058822627 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52690.33514796712 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52781.89358990027 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52769.97160797409 computed_qty=0.179 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52858.523500788346 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52875.77343145079 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52868.936200282755 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52878.34849466172 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53008.410998013045 computed_qty=0.178 current_position=0 step_size=0.001
+[DD_TRACE] bar=600 | price=52958.5612961958 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 600: price=52958.56, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=52958.5612961958 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53058.402726175074 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53071.52440146703 computed_qty=0.178 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53134.50712264111 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53163.40587752708 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53194.09878716157 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53213.144409850196 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53277.18293259577 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53240.182172106324 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53285.07303753676 computed_qty=0.177 current_position=0 step_size=0.001
+[DD_TRACE] bar=610 | price=53363.07134167576 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 610: price=53363.07, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53363.07134167576 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53354.332597887354 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53410.429111497586 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53426.81036258666 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53458.348814502475 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53472.058878457996 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53526.75750642237 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53506.232469741524 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53562.69902045159 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53536.97988564175 computed_qty=0.176 current_position=0 step_size=0.001
+[DD_TRACE] bar=620 | price=53550.66862576767 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 620: price=53550.67, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53550.66862576767 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53551.35716903955 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53570.40205470949 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53573.012824782745 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53622.59976075251 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53651.21896094841 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53597.528348457905 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53602.6958146451 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53629.56348408562 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53651.75008067362 computed_qty=0.176 current_position=0 step_size=0.001
+[DD_TRACE] bar=630 | price=53673.18896043588 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 630: price=53673.19, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53673.18896043588 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53622.35192985499 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53590.7133965605 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53563.20595083101 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53561.57572056012 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53552.25681353573 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53533.200775756435 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53500.899150436315 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53535.68706189111 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53491.14312755268 computed_qty=0.176 current_position=0 step_size=0.001
+[DD_TRACE] bar=640 | price=53541.32211925651 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 640: price=53541.32, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53541.32211925651 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53478.249294169356 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53470.618576341876 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53390.51759507838 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53440.90839606863 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53378.59636663985 computed_qty=0.177 current_position=0 step_size=0.001
+[DD_TRACE] bar=650 | price=53218.43636703901 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 650: price=53218.44, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=660 | price=53012.39133356222 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 660: price=53012.39, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=670 | price=52868.74384225436 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 670: price=52868.74, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=680 | price=52940.51455557163 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 680: price=52940.51, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53146.98358811355 computed_qty=0.177 current_position=0 step_size=0.001
+[DD_TRACE] bar=690 | price=53176.40612966314 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 690: price=53176.41, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53176.40612966314 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53182.489735151205 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53237.861654956265 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53294.50145866571 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53314.72052632234 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53332.997303528944 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53371.77336070291 computed_qty=0.177 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53434.67618855169 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53419.84727982827 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53468.0609781064 computed_qty=0.176 current_position=0 step_size=0.001
+[DD_TRACE] bar=700 | price=53514.763472340244 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 700: price=53514.76, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53514.763472340244 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53577.23640428592 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53605.32973274716 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53565.83164097844 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53610.93722250449 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53660.2696784489 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53738.9580485493 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53754.81035071444 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53759.737895881444 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53775.348763306974 computed_qty=0.175 current_position=0 step_size=0.001
+[DD_TRACE] bar=710 | price=53862.76042526744 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 710: price=53862.76, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53862.76042526744 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53893.685363371915 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53946.54117703875 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53929.53153142249 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53954.6361433224 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53937.552682377405 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53956.15004116937 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54016.35620643801 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54024.64568456884 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54034.92503318533 computed_qty=0.174 current_position=0 step_size=0.001
+[DD_TRACE] bar=720 | price=54034.660946810676 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 720: price=54034.66, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54034.660946810676 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54135.482690783596 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54134.73948675496 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54118.57726157923 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54164.09199199477 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54174.95724168774 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54146.241522644465 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54108.00845325395 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54085.16679267881 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54154.91846360557 computed_qty=0.174 current_position=0 step_size=0.001
+[DD_TRACE] bar=730 | price=54122.57834047274 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 730: price=54122.58, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54122.57834047274 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54135.039191887496 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54154.020805025684 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54071.302254744245 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54100.6969252788 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54092.986969132886 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54064.429201606996 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54008.608554340084 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54017.06965859381 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53997.042834240856 computed_qty=0.174 current_position=0 step_size=0.001
+[DD_TRACE] bar=740 | price=54010.90597709836 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 740: price=54010.91, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54010.90597709836 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54008.68670692953 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53933.857203408756 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53947.25701318088 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53882.88405587849 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53924.027851143794 computed_qty=0.175 current_position=0 step_size=0.001
+[DD_TRACE] bar=750 | price=53732.3273786276 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 750: price=53732.33, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=760 | price=53531.75168925933 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 760: price=53531.75, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=770 | price=53385.35890856062 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 770: price=53385.36, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=780 | price=53457.686059229316 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 780: price=53457.69, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53602.8529547237 computed_qty=0.176 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53614.64660645038 computed_qty=0.176 current_position=0 step_size=0.001
+[DD_TRACE] bar=790 | price=53698.294188846914 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 790: price=53698.29, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53698.294188846914 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53687.910691669786 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53757.05578846379 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53788.51304766032 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53763.56246393987 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53849.49212101284 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53847.1492987727 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53934.734182075386 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53928.10715079881 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53995.6596875539 computed_qty=0.174 current_position=0 step_size=0.001
+[DD_TRACE] bar=800 | price=53978.283898328285 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 800: price=53978.28, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=53978.283898328285 computed_qty=0.175 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54016.25084474184 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54081.36038902357 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54158.5808906158 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54143.308978247995 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54144.36803902575 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54217.92033411273 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54232.40203995184 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54286.068578757935 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54317.25640378536 computed_qty=0.173 current_position=0 step_size=0.001
+[DD_TRACE] bar=810 | price=54339.42708783288 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 810: price=54339.43, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54339.42708783288 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54355.889729897244 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54371.138790335055 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54449.23415647276 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54462.436385586385 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54452.864741793266 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54529.71841026093 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54477.51806993166 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54566.88404138953 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54580.41103104663 computed_qty=0.173 current_position=0 step_size=0.001
+[DD_TRACE] bar=820 | price=54606.669148404064 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 820: price=54606.67, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54606.669148404064 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54577.899455813415 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54617.51250831279 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54643.1321058282 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54667.09517808012 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54624.53286496164 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54582.7153253487 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54631.286465670535 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54640.1616682953 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54666.26161190053 computed_qty=0.172 current_position=0 step_size=0.001
+[DD_TRACE] bar=830 | price=54662.94729555301 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 830: price=54662.95, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54662.94729555301 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54613.91886392119 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54615.008634913764 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54598.84614746936 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54614.408345508076 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54570.506359162115 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54580.73475403067 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54514.920435587854 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54529.22261306282 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54560.63235793177 computed_qty=0.173 current_position=0 step_size=0.001
+[DD_TRACE] bar=840 | price=54477.748749551385 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 840: price=54477.75, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54477.748749551385 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54492.18385734819 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54465.86050230879 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54463.06617501761 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54439.296409998926 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54415.4427156043 computed_qty=0.173 current_position=0 step_size=0.001
+[DD_TRACE] bar=850 | price=54287.23830173985 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 850: price=54287.24, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=860 | price=54043.36529711448 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 860: price=54043.37, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=870 | price=53881.064548044014 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 870: price=53881.06, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=880 | price=53899.86947579378 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 880: price=53899.87, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54082.283009479965 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54135.0451756383 computed_qty=0.174 current_position=0 step_size=0.001
+[DD_TRACE] bar=890 | price=54170.00124408976 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 890: price=54170.00, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54170.00124408976 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54179.517496356595 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54194.132985389915 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54286.64074673172 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54255.859423568545 computed_qty=0.174 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54308.96082770926 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54353.97586252349 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54365.029912899896 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54434.52565245292 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54471.085933253205 computed_qty=0.173 current_position=0 step_size=0.001
+[DD_TRACE] bar=900 | price=54549.26920436269 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 900: price=54549.27, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54549.26920436269 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54515.91833515299 computed_qty=0.173 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54620.46106523984 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54624.513638885735 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54621.79298160024 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54686.10139888304 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54732.64222561574 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54772.356529899065 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54735.781262128454 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54823.55404679715 computed_qty=0.172 current_position=0 step_size=0.001
+[DD_TRACE] bar=910 | price=54843.56535479863 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 910: price=54843.57, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54843.56535479863 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54914.12752396372 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54880.89296811026 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54959.37032566147 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54965.963121204324 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54964.740592771006 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55015.8257505516 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55035.24245633496 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55060.189972095344 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55081.98108061119 computed_qty=0.171 current_position=0 step_size=0.001
+[DD_TRACE] bar=920 | price=55091.446412179255 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 920: price=55091.45, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55091.446412179255 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55123.12529226056 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55113.96843573303 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55151.39772106454 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55133.64742510319 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55105.893288395266 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55123.09568323042 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55139.01473119408 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55154.37960215827 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55088.304918138936 computed_qty=0.171 current_position=0 step_size=0.001
+[DD_TRACE] bar=930 | price=55105.03930331049 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 930: price=55105.04, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55105.03930331049 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55144.63632943796 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55079.97753327744 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55066.36931979661 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55096.104738649454 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55126.65745530861 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55068.34185875818 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55090.83301115888 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55065.320814921084 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54989.40900333067 computed_qty=0.171 current_position=0 step_size=0.001
+[DD_TRACE] bar=940 | price=55026.36160740048 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 940: price=55026.36, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=55026.36160740048 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54971.098180476874 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54981.52568643023 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54952.54558085425 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54887.933801722524 computed_qty=0.172 current_position=0 step_size=0.001
+[DD_TRACE] bar=950 | price=54772.42167120755 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 950: price=54772.42, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=960 | price=54523.341453588866 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 960: price=54523.34, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=970 | price=54346.608461859825 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 970: price=54346.61, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[DD_TRACE] bar=980 | price=54384.19094171461 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 980: price=54384.19, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54621.95334851219 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54591.74029536663 computed_qty=0.173 current_position=0 step_size=0.001
+[DD_TRACE] bar=990 | price=54647.59582659745 | cash=9946.353066 | qty=0 | pos_val=0 | equity=9946.353066 | peak=10003.10047598382687 | dd=0.005672982103905703073841057002 | limit=0.20 | dd_type=Decimal | limit_type=Decimal | dd_ge_limit=False
+BAR 990: price=54647.60, equity=9946.35, peak=10003.10, dd=0.57%, pos=0, halted=False
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54647.59582659745 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54646.98876598155 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54718.0578667281 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54742.92194278724 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54831.089876195765 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54773.76313149803 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54842.70805229101 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54885.64765131321 computed_qty=0.172 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54972.38890020299 computed_qty=0.171 current_position=0 step_size=0.001
+[SIZING_FORENSIC] side=BUY balance=9946.353066 price=54999.14975956594 computed_qty=0.171 current_position=0 step_size=0.001
+
+=== SIMULATION COMPLETE ===
+Final equity: 9946.353066
+GLOBAL_HALTED: False (bar -1)
+DD at halt: 0.00%
+Liquidation attempted: False
+Liquidation executed: False
+Counters: {'intents_total': 531, 'sized_total': 531, 'risk_evaluated_total': 531, 'risk_blocked_total': 0, 'gov_evaluated_total': 531, 'gov_rejected_total': 0, 'preflight_attempts_total': 531, 'preflight_rejected_total': 529, 'risk_gate_blocked_total': 0, 'risk_gate_allowed_total': 2, 'holodeck_submissions_total': 2, 'holodeck_rejected_total': 0, 'fills_total': 2, 'emergency_orders_total': 0}

@@ -1,10 +1,17 @@
 import React from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getRiskRules } from '../../api/adapter';
 import { useWhy } from '../../contexts/WhyContext';
 
 export const RiskRulesTable: React.FC = () => {
-    const rules = usePolledResource(getRiskRules, 5000);
+    const { data: rulesData, error: rulesError, refresh: rulesRefresh } = usePoller({
+        key: 'risk_rules',
+        endpoint: '/api/risk/rules',
+        fetcher: () => getRiskRules(),
+        interval_ms: 5000,
+        critical: false
+    });
+    const rules = { data: rulesData, error: rulesError, loading: false, refresh: rulesRefresh };
     const { openWhy } = useWhy();
 
 

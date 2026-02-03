@@ -1,6 +1,5 @@
-import { useRef } from 'react';
-import { usePolledResource } from './usePolledResource';
 import { usePreview } from '../context/PreviewModeContext';
+import { usePoller } from './usePoller';
 
 export interface DataResourceState<T> {
     data?: T;
@@ -26,9 +25,16 @@ export function useDataResource<T>(
 ): DataResourceState<T> {
     const { isPreview, isSimulation, state: simState } = usePreview();
 
-    // Always poll the real resource (unless explicitly disabled in future optimization)
-    // We want "LIVE" to be the source of truth if it exists.
-    const resource = usePolledResource(realFetcher, intervalMs, deps);
+    // Migrated from usePolledResource to usePoller
+    const { data, error, refresh } = usePoller<T>({
+        key: 'data_resource_wrapper',
+        endpoint: '/api/unknown',
+        fetcher: () => realFetcher(new AbortController().signal),
+        interval_ms: intervalMs,
+        critical: false
+    });
+
+    const resource = { data, error: error || undefined, loading: false, refresh };
 
     // Fallback Logic:
     // 1. If we are NOT in preview/simulation, effectively pass through the real resource.
@@ -48,7 +54,7 @@ export function useDataResource<T>(
 
     // For now: "If Error or Loading (initially) and Simulation is allowed, show Sim".
     // Actually, showing Sim while loading prevents "flicker" or "empty".
-    const useSim = resource.error || (resource.loading && !resource.data) || simState.sim_offline;
+    const useSim = resource.error || (!resource.data) || simState.sim_offline;
 
     if (useSim) {
         // Select data from the latest store state

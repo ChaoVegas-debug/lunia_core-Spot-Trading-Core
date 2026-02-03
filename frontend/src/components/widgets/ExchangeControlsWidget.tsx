@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getExchanges, updateExchange, getOpsState } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import type { ExchangeConfig, OpsState } from '../../api/types';
@@ -19,8 +19,23 @@ export const ExchangeControlsWidget: React.FC = () => {
     const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
-    const { data, error, loading, lastUpdated } = usePolledResource<ExchangeConfig[]>((signal) => getExchanges(signal, client), 5000, [auth.role]);
-    const ops = usePolledResource<OpsState>((signal) => getOpsState(signal, client), 5000, [auth.role]);
+    const { data, error, refresh } = usePoller<ExchangeConfig[]>({
+        key: 'data_ExchangeControlsWidget',
+        endpoint: '/api/exchanges',
+        fetcher: () => getExchanges(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
+    const { data: opsData, error: opsError, refresh: opsRefresh } = usePoller<OpsState>({
+        key: 'ops_ExchangeControlsWidget',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: true
+    });
+    const ops = { data: opsData, error: opsError, loading: false, refresh: opsRefresh };
 
     const [undoToken, setUndoToken] = useState<string | null>(null);
 

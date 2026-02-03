@@ -1,17 +1,23 @@
 import React from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getActiveSymbols } from '../../api/adapter';
 import { ActiveSymbol } from '../../api/types';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const ActiveSymbolsWidget: React.FC = () => {
-    const { data } = usePolledResource(getActiveSymbols, 2000);
+    const { data, error } = usePoller({
+        key: 'active_symbols',
+        endpoint: '/api/symbols/active',
+        fetcher: () => getActiveSymbols(),
+        interval_ms: 2000,
+        critical: false
+    });
+    const loading = false;
 
     return (
-        <div className="card">
-            <div className="card-header flex-between">
-                <h3>Active Symbols</h3>
-                <span className="tiny badge secondary">LIVE</span>
-            </div>
+        <WidgetWrapper id="ActiveSymbolsWidget" title="Active Symbols" loading={loading} error={error}
+            rightElem={<span className="tiny badge secondary">LIVE</span>}
+        >
             <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
                 <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse' }}>
                     <thead>
@@ -42,6 +48,6 @@ export const ActiveSymbolsWidget: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </WidgetWrapper>
     );
 };

@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { PLANS, getPlan, PlanTier } from '../domain/subscription/plans';
 import { useNavigate } from 'react-router-dom';
 import { requestUpgrade, getUserProfile } from '../api/adapter';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import type { UserProfile } from '../api/types';
 
 import { useDashboard } from '../context/DashboardContext';
@@ -11,7 +11,14 @@ import { useDashboard } from '../context/DashboardContext';
 export const SubscriptionPage: React.FC = () => {
     const { role } = useAuth();
     // Re-fetch user to ensure fresh tier if it changed (simulated)
-    const userRes = usePolledResource<UserProfile>((s) => getUserProfile(s, { role }), 10000, []);
+    const { data: userResData, error: userResError, refresh: userResRefresh } = usePoller<UserProfile>({
+        key: 'userRes_SubscriptionPage',
+        endpoint: '/api/user/profile',
+        fetcher: () => getUserProfile(new AbortController().signal, { role }),
+        interval_ms: 10000,
+        critical: false
+    });
+    const userRes = { data: userResData, error: userResError, loading: false, refresh: userResRefresh };
     const user = userRes.data;
     const currentPlan = getPlan(user?.tier);
     const navigate = useNavigate();

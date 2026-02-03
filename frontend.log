@@ -1,37 +1,11 @@
 
 > lunia-frontend@0.1.0 dev
-> vite --port 5173
+> vite
 
 
-  VITE v5.4.21  ready in 79 ms
+  VITE v5.4.21  ready in 615 ms
 
   ➜  Local:   http://localhost:5173/
-  ➜  Network: http://192.168.1.19:5173/
-  ➜  press h + enter to show help
-2:26:43 PM [vite] page reload src/main.tsx
-2:27:28 PM [vite] page reload src/main.tsx
-2:27:30 PM [vite] hmr update /src/App.tsx
-2:27:40 PM [vite] hmr update /src/hooks/useAuth.tsx
-2:29:33 PM [vite] hmr update /src/hooks/useAuth.tsx
-2:29:44 PM [vite] hmr update /src/main.tsx
-2:30:55 PM [vite] hmr update /src/main.tsx
-2:32:19 PM [vite] hmr update /src/main.tsx
-2:33:33 PM [vite] hmr update /src/main.tsx
-2:33:33 PM [vite] hmr invalidate /src/main.tsx Could not Fast Refresh ("true" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
-2:33:33 PM [vite] page reload src/main.tsx
-2:34:06 PM [vite] hmr update /src/main.tsx
-2:34:06 PM [vite] hmr invalidate /src/main.tsx Could not Fast Refresh ("true" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
-2:34:06 PM [vite] page reload src/main.tsx
-2:36:10 PM [vite] hmr update /src/main.tsx
-2:37:59 PM [vite] hmr update /src/main.tsx
-2:38:00 PM [vite] hmr update /src/hooks/useAuth.tsx
-2:38:00 PM [vite] hmr invalidate /src/hooks/useAuth.tsx Could not Fast Refresh ("hasControlAccess" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
-2:38:00 PM [vite] hmr update /src/App.tsx, /src/pages/LoginPage.tsx, /src/pages/TraderPanel.tsx, /src/pages/RegisterPage.tsx, /src/pages/SystemPage.tsx, /src/pages/StrategiesPage.tsx, /src/pages/AccountPage.tsx, /src/pages/AdminPage.tsx, /src/pages/PortfolioPage.tsx, /src/pages/FundPanel.tsx, /src/components/layout/AppLayout.tsx, /src/pages/SubscriptionPage.tsx, /src/pages/GettingStartedPage.tsx, /src/components/layout/ProtectedRoute.tsx, /src/pages/ExchangeKeysPage.tsx, /src/components/widgets/ExchangeControlsWidget.tsx, /src/components/widgets/PortfolioStructureWidget.tsx, /src/components/widgets/CapitalControlsWidget.tsx, /src/components/widgets/SystemFeedWidget.tsx, /src/components/widgets/StrategyControlsWidget.tsx, /src/components/widgets/LogsWidget.tsx, /src/components/widgets/SystemStateWidget.tsx, /src/components/widgets/PortfolioRealityWidget.tsx, /src/components/widgets/RiskWidget.tsx, /src/components/widgets/ExecutionTimelineWidget.tsx, /src/components/widgets/IntelligenceWidget.tsx, /src/components/widgets/StrategyHealthWidget.tsx, /src/components/widgets/StrategyVenueMappingWidget.tsx, /src/components/widgets/ManualTradeWidget.tsx, /src/components/widgets/SignalsWidget.tsx, /src/components/widgets/RiskVetoExplanationPanel.tsx, /src/components/widgets/RiskBudgetDashboardWidget.tsx, /src/components/widgets/GovernanceBanners.tsx, /src/components/modals/CreatePortfolioModal.tsx, /src/components/widgets/ExecutionCommandStrip.tsx, /src/components/overlays/HumanInterventionDecisionPanel.tsx, /src/components/layout/RequireOnboarding.tsx, /src/pages/OnboardingPage.tsx, /src/components/widgets/TrustProgressWidget.tsx, /src/components/layout/Nav.tsx, /src/components/layout/StatusStrip.tsx, /src/components/widgets/admin/TierDebugBanner.tsx, /src/components/modals/LockedFeatureModal.tsx, /src/components/modals/RequestUpgradeModal.tsx, /src/main.tsx
-2:40:04 PM [vite] hmr update /src/main.tsx
-2:43:41 PM [vite] hmr update /src/main.tsx
-2:43:41 PM [vite] hmr invalidate /src/main.tsx Could not Fast Refresh ("true" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
-2:43:41 PM [vite] page reload src/main.tsx
-2:45:32 PM [vite] hmr update /src/main.tsx
-2:45:34 PM [vite] hmr update /src/App.tsx
-2:47:26 PM [vite] hmr update /src/App.tsx
-2:48:49 PM [vite] hmr update /src/App.tsx
+  ➜  Network: http://172.20.10.2:5173/
+5:03:20 PM [vite] hmr update /src/components/layout/CockpitLayout.tsx
+5:03:53 PM [vite] hmr update /src/components/layout/CockpitLayout.tsx

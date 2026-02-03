@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getStrategies } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import type { StrategyConfig } from '../../api/types';
@@ -9,7 +9,14 @@ export const StrategyHealthWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, opsToken: auth.opsToken };
 
-    const strategies = usePolledResource<StrategyConfig[]>((s) => getStrategies(s, client), 5000, []);
+    const { data: strategiesData, error: strategiesError, refresh: strategiesRefresh } = usePoller<StrategyConfig[]>({
+        key: 'strategies_StrategyHealthWidget',
+        endpoint: '/api/strategies',
+        fetcher: () => getStrategies(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const strategies = { data: strategiesData, error: strategiesError, loading: false, refresh: strategiesRefresh };
 
     return (
         <div className="card">

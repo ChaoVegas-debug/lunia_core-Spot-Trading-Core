@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 interface Proposal {
     id: string;
@@ -38,24 +39,16 @@ export const AIProposalsWidget: React.FC = () => {
     ]);
 
     const handleAction = (id: string, action: 'APPROVE' | 'REJECT') => {
-        // Animation or removal logic
         console.log(`User ${action} proposal ${id}`);
         setProposals(prev => prev.filter(p => p.id !== id));
-        // In real app, sends API request
     };
 
     return (
-        <div className="card decision">
-            <div className="card-header">
-                <div>
-                    <h3>AI Trade Proposals</h3>
-                    <p className="small muted">Pending Review (Semi-Auto)</p>
-                </div>
-                <div className="badge warning">
-                    {proposals.length} PENDING
-                </div>
-            </div>
-
+        <WidgetWrapper
+            id="AIProposalsWidget"
+            title="AI Trade Proposals"
+            rightElem={<div className="badge warning">{proposals.length} PENDING</div>}
+        >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {proposals.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>
@@ -125,6 +118,6 @@ export const AIProposalsWidget: React.FC = () => {
                     </div>
                 ))}
             </div>
-        </div>
+        </WidgetWrapper>
     );
 };

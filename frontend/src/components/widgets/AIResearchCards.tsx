@@ -1,12 +1,18 @@
 
 import React from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getResearchCards } from '../../api/adapter';
 import { useAuth } from '../../hooks/useAuth';
 
 export const AIResearchCards: React.FC = () => {
     const auth = useAuth();
-    const { data } = usePolledResource((signal) => getResearchCards(signal, { role: auth.role }), 10000, []);
+    const { data } = usePoller({
+        key: 'ai_research_cards',
+        endpoint: '/api/research/cards',
+        fetcher: () => getResearchCards(new AbortController().signal, { role: auth.role }),
+        interval_ms: 10000,
+        critical: false
+    });
     const cards = data?.items || [];
 
     return (

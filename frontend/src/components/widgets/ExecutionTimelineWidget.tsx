@@ -1,18 +1,26 @@
 import React, { useMemo, useState } from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { useAuth } from '../../hooks/useAuth';
 import { getLogs } from '../../api/adapter';
 import { useJournal } from '../../hooks/useJournal';
 import type { LogsResponse } from '../../api/types';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const ExecutionTimelineWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, opsToken: auth.opsToken };
     const { entries: localEntries } = useJournal();
 
-    const logs = usePolledResource<LogsResponse>((s) => getLogs(s, client), 3000, []);
-
+    // ALL HOOKS MUST BE BEFORE ANY CONDITIONAL RETURNS (React Rules of Hooks)
     const [filter, setFilter] = useState<'ALL' | 'SYSTEM' | 'USER'>('ALL');
+    const { data: logsData, error: logsError, refresh: logsRefresh } = usePoller<LogsResponse>({
+        key: 'logs_ExecutionTimelineWidget',
+        endpoint: '/api/logs',
+        fetcher: () => getLogs(new AbortController().signal, client),
+        interval_ms: 3000,
+        critical: false
+    });
+    const logs = { data: logsData, error: logsError, loading: false, refresh: logsRefresh };
 
     const combinedTimeline = useMemo(() => {
         const serverLogs = logs.data?.items || [];
@@ -46,9 +54,12 @@ export const ExecutionTimelineWidget: React.FC = () => {
     }, [logs.data, localEntries, filter]);
 
     return (
-        <div className="card" style={{ height: '300px', display: 'flex', flexDirection: 'column' }}>
-            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3>Execution Timeline</h3>
+        <WidgetWrapper
+            id="ExecutionTimelineWidget"
+            title="Execution Timeline"
+            loading={logs.loading}
+            error={logs.error}
+            rightElem={
                 <div className="filter-pills small">
                     <span
                         className={filter === 'ALL' ? 'active' : ''}
@@ -63,7 +74,8 @@ export const ExecutionTimelineWidget: React.FC = () => {
                         onClick={() => setFilter('SYSTEM')}
                     >SYS</span>
                 </div>
-            </div>
+            }
+        >
             <div className="card-body scrollable-y">
                 {combinedTimeline.length === 0 ? (
                     <div className="empty-state">No recorded activity.</div>
@@ -135,6 +147,6 @@ export const ExecutionTimelineWidget: React.FC = () => {
                     color: white;
                 }
             `}</style>
-        </div>
+        </WidgetWrapper>
     );
 };

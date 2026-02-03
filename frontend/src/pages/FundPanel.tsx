@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import { getFundOverview, getFundPortfolio, getFundStrategies, getFundAccounts } from '../api/adapter';
 import { FundOverview, FundPortfolio, FundStrategy, FundAccount } from '../api/types';
 import { DataStatus } from '../components/common/DataStatus';
@@ -10,9 +10,33 @@ export const FundPanel: React.FC = () => {
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
   // Poll resources
-  const { data: overview, loading: loadingOverview, error: errorOverview, lastUpdated } = usePolledResource<FundOverview>((s) => getFundOverview(s, client), 5000, [auth]);
-  const { data: portfolio } = usePolledResource<FundPortfolio>((s) => getFundPortfolio(s, client), 10000, [auth]);
-  const { data: strategies } = usePolledResource<FundStrategy[]>((s) => getFundStrategies(s, client), 10000, [auth]);
+  const { data, error, refresh } = usePoller<FundOverview>({
+        key: 'data_FundPanel',
+        endpoint: '/api/fund/overview',
+        fetcher: () => getFundOverview(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
+  const { data, error, refresh } = usePoller<FundPortfolio>({
+        key: 'data_FundPanel',
+        endpoint: '/api/fund/portfolio',
+        fetcher: () => getFundPortfolio(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
+  const { data, error, refresh } = usePoller<FundStrategy[]>({
+        key: 'data_FundPanel',
+        endpoint: '/api/fund/strategies',
+        fetcher: () => getFundStrategies(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
   return (
     <div className="page-container p-6 max-w-[1600px] mx-auto space-y-8">

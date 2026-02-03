@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getAudit } from '../../api/adapter';
 import type { SystemEvent } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
@@ -9,12 +9,15 @@ export const AuditWidget: React.FC = () => {
   const auth = useAuth();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
-  // Note: getAudit (alias for getSystemEvents) returns { items: SystemEvent[] }
-  const audit = usePolledResource<{ items: SystemEvent[] }>(
-    (signal) => getAudit(signal, client),
-    12000,
-    [auth.role]
-  );
+  // Migrated to usePoller
+  const { data: auditData, error: auditError, refresh: auditRefresh } = usePoller<{ items: SystemEvent[] }>({
+    key: 'audit_widget',
+    endpoint: '/api/audit',
+    fetcher: () => getAudit(new AbortController().signal, client),
+    interval_ms: 12000,
+    critical: false
+  });
+  const audit = { data: auditData, error: auditError, loading: false, lastUpdated: undefined, refresh: auditRefresh };
 
   return (
     <div className="card">

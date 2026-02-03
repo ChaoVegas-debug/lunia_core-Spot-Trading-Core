@@ -1,13 +1,20 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getOpsState } from '../../api/adapter';
 import type { OpsState } from '../../api/types';
 
 export const GlobalStopBanner: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
-    const ops = usePolledResource<OpsState>((signal) => getOpsState(signal, client), 2000, [auth.role]);
+    const { data: opsData } = usePoller<OpsState>({
+        key: 'global_stop_banner_ops',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: true  // Core system health
+    });
+    const ops = { data: opsData };
 
     if (!ops.data?.global_stop) return null;
 

@@ -8,7 +8,7 @@ import { useWhy } from '../contexts/WhyContext';
 import { SettingsWidget } from '../components/widgets/SettingsWidget';
 
 import { getExchanges, getUserProfile } from '../api/adapter';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import type { ExchangeConfig, UserProfile } from '../api/types';
 import { getPlan } from '../domain/subscription/plans';
 
@@ -19,8 +19,22 @@ export const AccountPage: React.FC = () => {
     const navigate = useNavigate();
 
     const client = { role, adminToken, opsToken };
-    const exchangeRes = usePolledResource<ExchangeConfig[]>((s) => getExchanges(s, client), 10000, [role]);
-    const userRes = usePolledResource<UserProfile>((s) => getUserProfile(s, client), 10000, []);
+    const { data: exchangeResData, error: exchangeResError, refresh: exchangeResRefresh } = usePoller<ExchangeConfig[]>({
+        key: 'exchangeRes_AccountPage',
+        endpoint: '/api/exchanges',
+        fetcher: () => getExchanges(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const exchangeRes = { data: exchangeResData, error: exchangeResError, loading: false, refresh: exchangeResRefresh };
+    const { data: userResData, error: userResError, refresh: userResRefresh } = usePoller<UserProfile>({
+        key: 'userRes_AccountPage',
+        endpoint: '/api/user/profile',
+        fetcher: () => getUserProfile(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const userRes = { data: userResData, error: userResError, loading: false, refresh: userResRefresh };
 
     const user = userRes.data;
     const plan = getPlan(user?.tier);

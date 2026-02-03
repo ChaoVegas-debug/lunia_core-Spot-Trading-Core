@@ -1,0 +1,85 @@
+🔄 Starting safe codemod migration...
+
+📋 Found 59 files to migrate
+
+✅ frontend/src/components/admin/DiagnosticsPanel.tsx (2 transformations)
+✅ frontend/src/components/layout/CockpitLayout.tsx (1 transformations)
+✅ frontend/src/components/layout/StatusStrip.tsx (4 transformations)
+✅ frontend/src/components/overlays/HumanInterventionDecisionPanel.tsx (1 transformations)
+✅ frontend/src/components/portfolio/PortfolioDetailDrawer.tsx (3 transformations)
+⏭️  frontend/src/components/risk/RiskDashboardWidget.tsx (no changes)
+⏭️  frontend/src/components/risk/RiskMandatesTable.tsx (no changes)
+⏭️  frontend/src/components/risk/RiskRulesTable.tsx (no changes)
+⏭️  frontend/src/components/widgets/AIResearchCards.tsx (no changes)
+⏭️  frontend/src/components/widgets/ActiveSymbolsWidget.tsx (no changes)
+✅ frontend/src/components/widgets/AdminUsersWidget.tsx (1 transformations)
+⏭️  frontend/src/components/widgets/AuditWidget.tsx (no changes)
+✅ frontend/src/components/widgets/CapitalControlsWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/CapitalWidget.tsx (1 transformations)
+⏭️  frontend/src/components/widgets/ExchangeAllocationWidget.tsx (no changes)
+✅ frontend/src/components/widgets/ExchangeControlsWidget.tsx (2 transformations)
+✅ frontend/src/components/widgets/ExecutionTimelineWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/FeatureFlagsWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/GovernanceBanners.tsx (3 transformations)
+⏭️  frontend/src/components/widgets/HedgingPanel.tsx (no changes)
+✅ frontend/src/components/widgets/IntelligenceWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/LimitsWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/LogsWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/ManualTradeWidget.tsx (2 transformations)
+✅ frontend/src/components/widgets/PortfolioRealityWidget.tsx (2 transformations)
+⏭️  frontend/src/components/widgets/PortfolioStructureWidget.tsx (no changes)
+✅ frontend/src/components/widgets/PortfolioWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/RiskBudgetDashboardWidget.tsx (3 transformations)
+✅ frontend/src/components/widgets/RiskVetoExplanationPanel.tsx (1 transformations)
+✅ frontend/src/components/widgets/RiskWidget.tsx (2 transformations)
+⏭️  frontend/src/components/widgets/StrategyAllocationWidget.tsx (no changes)
+✅ frontend/src/components/widgets/StrategyControlsWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/StrategyHealthWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/StrategyVenueMappingWidget.tsx (3 transformations)
+⏭️  frontend/src/components/widgets/SystemActionsFeedWidget.tsx (no changes)
+✅ frontend/src/components/widgets/SystemActivityWidget.tsx (2 transformations)
+✅ frontend/src/components/widgets/SystemFeedWidget.tsx (1 transformations)
+⏭️  frontend/src/components/widgets/SystemStateWidgetF1.tsx (no changes)
+⏭️  frontend/src/components/widgets/TradingBlotterWidget.tsx (no changes)
+✅ frontend/src/components/widgets/admin/AdminOverviewWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/admin/AuditLogViewer.tsx (1 transformations)
+✅ frontend/src/components/widgets/admin/ExchangeHealthWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/admin/FeatureFlagsWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/admin/TenantManagerWidget.tsx (1 transformations)
+✅ frontend/src/components/widgets/admin/UserManagerWidget.tsx (1 transformations)
+⏭️  frontend/src/hooks/useDataResource.ts (no changes)
+⏭️  frontend/src/hooks/usePoller.ts (no changes)
+✅ frontend/src/pages/AccountPage.tsx (2 transformations)
+✅ frontend/src/pages/AdminPage.tsx (2 transformations)
+✅ frontend/src/pages/FundPanel.tsx (3 transformations)
+✅ frontend/src/pages/GettingStartedPage.tsx (4 transformations)
+✅ frontend/src/pages/PortfolioPage.tsx (1 transformations)
+⏭️  frontend/src/pages/RiskPage.tsx (no changes)
+⏭️  frontend/src/pages/StrategiesPage.tsx (no changes)
+✅ frontend/src/pages/SubscriptionPage.tsx (1 transformations)
+✅ frontend/src/pages/SystemPage.tsx (3 transformations)
+✅ frontend/src/pages/TraderPanel.tsx (2 transformations)
+✅ frontend/src/pages/TraderPanelV2.tsx (2 transformations)
+✅ frontend/src/pages/admin/AdminIncidentsPage.tsx (1 transformations)
+
+✅ Migration complete: 42/59 files migrated
+⏭️  17 files skipped (already migrated or no patterns matched)
+
+📊 Remaining usePolledResource usage: 15 files
+
+⚠️  Files still using usePolledResource:
+   - frontend/src/components/risk/RiskDashboardWidget.tsx
+   - frontend/src/components/risk/RiskMandatesTable.tsx
+   - frontend/src/components/risk/RiskRulesTable.tsx
+   - frontend/src/components/widgets/AIResearchCards.tsx
+   - frontend/src/components/widgets/ActiveSymbolsWidget.tsx
+   - frontend/src/components/widgets/AuditWidget.tsx
+   - frontend/src/components/widgets/ExchangeAllocationWidget.tsx
+   - frontend/src/components/widgets/HedgingPanel.tsx
+   - frontend/src/components/widgets/PortfolioStructureWidget.tsx
+   - frontend/src/components/widgets/StrategyAllocationWidget.tsx
+   - frontend/src/components/widgets/SystemActionsFeedWidget.tsx
+   - frontend/src/components/widgets/TradingBlotterWidget.tsx
+   - frontend/src/hooks/useDataResource.ts
+   - frontend/src/pages/RiskPage.tsx
+   - frontend/src/pages/StrategiesPage.tsx

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../context/DashboardContext';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import { getSystemEvents, setGlobalCapitalCap, getOpsCapital, getOpsState } from '../api/adapter';
 import { SystemEvent, OpsState } from '../api/types';
 
@@ -10,9 +10,30 @@ export const SystemPage: React.FC = () => {
   const client = { role };
 
   // Poll events frequently for "live" feel
-  const eventsRes = usePolledResource<{ items: SystemEvent[] }>((s) => getSystemEvents(s, client), 2000, []);
-  const capitalRes = usePolledResource((s) => getOpsCapital(s, client), 5000, []);
-  const opsRes = usePolledResource<OpsState>((s) => getOpsState(s, client), 3000, []);
+  const { data: eventsResData, error: eventsResError, refresh: eventsResRefresh } = usePoller<{ items: SystemEvent[] }>({
+        key: 'eventsRes_SystemPage',
+        endpoint: '/api/events/system',
+        fetcher: () => getSystemEvents(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: false
+    });
+    const eventsRes = { data: eventsResData, error: eventsResError, loading: false, refresh: eventsResRefresh };
+  const { data: capitalResData, error: capitalResError, refresh: capitalResRefresh } = usePoller({
+        key: 'capitalRes_SystemPage',
+        endpoint: '/api/capital',
+        fetcher: () => getOpsCapital(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const capitalRes = { data: capitalResData, error: capitalResError, loading: false, refresh: capitalResRefresh };
+  const { data: opsResData, error: opsResError, refresh: opsResRefresh } = usePoller<OpsState>({
+        key: 'opsRes_SystemPage',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 3000,
+        critical: true
+    });
+    const opsRes = { data: opsResData, error: opsResError, loading: false, refresh: opsResRefresh };
 
   const [globalCapInput, setGlobalCapInput] = useState<string>('5000000');
   const [isUpdating, setIsUpdating] = useState(false);

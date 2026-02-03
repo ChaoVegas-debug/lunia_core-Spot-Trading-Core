@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { usePolledResource } from '../../../hooks/usePolledResource';
 import { getAdminUsers, updateUserRole } from '../../../api/endpoints';
 import type { UserProfile } from '../../../api/types';
 import { DataStatus } from '../../common/DataStatus';
@@ -10,7 +9,15 @@ export const UserManagerWidget: React.FC = () => {
     const auth = useAuth();
     const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
-    const { data, error, loading, lastUpdated, refresh } = usePolledResource<UserProfile[]>((signal) => getAdminUsers(signal, client), 15000, [auth]);
+    const { data, error, refresh } = usePoller<UserProfile[]>({
+        key: 'data_UserManagerWidget',
+        endpoint: '/api/unknown',
+        fetcher: () => getAdminUsers(new AbortController().signal, client),
+        interval_ms: 15000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     const handleRoleChange = async (userId: number, newRole: string) => {
         if (!window.confirm(`Are you sure you want to promote User #${userId} to ${newRole}? This is an audited action.`)) return;

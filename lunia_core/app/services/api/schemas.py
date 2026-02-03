@@ -119,6 +119,11 @@ class BalanceEntry(BaseModel):
 
 class BalancesResponse(BaseModel):
     balances: List[BalanceEntry]
+    source: Optional[str] = "SIMULATION" # REAL / SIMULATION
+    env: Optional[str] = "UNKNOWN"
+    upstream_status: Optional[int] = None
+    request_id: Optional[str] = None
+    time_offset: Optional[int] = 0
 
 
 # -------- Ops State --------
@@ -137,6 +142,12 @@ class OpsState(BaseModel):
     spot: Dict[str, Any]
     reserves: Dict[str, float]
     ops: Dict[str, Any]
+    # VARIANT A: Canonical governance mode
+    system_mode: Optional[str] = "MANUAL"  # STOP | MANUAL | SEMI | AUTO
+    # VARIANT A: Explicit server arm status
+    live_allowed: Optional[bool] = False
+    # Legacy field - deprecated, use system_mode instead
+    exec_mode: Optional[str] = None
 
     class Config:
         extra = "allow"

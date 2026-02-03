@@ -1,16 +1,31 @@
 import React, { useMemo } from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { useAuth } from '../../hooks/useAuth';
 import { getPortfolioSnapshot, getOpsState } from '../../api/adapter';
 import type { PortfolioAggregate, OpsState } from '../../api/types';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const PortfolioRealityWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, opsToken: auth.opsToken };
 
     // Poll data
-    const snapshot = usePolledResource<PortfolioAggregate>((s) => getPortfolioSnapshot(s, client), 5000, []);
-    const ops = usePolledResource<OpsState>((s) => getOpsState(s, client), 5000, []);
+    const { data: snapshotData, error: snapshotError, refresh: snapshotRefresh } = usePoller<PortfolioAggregate>({
+        key: 'snapshot_PortfolioRealityWidget',
+        endpoint: '/api/portfolio/snapshot',
+        fetcher: () => getPortfolioSnapshot(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const snapshot = { data: snapshotData, error: snapshotError, loading: false, refresh: snapshotRefresh };
+    const { data: opsData, error: opsError, refresh: opsRefresh } = usePoller<OpsState>({
+        key: 'ops_PortfolioRealityWidget',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: true
+    });
+    const ops = { data: opsData, error: opsError, loading: false, refresh: opsRefresh };
 
     // Derived State
     const hasData = snapshot.data && ops.data;
@@ -65,12 +80,17 @@ export const PortfolioRealityWidget: React.FC = () => {
 
     }, [snapshot.data, ops.data]);
 
+    const combinedError = snapshot.error || ops.error;
+    const combinedLoading = snapshot.loading && ops.loading;
+
     return (
-        <div className="card">
-            <div className="card-header">
-                <h3>Reality Check</h3>
-                <span className="small muted">Model vs. Exchange</span>
-            </div>
+        <WidgetWrapper
+            id="PortfolioRealityWidget"
+            title="Reality Check"
+            rightElem={<span className="small muted">Model vs. Exchange</span>}
+            loading={combinedLoading}
+            error={combinedError}
+        >
             <div className="card-body">
                 {!hasData ? (
                     <div className="empty-state">Loading Reality...</div>
@@ -110,6 +130,6 @@ export const PortfolioRealityWidget: React.FC = () => {
                     </table>
                 )}
             </div>
-        </div>
+        </WidgetWrapper>
     );
 };

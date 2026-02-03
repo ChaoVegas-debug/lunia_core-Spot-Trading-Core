@@ -1,45 +1,54 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getStrategies, getExchanges, getOpsCapital } from '../../api/adapter';
 import type { StrategyConfig, ExchangeConfig, OpsCapital } from '../../api/types';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const StrategyVenueMappingWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, opsToken: auth.opsToken };
 
-    const strategies = usePolledResource<StrategyConfig[]>((s) => getStrategies(s, client), 5000, []);
-    const exchanges = usePolledResource<ExchangeConfig[]>((s) => getExchanges(s, client), 5000, []);
-    const capital = usePolledResource<OpsCapital>((s) => getOpsCapital(s, client), 5000, []);
+    const { data: strategiesData, error: strategiesError, refresh: strategiesRefresh } = usePoller<StrategyConfig[]>({
+        key: 'strategies_StrategyVenueMappingWidget',
+        endpoint: '/api/strategies',
+        fetcher: () => getStrategies(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const strategies = { data: strategiesData, error: strategiesError, loading: false, refresh: strategiesRefresh };
+    const { data: exchangesData, error: exchangesError, refresh: exchangesRefresh } = usePoller<ExchangeConfig[]>({
+        key: 'exchanges_StrategyVenueMappingWidget',
+        endpoint: '/api/exchanges',
+        fetcher: () => getExchanges(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const exchanges = { data: exchangesData, error: exchangesError, loading: false, refresh: exchangesRefresh };
+    const { data: capitalData, error: capitalError, refresh: capitalRefresh } = usePoller<OpsCapital>({
+        key: 'capital_StrategyVenueMappingWidget',
+        endpoint: '/api/capital',
+        fetcher: () => getOpsCapital(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const capital = { data: capitalData, error: capitalError, loading: false, refresh: capitalRefresh };
+
+    const combinedError = strategies.error || exchanges.error || capital.error;
+    const combinedLoading = strategies.loading && exchanges.loading && capital.loading;
 
     // Matrix Calculation
-    // Total Cap * Strat % * Exchange Allocation % (Assuming even distribution for now implies Strat uses all enabled Exchanges)
-    // Actually, normally specific strategies might target specific venues.
-    // For this UI, we assume "Global Routing" -> Strategy runs on All Enabled Exchanges properly allocated.
     const matrix = React.useMemo(() => {
         if (!strategies.data || !exchanges.data || !capital.data) return null;
 
-        const totalEquity = capital.data.equity_total_usd || 100000; // Fallback
-
-        // Normalize
+        const totalEquity = capital.data.equity_total_usd || 100000;
         const activeStrats = strategies.data.filter(s => s.enabled);
         const activeExchanges = exchanges.data.filter(e => e.enabled);
 
-        // Simple model: Strat Weight applies to Total Equity.
-        // Then that Amount is split across Active Exchanges by their Allocation weights.
-        // Example: Strat A (50%), Exch 1 (60%), Exch 2 (40%).
-        // Strat A gets $50k. $30k on Exch 1, $20k on Exch 2.
-
         const rows = activeStrats.map(strat => {
             const stratAllocUsd = totalEquity * strat.weight;
-
             const cols = activeExchanges.map(exch => {
-                // Exchange Allocation is usually 0-1 (e.g., 0.6 for 60% of volume/cap)
-                // We re-normalize exchange weights among active ones to sum to 1 for distribution?
-                // Or we use their raw alloc? Let's use raw alloc * stratAlloc.
                 const exchWeight = exch.allocation || 0;
-                // We should probably normalize exch allocation if they don't sum to 1?
-                // For visualization, let's just use raw calc.
                 const val = stratAllocUsd * exchWeight;
                 return { exchId: exch.id, val };
             });
@@ -51,11 +60,13 @@ export const StrategyVenueMappingWidget: React.FC = () => {
     }, [strategies.data, exchanges.data, capital.data]);
 
     return (
-        <div className="card">
-            <div className="card-header">
-                <h3>Capital Flow & Routing</h3>
-                <span className="tiny muted">STRATEGY ↔ VENUE</span>
-            </div>
+        <WidgetWrapper
+            id="StrategyVenueMappingWidget"
+            title="Capital Flow & Routing"
+            loading={combinedLoading}
+            error={combinedError}
+            rightElem={<span className="tiny muted">STRATEGY ↔ VENUE</span>}
+        >
             <div className="card-body">
                 {!matrix ? (
                     <div className="empty-state">Loading Taxonomy...</div>
@@ -88,6 +99,6 @@ export const StrategyVenueMappingWidget: React.FC = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </WidgetWrapper>
     );
 };

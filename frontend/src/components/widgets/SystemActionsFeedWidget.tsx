@@ -1,17 +1,22 @@
 import React from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getActionFeed } from '../../api/adapter';
 import { ActivityItem } from '../../api/types';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const SystemActionsFeedWidget: React.FC = () => {
-    const { data } = usePolledResource(getActionFeed, 1000);
+    const { data, error } = usePoller({
+        key: 'action_feed',
+        endpoint: '/api/actions/feed',
+        fetcher: () => getActionFeed(),
+        interval_ms: 1000,
+        critical: false
+    });
+    const loading = false;
 
     return (
-        <div className="card log-console" style={{ height: '200px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ borderBottom: '1px solid #333', paddingBottom: '4px', marginBottom: '4px', color: '#888', fontWeight: 'bold' }}>
-                SYSTEM FEED
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <WidgetWrapper id="SystemActionsFeedWidget" title="System Feed" loading={loading} error={error}>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '180px' }}>
                 {data?.map((item: ActivityItem, i: number) => (
                     <div key={i} className="entry" style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
                         <span className="ts" style={{ color: '#444', marginRight: '8px' }}>
@@ -26,6 +31,6 @@ export const SystemActionsFeedWidget: React.FC = () => {
                     </div>
                 ))}
             </div>
-        </div>
+        </WidgetWrapper>
     );
 };

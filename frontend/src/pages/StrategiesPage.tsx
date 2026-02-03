@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import {
     getStrategies,
     updateStrategies,
@@ -28,14 +28,20 @@ export const StrategiesPage: React.FC = () => {
     // to previewStore if preview is on? 
     // Assuming adapter is NOT fully preview-aware yet for 'getStrategies', we can hybridize here.
 
-    // HYBRID FETCH:
-    const strategiesResource = usePolledResource<StrategyConfig[]>((signal) => {
-        if (isPreview) {
-            // Return promise resolving to preview store strategies
-            return Promise.resolve(previewStore.getState().strategies);
-        }
-        return getStrategies(signal, client);
-    }, 4000, [auth, isPreview]); // Re-fetch on preview mode toggle
+    // HYBRID FETCH: migrated to usePoller
+    const { data: strategiesData, error: strategiesError, refresh: strategiesRefresh } = usePoller<StrategyConfig[]>({
+        key: 'strategies_page',
+        endpoint: '/api/strategies',
+        fetcher: () => {
+            if (isPreview) {
+                return Promise.resolve(previewStore.getState().strategies);
+            }
+            return getStrategies(new AbortController().signal, client);
+        },
+        interval_ms: 4000,
+        critical: false
+    });
+    const strategiesResource = { data: strategiesData, error: strategiesError, loading: false, refresh: strategiesRefresh };
 
     const [loading, setLoading] = useState(false);
 

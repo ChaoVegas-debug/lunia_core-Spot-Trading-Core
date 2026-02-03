@@ -2,7 +2,7 @@
 export interface JournalEvent {
     id: string;
     timestamp: string;
-    type: 'MODE_CHANGE' | 'AIRLOCK' | 'DRIFT' | 'STOP' | 'VETO' | 'INTERVENTION' | 'INFO';
+    type: 'MODE_CHANGE' | 'AIRLOCK' | 'DRIFT' | 'STOP' | 'VETO' | 'INTERVENTION' | 'INFO' | 'START';
     message: string;
     actor: 'HUMAN' | 'AI' | 'SYSTEM';
     severity: 'INFO' | 'WARNING' | 'CRITICAL';

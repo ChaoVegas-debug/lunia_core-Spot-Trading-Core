@@ -74,12 +74,12 @@ _DEFAULT_SPOT = {
         "vwap_reversion": float(os.getenv("VWAP_WEIGHT", "0.10")),
         "liquidity_snipe": float(os.getenv("LIQ_SNIPE_WEIGHT", "0.05")),
     },
-    "max_positions": int(os.getenv("MAX_CONCURRENT_POS", "5")),
-    "max_trade_pct": float(os.getenv("MAX_TRADE_PCT", "0.20")),
-    "risk_per_trade_pct": float(os.getenv("RISK_PER_TRADE_PCT", "0.005")),
-    "max_symbol_exposure_pct": float(os.getenv("MAX_SYMBOL_EXPOSURE_PCT", "0.35")),
-    "tp_pct_default": float(os.getenv("SPOT_TP_PCT_DEFAULT", "0.30")),
-    "sl_pct_default": float(os.getenv("SPOT_SL_PCT_DEFAULT", "0.15")),
+    "max_positions": int(os.getenv("MAX_CONCURRENT_POS", "3")),  # Scalping: start with 1-3
+    "max_trade_pct": float(os.getenv("MAX_TRADE_PCT", "0.02")),  # Scalping: 1-2% per trade
+    "risk_per_trade_pct": float(os.getenv("RISK_PER_TRADE_PCT", "0.01")),  # 1% risk per trade
+    "max_symbol_exposure_pct": float(os.getenv("MAX_SYMBOL_EXPOSURE_PCT", "0.10")),  # 10% max per symbol
+    "tp_pct_default": float(os.getenv("SPOT_TP_PCT_DEFAULT", "0.01")),  # Scalping: 1% take profit
+    "sl_pct_default": float(os.getenv("SPOT_SL_PCT_DEFAULT", "0.005")),  # Scalping: 0.5% stop loss
 }
 
 _DEFAULT_RESERVES = {
@@ -116,10 +116,21 @@ _DEFAULT_PORTFOLIO = {
     "definitions": {} 
 }
 
+# START Button Orchestration State
+_DEFAULT_RUN_STATE = {
+    "running": False,
+    "phase": "idle",  # idle | assembling_portfolio | arming | trading
+    "started_at": None,
+    "run_mode": "dry",  # dry | real
+    "last_error": None,
+}
+
 _DEFAULT_STATE: Dict[str, Any] = {
     "auto_mode": os.getenv("AUTO_MODE", "true").lower() == "true",
     "global_stop": os.getenv("GLOBAL_STOP", "false").lower() == "true",
     "system_mode": "MANUAL", # Master Traceability
+    "airlock_status": "NOT_READY",  # EPOCH C: NOT_READY | ARMED | BLOCKED
+    "live_allowed": os.getenv("LIVE_ALLOWED", "0") == "1",  # VARIANT A: Explicit server arm
     "strategies": {"active_profile": "BALANCED"}, # Master Traceability
     "trading_on": True,
     "agent_on": True,
@@ -137,7 +148,8 @@ _DEFAULT_STATE: Dict[str, Any] = {
     "exchanges": deepcopy(_DEFAULT_EXCHANGES),
     "exchange_keys": deepcopy(_DEFAULT_EXCHANGE_KEYS),
     "portfolios": deepcopy(_DEFAULT_PORTFOLIO),
-    "portfolio_draft": deepcopy(_DEFAULT_PORTFOLIO_DRAFT), # New
+    "portfolio_draft": deepcopy(_DEFAULT_PORTFOLIO_DRAFT),
+    "run_state": deepcopy(_DEFAULT_RUN_STATE),
 }
 
 

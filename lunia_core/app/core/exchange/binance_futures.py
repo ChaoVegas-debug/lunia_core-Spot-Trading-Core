@@ -9,7 +9,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
-from app.compat.requests import requests
+import requests
 
 from .base import IExchange
 

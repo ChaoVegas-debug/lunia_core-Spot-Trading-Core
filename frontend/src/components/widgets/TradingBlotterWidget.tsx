@@ -1,27 +1,38 @@
 
 import React, { useState } from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getOrders } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import { useAuth } from '../../hooks/useAuth';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const TradingBlotterWidget: React.FC = () => {
     const auth = useAuth();
     const [tab, setTab] = useState<'ORDERS' | 'FILLS'>('ORDERS');
-    const { data } = usePolledResource((signal) => getOrders(signal, { role: auth.role }), 5000, []);
+    const { data, error } = usePoller({
+        key: 'trading_blotter',
+        endpoint: '/api/orders',
+        fetcher: () => getOrders(new AbortController().signal, { role: auth.role }),
+        interval_ms: 5000,
+        critical: false
+    });
+    const loading = false;
 
     const items = tab === 'ORDERS' ? safeArray(data?.orders) : safeArray(data?.fills);
 
     return (
-        <div className="card" style={{ minHeight: '300px' }}>
-            <div className="card-header flex-between">
-                <h3>Trading Blotter</h3>
+        <WidgetWrapper
+            id="TradingBlotterWidget"
+            title="Trading Blotter"
+            loading={loading}
+            error={error}
+            rightElem={
                 <div className="mode-selector">
                     <button className={tab === 'ORDERS' ? 'active-mode' : ''} onClick={() => setTab('ORDERS')}>Orders</button>
                     <button className={tab === 'FILLS' ? 'active-mode' : ''} onClick={() => setTab('FILLS')}>Fills</button>
                 </div>
-            </div>
-
+            }
+        >
             <div className="table-container" style={{ maxHeight: '250px', overflow: 'auto' }}>
                 <table className="data-table">
                     <thead>
@@ -53,6 +64,6 @@ export const TradingBlotterWidget: React.FC = () => {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </WidgetWrapper>
     );
 };

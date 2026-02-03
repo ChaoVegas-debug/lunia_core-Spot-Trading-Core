@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getFlags, updateFlag } from '../../api/adapter';
 import type { FeatureFlag } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
@@ -9,7 +9,14 @@ export const FeatureFlagsWidget: React.FC = () => {
   const auth = useAuth();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
   const [refreshKey, setRefreshKey] = useState(0);
-  const flags = usePolledResource<FeatureFlag[]>((signal) => getFlags(signal, client), 12000, [auth.role, refreshKey]);
+  const { data: flagsData, error: flagsError, refresh: flagsRefresh } = usePoller<FeatureFlag[]>({
+        key: 'flags_FeatureFlagsWidget',
+        endpoint: '/api/flags',
+        fetcher: () => getFlags(new AbortController().signal, client),
+        interval_ms: 12000,
+        critical: false
+    });
+    const flags = { data: flagsData, error: flagsError, loading: false, refresh: flagsRefresh };
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 

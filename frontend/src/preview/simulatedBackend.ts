@@ -42,12 +42,13 @@ const isPreviewUnlocks = import.meta.env.VITE_PREVIEW_MODE === '1';
 
 const DEFAULT_SIM_OPS: OpsState = {
     auto_mode: isPreviewUnlocks ? true : false, // Show active state
-    exec_mode: isPreviewUnlocks ? 'SEMIAUTO' : 'MANUAL',
+    system_mode: isPreviewUnlocks ? 'SEMI' : 'MANUAL', // VARIANT A: Use system_mode
     global_stop: false,
     drift_status: 'NONE',
     veto_reason: null,
     last_governance_event: null,
     airlock_status: isPreviewUnlocks ? 'ARMED' : 'NOT_READY', // Prevent Airlock Block
+    live_allowed: isPreviewUnlocks ? true : false, // VARIANT A: Explicit server arm
     active_strategies: isPreviewUnlocks ? 3 : 0,
     risk_score: 12,
     pnl_today: 1250.50
@@ -109,6 +110,15 @@ let exchangeAllocations: ExchangeAllocationRow[] = [
     { id: 'coinbase', name: 'Coinbase', enabled: true, connected: true, allocation: 0.3, permissions: { read: true, trade: true }, risk_limit_pct: 0.15, usage_pct: 0.10, control_source: 'AI', total_balance_usd: 320000 },
     { id: 'okx', name: 'OKX', enabled: true, connected: true, allocation: 0.2, permissions: { read: true, trade: true }, risk_limit_pct: 0.10, usage_pct: 0.02, control_source: 'MANUAL', total_balance_usd: 140000 }
 ];
+
+// START Button Orchestration State
+let currentRunState = {
+    running: false,
+    phase: 'idle' as 'idle' | 'assembling_portfolio' | 'arming' | 'trading',
+    started_at: null as string | null,
+    run_mode: 'dry' as 'dry' | 'real',
+    last_error: null as string | null
+};
 
 export const simulatedBackend = {
     // --- APP BOOT ---
@@ -312,7 +322,7 @@ export const simulatedBackend = {
     },
 
     setExecMode: (mode: SystemMode) => {
-        currentSimOps.exec_mode = mode;
+        currentSimOps.system_mode = mode; // VARIANT A
         if (mode === 'AUTO') currentSimOps.airlock_status = 'ARMED';
         else currentSimOps.airlock_status = 'NOT_READY';
         return { ...currentSimOps, undo_token: 'sim-undo-123' }; // Return full OpsState
@@ -321,7 +331,7 @@ export const simulatedBackend = {
     setGlobalStop: (stop: boolean) => {
         currentSimOps.global_stop = stop;
         if (stop) {
-            currentSimOps.exec_mode = 'STOP';
+            currentSimOps.system_mode = 'STOP'; // VARIANT A
             currentSimOps.veto_reason = 'OPERATOR_OVERRIDE';
             currentSimOps.last_governance_event = {
                 id: 'sim-stop-' + Date.now(),
@@ -350,7 +360,7 @@ export const simulatedBackend = {
                     { symbol: 'SOL', weight: 0.3, confidence: 0.7, reason: ['Momentum'], sector: 'L1', risk_note: 'High Vol' }
                 ],
                 rules: { entry_mode: 'MAKER', rebalance_interval_days: 7, profit_take_pct: 0.1, stop_loss_pct: 0.05 },
-                status: currentSimOps.global_stop ? 'STOPPED' : (currentSimOps.exec_mode === 'MANUAL' ? 'PAUSED' : 'ACTIVE'), // Heuristic binding
+                status: currentSimOps.global_stop ? 'STOPPED' : (currentSimOps.system_mode === 'MANUAL' ? 'PAUSED' : 'ACTIVE'), // VARIANT A
                 base_currency: 'USDT',
                 total_capital_allocation: 1250000
             }
@@ -379,12 +389,11 @@ export const simulatedBackend = {
         };
     },
 
-    // Action Helper
     runPortfolioAction: (id: string, action: string) => {
         if (action === 'PAUSE') {
-            currentSimOps.exec_mode = 'MANUAL';
+            currentSimOps.system_mode = 'MANUAL'; // VARIANT A
         } else if (action === 'RESUME') {
-            currentSimOps.exec_mode = 'AUTO';
+            currentSimOps.system_mode = 'AUTO'; // VARIANT A
             currentSimOps.global_stop = false;
         } else if (action === 'DERISK') {
             currentSimOps.global_stop = false;
@@ -420,7 +429,7 @@ export const simulatedBackend = {
         currentSimOps.drift_status = type;
         if (type !== 'NONE') {
             if (type === 'HARD') {
-                currentSimOps.exec_mode = 'MANUAL'; // Downgrade from AUTO
+                currentSimOps.system_mode = 'MANUAL'; // VARIANT A: Downgrade from AUTO
             }
             currentSimOps.last_governance_event = {
                 id: 'sim-drift-' + Date.now(),
@@ -546,15 +555,101 @@ export const simulatedBackend = {
 
     flattenPortfolio: () => {
         currentSimOps.global_stop = true;
-        currentSimOps.exec_mode = 'STOP';
+        currentSimOps.system_mode = 'STOP'; // VARIANT A
         currentSimOps.last_governance_event = {
             id: 'sim-flatten-' + Date.now(),
             message: 'Portfolio FLATTENED by Operator',
             timestamp: new Date().toISOString(),
             severity: 'CRITICAL'
         };
-        // Return Mock PortfolioDefinition or similar? 
+        // Reset run state on flatten
+        currentRunState = { running: false, phase: 'idle', started_at: null, run_mode: 'dry', last_error: null };
         return { success: true };
+    },
+
+    // --- START BUTTON ORCHESTRATION ---
+    opsStart: (mode: 'dry' | 'real' = 'dry') => {
+        // Check gates
+        if (currentSimOps.global_stop) {
+            return {
+                status: 'blocked' as const,
+                reason: 'System Halted by Global Stop',
+                gates: {
+                    global_stop: true,
+                    system_mode: currentSimOps.system_mode || 'STOP', // VARIANT A
+                    airlock: currentSimOps.airlock_status || 'NOT_READY',
+                    keys_present: exchangeKeys.length > 0,
+                    live_allowed: currentSimOps.live_allowed || false // VARIANT A
+                }
+            };
+        }
+
+        // VARIANT A: run_mode determined by airlock status and user request, not exec_mode
+        const run_mode: 'dry' | 'real' = (currentSimOps.airlock_status === 'ARMED' && mode === 'real') ? 'real' : 'dry';
+        const started_at = new Date().toISOString();
+
+        // Update run state
+        currentRunState = {
+            running: true,
+            phase: 'assembling_portfolio',
+            started_at,
+            run_mode,
+            last_error: null
+        };
+
+        // Simulate phase transitions with delays (in PROOF_MODE these are faster)
+        const phaseDelay = isProofMode ? 500 : 1500;
+
+        setTimeout(() => {
+            if (currentRunState.running) {
+                currentRunState.phase = 'arming';
+            }
+        }, phaseDelay);
+
+        setTimeout(() => {
+            if (currentRunState.running) {
+                currentRunState.phase = 'trading';
+                currentSimOps.last_governance_event = {
+                    id: 'sim-trading-' + Date.now(),
+                    message: `Trading Pipeline ARMED (${run_mode.toUpperCase()})`,
+                    timestamp: new Date().toISOString(),
+                    severity: 'INFO'
+                };
+            }
+        }, phaseDelay * 2);
+
+        currentSimOps.last_governance_event = {
+            id: 'sim-start-' + Date.now(),
+            message: `Orchestration Started (${run_mode.toUpperCase()})`,
+            timestamp: started_at,
+            severity: 'INFO'
+        };
+
+        return {
+            status: 'success' as const,
+            started_at,
+            run_mode,
+            gates: {
+                global_stop: false,
+                system_mode: currentSimOps.system_mode || 'MANUAL', // VARIANT A
+                airlock: currentSimOps.airlock_status || 'ARMED',
+                keys_present: exchangeKeys.length > 0,
+                live_allowed: currentSimOps.live_allowed || false // VARIANT A
+            }
+        };
+    },
+
+    getOpsRunState: () => ({ ...currentRunState }),
+
+    opsStop: () => {
+        currentRunState = { running: false, phase: 'idle', started_at: null, run_mode: 'dry', last_error: null };
+        currentSimOps.last_governance_event = {
+            id: 'sim-stop-run-' + Date.now(),
+            message: 'Orchestration Stopped',
+            timestamp: new Date().toISOString(),
+            severity: 'WARNING'
+        };
+        return { status: 'stopped' };
     },
 
     // --- PHASE 6: ADMIN & SYSTEM ---

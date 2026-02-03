@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getSystemEvents } from '../../api/adapter';
 import { useAuth } from '../../hooks/useAuth';
 import { usePreview } from '../../hooks/usePreview'; // New hook import
@@ -11,7 +11,15 @@ export const AdminIncidentsPage: React.FC = () => {
     const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken };
     const { isPreview, previewStore } = usePreview();
-    const { data: events, loading, refresh } = usePolledResource<{ items: SystemEvent[] }>((s) => getSystemEvents(s, client), 5000, [auth.role]);
+    const { data, error, refresh } = usePoller<{ items: SystemEvent[] }>({
+        key: 'data_AdminIncidentsPage',
+        endpoint: '/api/events/system',
+        fetcher: () => getSystemEvents(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     // Use PreviewStore incidents if Sim
     const displayIncidents = isPreview

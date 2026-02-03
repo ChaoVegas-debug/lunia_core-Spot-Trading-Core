@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import { PreviewModeProvider } from './context/PreviewModeContext';
+import { WidgetRegistryProvider } from './context/WidgetRegistryContext';
 import { DashboardProvider } from './context/DashboardContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { GuidedOnboardingTour } from './components/widgets/GuidedOnboardingTour';
@@ -11,7 +12,7 @@ import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { UserPanel } from './pages/UserPanel';
-import { TraderPanel } from './pages/TraderPanel';
+import { CockpitLayout } from './components/layout/CockpitLayout';
 import { FundPanel } from './pages/FundPanel';
 import { AdminPanel } from './pages/AdminPanel';
 import { AdminPage } from './pages/AdminPage';
@@ -40,6 +41,8 @@ import { AdminIncidentsPage } from './pages/admin/AdminIncidentsPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { WhyProvider } from './contexts/WhyContext';
 
+import { GlobalAirlockProvider } from './components/providers/GlobalAirlockProvider';
+
 const App: React.FC = () => {
   console.log('App Rendering');
   const location = useLocation();
@@ -50,176 +53,180 @@ const App: React.FC = () => {
     <PreviewModeProvider>
       <AuthProvider>
         <WhyProvider>
-          <DashboardProvider>
-            <Routes>
-              <Route
-                path="/login"
-                element={<LoginPage />}
-              />
-              <Route
-                path="/register"
-                element={<RegisterPage />}
-              />
-              <Route
-                path="/"
-                element={<LandingPage />}
-              />
+          <WidgetRegistryProvider>
+            <DashboardProvider>
+              <GlobalAirlockProvider>
+                <Routes>
+                  <Route
+                    path="/login"
+                    element={<LoginPage />}
+                  />
+                  <Route
+                    path="/register"
+                    element={<RegisterPage />}
+                  />
+                  <Route
+                    path="/"
+                    element={<LandingPage />}
+                  />
 
-              <Route element={<AppLayout />}>
-                {/* /user -> /account alias */}
-                <Route path="/user" element={<Navigate to="/account" replace />} />
+                  <Route element={<AppLayout />}>
+                    {/* /user -> /account alias */}
+                    <Route path="/user" element={<Navigate to="/account" replace />} />
 
-                {/* ACCOUNT: Accessible without Onboarding (for settings) */}
-                <Route
-                  path="/account"
-                  element={
-                    <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
-                      <AccountPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/account/subscription"
-                  element={
-                    <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
-                      <SubscriptionPage />
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* ACCOUNT: Accessible without Onboarding (for settings) */}
+                    <Route
+                      path="/account"
+                      element={
+                        <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
+                          <AccountPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/account/subscription"
+                      element={
+                        <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
+                          <SubscriptionPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* TRADER PANEL: GATED */}
-                <Route
-                  path="/trader"
-                  element={
-                    <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
-                      {/* <RequireOnboarding> */}
-                      <TraderPanel />
-                      {/* </RequireOnboarding> */}
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* TRADER PANEL: GATED */}
+                    <Route
+                      path="/trader"
+                      element={
+                        <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
+                          {/* <RequireOnboarding> */}
+                          <CockpitLayout />
+                          {/* </RequireOnboarding> */}
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* PORTFOLIO: GATED */}
-                <Route
-                  path="/portfolio"
-                  element={
-                    <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
-                      <RequireOnboarding>
-                        <PortfolioPage />
-                      </RequireOnboarding>
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* PORTFOLIO: GATED */}
+                    <Route
+                      path="/portfolio"
+                      element={
+                        <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
+                          <RequireOnboarding>
+                            <PortfolioPage />
+                          </RequireOnboarding>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* RISK: GATED */}
-                <Route
-                  path="/risk"
-                  element={
-                    <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
-                      <RequireOnboarding>
-                        <RiskPage />
-                      </RequireOnboarding>
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* RISK: GATED */}
+                    <Route
+                      path="/risk"
+                      element={
+                        <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
+                          <RequireOnboarding>
+                            <RiskPage />
+                          </RequireOnboarding>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* STRATEGIES: GATED */}
-                <Route
-                  path="/strategies"
-                  element={
-                    <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
-                      <RequireOnboarding>
-                        <StrategiesPage />
-                      </RequireOnboarding>
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* STRATEGIES: GATED */}
+                    <Route
+                      path="/strategies"
+                      element={
+                        <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
+                          <RequireOnboarding>
+                            <StrategiesPage />
+                          </RequireOnboarding>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* EXCHANGE KEYS: GATED */}
-                <Route
-                  path="/exchange-keys"
-                  element={
-                    <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
-                      <RequireOnboarding>
-                        <ExchangeKeysPage />
-                      </RequireOnboarding>
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* EXCHANGE KEYS: GATED */}
+                    <Route
+                      path="/exchange-keys"
+                      element={
+                        <ProtectedRoute allowed={['TRADER', 'ADMIN']}>
+                          <RequireOnboarding>
+                            <ExchangeKeysPage />
+                          </RequireOnboarding>
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* FUND PANEL */}
-                <Route
-                  path="/fund"
-                  element={
-                    <ProtectedRoute allowed={['FUND', 'ADMIN']}>
-                      <FundPanel />
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* FUND PANEL */}
+                    <Route
+                      path="/fund"
+                      element={
+                        <ProtectedRoute allowed={['FUND', 'ADMIN']}>
+                          <FundPanel />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                <Route
-                  path="/system"
-                  element={
-                    <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
-                      <SystemPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/docs"
-                  element={
-                    <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
-                      <DocsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/getting-started"
-                  element={
-                    <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
-                      <GettingStartedPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/preview/surfaces"
-                  element={
-                    <SurfaceInspectorPage />
-                  }
-                />
+                    <Route
+                      path="/system"
+                      element={
+                        <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
+                          <SystemPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/docs"
+                      element={
+                        <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
+                          <DocsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/getting-started"
+                      element={
+                        <ProtectedRoute allowed={['USER', 'TRADER', 'FUND', 'ADMIN']}>
+                          <GettingStartedPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/preview/surfaces"
+                      element={
+                        <SurfaceInspectorPage />
+                      }
+                    />
 
-                {/* INTELLIGENCE MODES */}
-                <Route
-                  path="/intelligence"
-                  element={
-                    <ProtectedRoute allowed={['TRADER', 'ADMIN', 'FUND']}>
-                      <IntelligenceDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/marketplace"
-                  element={
-                    <ProtectedRoute allowed={['TRADER', 'ADMIN', 'FUND']}>
-                      <StrategyMarketplace />
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* INTELLIGENCE MODES */}
+                    <Route
+                      path="/intelligence"
+                      element={
+                        <ProtectedRoute allowed={['TRADER', 'ADMIN', 'FUND']}>
+                          <IntelligenceDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/marketplace"
+                      element={
+                        <ProtectedRoute allowed={['TRADER', 'ADMIN', 'FUND']}>
+                          <StrategyMarketplace />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* ADMIN ROUTES */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute allowed={['ADMIN']}>
-                      <AdminPage />
-                    </ProtectedRoute>
-                  }
-                />
-              </Route>
+                    {/* ADMIN ROUTES */}
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute allowed={['ADMIN']}>
+                          <AdminPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Route>
 
-              <Route path="*" element={<h1>404 NOT FOUND</h1>} />
-            </Routes>
-          </DashboardProvider>
+                  <Route path="*" element={<h1>404 NOT FOUND</h1>} />
+                </Routes>
+              </GlobalAirlockProvider>
+            </DashboardProvider>
+          </WidgetRegistryProvider>
         </WhyProvider>
       </AuthProvider>
     </PreviewModeProvider>

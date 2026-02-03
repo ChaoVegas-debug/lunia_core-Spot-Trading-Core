@@ -1,0 +1,13 @@
+Cleaning up ports...
+Using Python: /Users/neomind/alladin/lunia_core-Spot-Trading-Core/.venv/bin/python
+Using Node Bin: /Users/neomind/alladin/lunia_core-Spot-Trading-Core/node_runtime/bin
+Starting Backend in PREVIEW MODE...
+Backend PID: 11559
+Waiting for backend to start...
+Starting Frontend in PREVIEW MODE...
+Frontend PID: 11882
+Preview Mode Started!
+Backend: http://localhost:8080
+Frontend: http://localhost:5173
+Press Ctrl+C to stop.
+start_preview.sh: line 48: 11559 Killed: 9               $PYTHON_EXEC -m lunia_core.app.services.api.flask_app > backend.log 2>&1  (wd: ~/alladin/lunia_core-Spot-Trading-Core)

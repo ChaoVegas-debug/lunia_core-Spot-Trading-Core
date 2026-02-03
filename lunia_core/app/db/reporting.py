@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Iterator, List, Optional
 
-from app.compat.dotenv import load_dotenv
+from ..compat.dotenv import load_dotenv
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
     from app.services.arbitrage.executor_safe import ArbitrageExecutionResult

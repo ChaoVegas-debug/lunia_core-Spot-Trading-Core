@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { usePolledResource } from '../../../hooks/usePolledResource';
 import { getAdminTenants, updateTenantConfig } from '../../../api/endpoints';
 import type { Tenant } from '../../../api/types';
 import { DataStatus } from '../../common/DataStatus';
@@ -8,7 +7,15 @@ import { DataStatus } from '../../common/DataStatus';
 export const TenantManagerWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
-    const { data, error, loading, lastUpdated, refresh } = usePolledResource<Tenant[]>((signal) => getAdminTenants(signal, client), 30000, [auth]);
+    const { data, error, refresh } = usePoller<Tenant[]>({
+        key: 'data_TenantManagerWidget',
+        endpoint: '/api/unknown',
+        fetcher: () => getAdminTenants(new AbortController().signal, client),
+        interval_ms: 30000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     const [editId, setEditId] = useState<string | null>(null);
 

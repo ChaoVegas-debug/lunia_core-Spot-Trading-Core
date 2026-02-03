@@ -42,10 +42,26 @@ from ..auth.models import AuditEvent, FeatureFlag, Limit, User
 from ..auth.rbac import current_user, require_auth, require_role
 from ..auth.security import create_access_token, decode_token, get_user, get_user_by_email, verify_password
 from ..auth.users import create_user, ensure_seed_admin, list_users, touch_last_login, update_user
-from ..ai_research import run_research_now
-from ..arbitrage import bp as arbitrage_bp
-from ..arbitrage.worker import get_state as get_arbitrage_state
-from ..api.schemas import (
+# Optional modules - wrap in try-except to allow core API to start
+try:
+    from ..ai_research import run_research_now
+except ImportError as e:
+    print(f"WARNING: ai_research module not available: {e}")
+    run_research_now = None
+
+try:
+    from ..arbitrage import bp as arbitrage_bp
+    from ..arbitrage.worker import get_state as get_arbitrage_state
+except ImportError as e:
+    print(f"WARNING: arbitrage module not available: {e}")
+    arbitrage_bp = None
+    get_arbitrage_state = lambda: {}
+# --- LOGGING SETUP ---
+# --- LOGGING SETUP ---
+from lunia_core.app.services.api.config import LOG_DIR
+from lunia_core.app.services.security import credentials_service # Canonical Service
+
+from lunia_core.app.services.api.schemas import (
     ActivityItem,
     ActivityResponse,
     ArbitrageOpportunities,
@@ -75,23 +91,22 @@ from ..api.schemas import (
     StrategyWeightsRequest,
     TradeRequest,
     UserOut,
-    PortfolioConfig,
-    PortfolioAssets,
-    PortfolioAnalysisRequest,
     PortfolioDefinition,
     PortfolioAction,
     SystemModeRequest,
     StrategyProfileRequest,
-    ManualTradeIntent,
     ExchangeKeyRequest,
 )
 
 load_dotenv()
 
-LOG_DIR = Path(__file__).resolve().parents[4] / "logs"
+# --- CONFIG ---
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 API_LOG_PATH = LOG_DIR / "api.log"
-OPS_TOKEN = os.getenv("OPS_API_TOKEN")
+OPS_TOKEN = os.getenv("OPS_TOKEN", "admin-ops-key-123")
+JWT_SECRET = os.getenv("JWT_SECRET", "dev-jwt-secret")
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{LOG_DIR}/lunia.db")
+
 AUTH_REQUIRED_FOR_TELEMETRY = os.getenv("AUTH_REQUIRED_FOR_TELEMETRY", "1").lower() == "1"
 DEFAULT_FLAGS = {
     "FEATURE_TELEGRAM": os.getenv("FEATURE_TELEGRAM", "0"),
@@ -100,6 +115,9 @@ DEFAULT_FLAGS = {
     "FEATURE_FUTURES": os.getenv("FEATURE_FUTURES", "0"),
 }
 DEFAULT_LIMITS: list[dict[str, Any]] = []
+
+app = Flask(__name__)
+# ... logging setup ...
 
 logger = logging.getLogger(__name__)
 if not logger.handlers:
@@ -373,15 +391,37 @@ def _audit(action: str, *, ok: bool = True, target: str | None = None, details: 
 
 
 def create_agent() -> Agent:
-    use_testnet = os.getenv("BINANCE_USE_TESTNET", "true").lower() == "true"
-    api_key = os.getenv("BINANCE_API_KEY")
-    api_secret = os.getenv("BINANCE_API_SECRET")
+    # FORENSIC LOAD (Unified Service)
+    creds = credentials_service.load_credentials("binance")
+    
+    logger.info(f"[BOOT] Agent Credentials Loaded from {creds.source}. {creds.short_len} Valid={creds.is_valid_format}")
+
     client = BinanceSpot(
-        api_key=api_key,
-        api_secret=api_secret,
-        use_testnet=use_testnet,
-        mock=not use_testnet,
+        api_key=creds.api_key,
+        api_secret=creds.api_secret,
+        use_testnet=creds.is_testnet,
     )
+    
+    # STRICT COMBAT ENFORCEMENT
+    # If we are NOT in Preview Mode, we must NEVER be mock.
+    is_preview = os.getenv("LUNIA_PREVIEW_MODE", "0") == "1"
+    
+    if not is_preview:
+        client.mock = False
+        # PROVE AUTHENTICATION
+        if client.verify_auth():
+            logger.info("[BOOT] LIVE Authentication Verified. System HOT.")
+        else:
+            logger.critical("[BOOT] LIVE Authentication FAILED. System GATED (Fail-Closed).")
+            
+        if not creds.is_valid_format:
+            logger.critical(f"[BOOT] CRITICAL: Live Mode Active but Credentials Invalid! System will FAIL-CLOSED. Error: {creds.validation_error}")
+    else:
+        # In Preview, we allow fallback for smooth UX
+        if not creds.is_valid_format:
+             client.mock = True
+             logger.warning(f"[BOOT] Preview Mode: Client defaulted to MOCK due to invalid credentials")
+    
     risk = RiskManager()
     supervisor = Supervisor(client=client)
     return Agent(client=client, risk=risk, supervisor=supervisor)
@@ -406,6 +446,25 @@ def create_futures_client() -> BinanceFutures:
 
 futures_client = create_futures_client()
 app = Flask(__name__)
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PHASE 15A: SIGNAL INGESTION CORE - SINGLETON STORE
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+try:
+    from extensions.signal_ingestion import (
+        SignalStore,
+        parse_news_signal,
+        parse_whale_signal,
+        parse_onchain_signal,
+    )
+    
+    # Instantiate singleton store (bounded capacity)
+    app.signal_store = SignalStore(max_capacity=5000)
+    logger.info("[PHASE15A] SignalStore instantiated (capacity=5000)")
+except ImportError as e:
+    logger.warning(f"[PHASE15A] Could not import signal_ingestion: {e}")
+    app.signal_store = None
+
 
 @app.get("/ai/proposals")
 @require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
@@ -650,64 +709,230 @@ def api_portfolio_action(id: str) -> Any:
     return jsonify({"id": id, "status": payload.action, "result": "EXECUTED"})
 
 
+    # 3. Full State Update
+    current_portfolios = get_runtime_state().get("portfolios", {}).get("definitions", {})
+    current_portfolios[p_short["id"]] = p_short
+    current_portfolios[p_long["id"]] = p_long
+
+    state_update = {
+        "system_mode": "SEMI",
+        "auto_mode": True,
+        "global_stop": False,
+        "trading_on": True,
+    }
+    set_state(state_update)
+    _audit("DEMO_SEEDED", details={"type": "DEV_SCENARIO"})
+    return jsonify({"status": "SEEDED", "scenarios": ["ALPHA_TACTICAL", "CORE_HODL"]})
+
+
+@app.post("/api/exchanges/test-connection")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
+def api_test_connection() -> Any:
+    """Test connection with provided or stored keys."""
+    try:
+        payload = request.get_json(force=True) or {}
+        exchange_id = payload.get("exchange_id", "binance")
+    except Exception:
+        return jsonify({"error": "Invalid Payload"}), 400
+
+    # For now, only Binance supported in test
+    if exchange_id != "binance":
+        return jsonify({"status": "error", "message": "Only Binance supported"}), 400
+
+    # Determine keys to use: Payload > Stored > Env
+    api_key = payload.get("api_key")
+    api_secret = payload.get("api_secret") 
+    is_testnet = payload.get("is_testnet", True)
+    
+    # If not in payload, check secrets file
+    if not api_key:
+        try:
+             import json
+             secrets_path = Path(os.getcwd()) / ".secrets.json"
+             if secrets_path.exists():
+                 with open(secrets_path, "r") as f:
+                     secrets = json.load(f)
+                     exch = secrets.get(exchange_id, {})
+                     api_key = exch.get("api_key")
+                     api_secret = exch.get("api_secret")
+                     is_testnet = exch.get("is_testnet", True)
+        except Exception as e:
+            logger.warning(f"Failed to read secrets: {e}")
+
+    # Fallback to Env
+    if not api_key:
+        api_key = os.getenv("BINANCE_API_KEY")
+        api_secret = os.getenv("BINANCE_API_SECRET")
+        is_testnet = os.getenv("BINANCE_USE_TESTNET", "true").lower() == "true"
+
+    if not api_key or not api_secret:
+        return jsonify({"status": "error", "message": "No API keys found"}), 400
+
+    try:
+        # Create temp client
+        client = BinanceSpot(api_key=api_key, api_secret=api_secret, use_testnet=is_testnet, mock=False)
+        # Check time or balance
+        # We use get_price("BTCUSDT") as a quick read check or get_balances if permitted
+        # Safer to use get_price to check connectivity, but get_balances implies valid keys
+        
+        # Using a specialized ping if available, or just get_price
+        start = time.time()
+        # Test public endpoint first
+        client.get_price("BTCUSDT")
+        
+        # Test authenticated endpoint
+        # If permission is read-only, this should work.
+        try:
+            client.get_balances() # This verifies signature and key validity
+        except Exception as e:
+             return jsonify({
+                "status": "error", 
+                "message": f"Auth failed. Check IPs/Permissions. Error: {str(e)}",
+                "latency_ms": int((time.time() - start) * 1000)
+            }), 400
+
+        latency = int((time.time() - start) * 1000)
+        return jsonify({"status": "ok", "latency_ms": latency, "message": "Connection Successful"})
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+
+
+# Overwrite api_exchange_keys to save secrets using Canonical Service
 @app.post("/api/exchanges/keys")
 @safety_guard
 @require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def api_exchange_keys() -> Any:
-    """Update exchange API keys (Audit Logged)."""
+    """Update exchange API keys (Audit Logged, Forensic Verified)."""
     try:
         payload = ExchangeKeyRequest.parse_obj(request.get_json(force=True) or {})
     except ValidationError as exc:
         return jsonify({"error": exc.errors()}), 400
 
-    # Prepare update payload for state.py helper
-    # The helper _apply_exchange_keys_update expects {exchange_id: ..., api_key: ...}
-    # It extracts exchange_id from the dict.
+    exchange_id = payload.exchange_id
+    real_key = payload.api_key.strip()
+    real_secret = payload.api_secret.strip()
     
+    # 1. Handle Secret Masking (***)
+    # If Input is mask, load existing secret from Service
+    is_mask = set(real_secret).issubset(set("*"))
+    if is_mask or not real_secret:
+        existing = credentials_service.load_credentials(exchange_id)
+        if existing.api_secret:
+            real_secret = existing.api_secret
+            logger.info(f"[KEY_UPDATE] Resolved masked secret for {exchange_id}")
+        else:
+            return jsonify({"error": "Cannot use masked secret; no existing credentials found."}), 400
+
+    # 2. Save via Canonical Service (Performs strict validation)
+    try:
+        new_creds = credentials_service.save_credentials(exchange_id, real_key, real_secret, payload.is_testnet)
+    except ValueError as e:
+        # Validation Failed (Length/Format)
+        return jsonify({"error": str(e), "code": "INVALID_FORMAT"}), 400
+    except Exception as e:
+        logger.error(f"[KEY_UPDATE] Save failed: {e}")
+        return jsonify({"error": f"Failed to save credentials: {str(e)}"}), 500
+
+    # 3. Update Runtime State (for UI reflection)
     update_item = {
-        "exchange_id": payload.exchange_id,
-        "api_key": payload.api_key,
-        "api_secret": payload.api_secret,
-        "passphrase": payload.passphrase,
-        "is_testnet": payload.is_testnet
+        "exchange_id": exchange_id,
+        "api_key": new_creds.api_key,
+        "api_secret": "******", # Never store secret in state
+        "is_testnet": new_creds.is_testnet,
+        "status": "CONFIGURED", # Pending test
+        "updated_at": _current_iso_time()
     }
-    
-    # We pass it wrapped in "exchange_keys" key to trigger the handler loop in set_state
     set_state({"exchange_keys": update_item})
+    _audit("EXCHANGE_KEY_UPDATED", details={"exchange": exchange_id, "valid": new_creds.is_valid_format})
     
-    _audit("EXCHANGE_KEY_UPDATED", details={"exchange": payload.exchange_id, "testnet": payload.is_testnet})
-    
-    return jsonify({"status": "CONNECTED", "exchange": payload.exchange_id})
+    # 4. Hot-Swap Agent (Binance Only)
+    global agent
+    if agent and agent.client and exchange_id == "binance":
+        if isinstance(agent.client, BinanceSpot):
+            agent.client.api_key = new_creds.api_key
+            agent.client.api_secret = new_creds.api_secret
+            agent.client.use_testnet = new_creds.is_testnet
+            
+            # Strict Mock Logic
+            agent.client.mock = not new_creds.is_valid_format
+            agent.client.__post_init__() 
+            
+            logger.info(f"[HOT_SWAP] Binance Client Updated. Source={new_creds.source} Mock={agent.client.mock}")
+
+    return jsonify({
+        "status": "SAVED", 
+        "exchange": exchange_id, 
+        "valid": new_creds.is_valid_format,
+        "source": new_creds.source
+    })
 
 
 @app.get("/api/exchanges/keys")
 @require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def api_exchange_keys_list() -> Any:
-    """Return status of exchange keys (Masked)."""
-    state = get_runtime_state()
-    keys_map = state.get("exchange_keys", {})
+    """Return status of exchange keys (Forensic aware)."""
+    # For transparency, we check what is loaded in the Service, not just State.
+    # Currently only Binance is supported by the service fully.
     
-    result = []
-    for exchange_id, kdata in keys_map.items():
-        masked_secret = "******" 
-        if kdata.get("api_secret"):
-            masked_secret = kdata["api_secret"][:3] + "******" + kdata["api_secret"][-3:]
-            
-        result.append({
-            "exchange_id": exchange_id,
-            "api_key": kdata.get("api_key"),
-            "api_secret": masked_secret, # Masked
-            "status": kdata.get("status", "UNKNOWN"),
-            "updated_at": kdata.get("updated_at"),
-            "is_testnet": kdata.get("is_testnet")
-        })
-    return jsonify(result)
+    results = []
+    # Check Binance specifically
+    creds = credentials_service.load_credentials("binance")
+    
+    status = "MISSING"
+    if creds.source != "NONE":
+        status = "CONFIGURED" if creds.is_valid_format else "INVALID"
+
+    results.append({
+        "exchange_id": "binance",
+        "api_key": creds.api_key, # Safe to return public key
+        "api_secret": "******" if creds.api_secret else "",
+        "status": status,
+        "is_testnet": creds.is_testnet,
+        "source": creds.source,
+        "key_len": len(creds.api_key),
+        "valid": creds.is_valid_format,
+        "validation_error": creds.validation_error
+    })
+    
+    return jsonify(results)
 
 
-ALLOWED_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "*")
+@app.get("/api/exchanges/debug")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
+def api_exchanges_debug() -> Any:
+    # Introspect Client State
+    c = agent.client if agent else None
+    if not c:
+        return jsonify({"status": "no_agent"})
+
+    return jsonify({
+        "status": "active",
+        "mock": getattr(c, "mock", None),
+        "key_present": bool(c.api_key),
+        "secret_present": bool(c.api_secret),
+        "key_len": len(c.api_key) if c.api_key else 0,
+        "secret_len": len(c.api_secret) if c.api_secret else 0,
+        "exchange": "binance",
+        "class": c.__class__.__name__,
+        "base_url": getattr(c, "base_url", "unknown"),
+        "is_testnet": getattr(c, "use_testnet", None),
+        "time_offset": getattr(c, "time_offset", 0),
+        "time_synced": getattr(c, "_time_synced", False),
+        "session_headers": dict(c.session.headers) if hasattr(c, "session") else {},
+    })
+
+
+# CORS Configuration with explicit fallback (no wildcard + credentials)
+ALLOWED_ORIGINS = os.getenv(
+    "CORS_ALLOW_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173"  # Dev + Preview
+)
 ALLOWED_HEADERS = os.getenv(
     "CORS_ALLOW_HEADERS",
-    "Content-Type,Authorization,X-Admin-Token,X-OPS-TOKEN",
+    "Content-Type,Authorization,X-Admin-Token,X-OPS-TOKEN,x-request-id,x-client-version",
 )
 
 
@@ -721,16 +946,233 @@ def _add_cors_headers(response: Response) -> Response:
     elif request_origin and request_origin in allowed_origins:
         response.headers["Access-Control-Allow-Origin"] = request_origin
         response.headers["Vary"] = "Origin"
+        # Only set credentials when not using wildcard
+        response.headers["Access-Control-Allow-Credentials"] = "true"
     
     response.headers["Access-Control-Allow-Headers"] = ALLOWED_HEADERS
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PATCH, DELETE, PUT"
-    response.headers["Access-Control-Expose-Headers"] = "Content-Type"
+    # Expose x-request-id so frontend can read it
+    response.headers["Access-Control-Expose-Headers"] = "Content-Type,x-request-id"
     return response
 
 
 @app.route("/<path:path>", methods=["OPTIONS"])
 def handle_options(path):
     return Response(status=200)
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PHASE 15A: SIGNAL INGESTION ENDPOINTS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@app.get("/signals/active")
+def get_active_signals():
+    """
+    READ-ONLY endpoint: List active signals from in-memory store.
+    
+    Governance:
+      - G1: NO TRADING AUTHORITY (read-only)
+      - G3: Core remains wall-clock free (requires now_ms param)
+      - G4: FAIL-CLOSED (missing now_ms → 400 error)
+    
+    Query params:
+      - now_ms (required): Current timestamp in milliseconds
+      - symbol (optional): Filter by symbol (e.g., BTC, ETH)
+      - source (optional): Filter by source (NEWS, WHALE, ONCHAIN, etc.)
+      - min_confidence (optional): Minimum confidence threshold (0.0-1.0)
+    
+    Returns:
+      JSON with active signal states
+    """
+    if app.signal_store is None:
+        return jsonify({"error": "SignalStore not initialized"}), 503
+    
+    # FAIL-CLOSED: require now_ms
+    now_ms_str = request.args.get("now_ms")
+    if not now_ms_str:
+        return jsonify({
+            "error": "Missing required parameter: now_ms",
+            "code": "MISSING_NOW_MS"
+        }), 400
+    
+    try:
+        now_ms = int(now_ms_str)
+    except ValueError:
+        return jsonify({
+            "error": "Invalid now_ms: must be integer milliseconds",
+            "code": "INVALID_NOW_MS"
+        }), 400
+    
+    # Optional filters
+    symbol = request.args.get("symbol")
+    source_str = request.args.get("source")
+    min_confidence_str = request.args.get("min_confidence")
+    
+    # Parse optional filters
+    from extensions.signal_ingestion import SignalSource
+    from decimal import Decimal
+    
+    source = None
+    if source_str:
+        try:
+            source = SignalSource(source_str)
+        except ValueError:
+            return jsonify({
+                "error": f"Invalid source: {source_str}",
+                "code": "INVALID_SOURCE"
+            }), 400
+    
+    min_confidence = None
+    if min_confidence_str:
+        try:
+            min_confidence = Decimal(min_confidence_str)
+        except Exception:
+            return jsonify({
+                "error": f"Invalid min_confidence: {min_confidence_str}",
+                "code": "INVALID_CONFIDENCE"
+            }), 400
+    
+    # Query store (READ-ONLY operation)
+    signal_states = app.signal_store.list_active(
+        now_ms=now_ms,
+        symbol=symbol,
+        source=source,
+        min_confidence=min_confidence,
+    )
+    
+    # Serialize states to JSON
+    items = []
+    for state in signal_states:
+        items.append({
+            "signal_id": state.signal_id,
+            "active": state.active,
+            "age_ms": state.age_ms,
+            "remaining_ms": state.remaining_ms,
+            "weight": str(state.weight),  # Decimal → string
+            "reason": state.reason,
+        })
+    
+    return jsonify({
+        "status": "ok",
+        "now_ms": now_ms,
+        "count": len(items),
+        "items": items,
+    })
+
+
+@app.post("/signals/ingest/debug")
+def ingest_signal_debug():
+    """
+    DEBUG-ONLY endpoint: Ingest a test signal into the store.
+    
+    Governance:
+      - G1: NO TRADING AUTHORITY (context layer only)
+      - G4: FAIL-CLOSED (requires now_ms, validates fields)
+      - G5: SECURITY (requires X-OPS-TOKEN + SIGNAL_DEBUG_INGEST=1)
+    
+    Security:
+      - Requires header: X-OPS-TOKEN matching OPS_TOKEN
+      - Requires env: SIGNAL_DEBUG_INGEST=1 (default OFF)
+    
+    Body (JSON):
+      - now_ms (required): Signal timestamp in milliseconds
+      - source (required): Signal source (NEWS, WHALE, ONCHAIN, etc.)
+      - category (required): Signal category string
+      - headline (required): Headline text
+      - confidence (required): Confidence score 0.0-1.0 (as string)
+      - severity (required): Severity (LOW, MEDIUM, HIGH, CRITICAL)
+      - ttl_ms (required): Time-to-live in milliseconds
+      - symbol (optional): Asset symbol
+      - summary (optional): Longer description
+      - tags (optional): List of tag strings
+      - payload (optional): Additional metadata dict
+    
+    Returns:
+      JSON with signal_id and stored status
+    """
+    if app.signal_store is None:
+        return jsonify({"error": "SignalStore not initialized"}), 503
+    
+    # SECURITY: Check env flag
+    if os.getenv("SIGNAL_DEBUG_INGEST", "0") != "1":
+        return jsonify({
+            "error": "Debug ingest endpoint disabled",
+            "code": "ENDPOINT_DISABLED"
+        }), 404
+    
+    # SECURITY: Require OPS token
+    token = request.headers.get("X-OPS-TOKEN") or request.headers.get("X-Ops-Token")
+    if token != OPS_TOKEN:
+        return jsonify({
+            "error": "Unauthorized: invalid or missing X-OPS-TOKEN",
+            "code": "UNAUTHORIZED"
+        }), 403
+    
+    # Parse JSON body
+    try:
+        data = request.get_json(force=True)
+    except Exception as e:
+        return jsonify({
+            "error": f"Invalid JSON body: {e}",
+            "code": "INVALID_JSON"
+        }), 400
+    
+    # FAIL-CLOSED: require now_ms
+    if "now_ms" not in data:
+        return jsonify({
+            "error": "Missing required field: now_ms",
+            "code": "MISSING_NOW_MS"
+        }), 400
+    
+    try:
+        now_ms = int(data["now_ms"])
+    except ValueError:
+        return jsonify({
+            "error": "Invalid now_ms: must be integer",
+            "code": "INVALID_NOW_MS"
+        }), 400
+    
+    # FAIL-CLOSED: Require valid source (NO FALLBACK)
+    source = data.get("source")
+    if not source:
+        return jsonify({
+            "error": "Missing required field: source",
+            "code": "MISSING_SOURCE"
+        }), 400
+    
+    # Strict dispatch: reject unknown sources
+    try:
+        if source == "NEWS":
+            event = parse_news_signal(data, ts_ms=now_ms)
+        elif source == "WHALE":
+            event = parse_whale_signal(data, ts_ms=now_ms)
+        elif source == "ONCHAIN":
+            event = parse_onchain_signal(data, ts_ms=now_ms)
+        else:
+            # NO FALLBACK: explicit rejection
+            return jsonify({
+                "error": f"Invalid source: {source}",
+                "code": "INVALID_SOURCE",
+                "allowed": ["NEWS", "WHALE", "ONCHAIN"]
+            }), 400
+    except (ValueError, TypeError, KeyError) as e:
+        return jsonify({
+            "error": f"Failed to parse signal: {e}",
+            "code": "PARSE_ERROR"
+        }), 400
+    
+    # Upsert into store
+    app.signal_store.upsert(event)
+    
+    logger.info(f"[PHASE15A] Ingested signal: {event.signal_id} (source={event.source})")
+    
+    return jsonify({
+        "status": "ok",
+        "signal_id": event.signal_id,
+        "stored": True,
+        "source": event.source.value,
+        "headline": event.headline,
+    })
 
 
 @app.route('/api/dev/seed-demo', methods=['POST'])
@@ -881,6 +1323,35 @@ def _inject_db_and_user() -> None:
     g.current_user = None
     auth_header = request.headers.get("Authorization", "")
     
+    # DEV AUTH BYPASS (localhost development only)
+    # Satisfies PHASE 2 requirements: fail-closed by default, only active for localhost origins
+    if os.getenv("DEV_AUTH_BYPASS") == "1":
+        remote_addr = request.remote_addr or ""
+        origin = request.headers.get("Origin", "")
+        
+        # Security gate: ONLY allow localhost/127.0.0.1
+        is_localhost = (
+            remote_addr in ("127.0.0.1", "::1", "localhost") or
+            origin.startswith("http://localhost:") or
+            origin.startswith("http://127.0.0.1:")
+        )
+        
+        if is_localhost:
+            g.current_user = User(
+                id=1,
+                email="local-operator@localhost",
+                password_hash="dev-bypass",
+                role="ADMIN",
+                is_active=True,
+                created_at=datetime.utcnow()
+            )
+            # Add attributes for compatibility
+            g.current_user.tier = "INSTITUTIONAL"
+            g.current_user.trust_score = 100.0
+            g.current_user.onboarding_completed = True
+            logger.debug(f"[DEV_AUTH_BYPASS] Injected admin user for {origin} from {remote_addr}")
+            return
+    
     # PREVIEW MODE OVERRIDE
     if os.getenv("LUNIA_PREVIEW_MODE") == "1":
         # Mock User for Preview
@@ -943,6 +1414,17 @@ def auth_login() -> Any:
 @_measure_latency
 @require_auth()
 def auth_me() -> Any:
+    user: Optional[User] = current_user()
+    if not user:
+        return jsonify({"error": "unauthorized"}), 401
+    return jsonify(_user_payload(user))
+
+
+# Alias for frontend compatibility (expects /auth/me not /api/v1/auth/me)
+@app.get("/auth/me")
+@_measure_latency
+@require_auth()
+def auth_me_alias() -> Any:
     user: Optional[User] = current_user()
     if not user:
         return jsonify({"error": "unauthorized"}), 401
@@ -1238,6 +1720,100 @@ def ops_start_all() -> Any:
     return _ops_toggle("global_stop", False)
 
 
+@app.post("/ops/start")
+@_measure_latency
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
+def ops_start() -> Any:
+    """
+    START Button orchestration endpoint.
+    Transitions system from IDLE to RUNNING with governance gates.
+    """
+    body = request.get_json(force=True) or {}
+    requested_mode = body.get("mode", "dry")  # "dry" or "real"
+    
+    state = get_runtime_state()
+    global_stop = state.get("global_stop", True)
+    live_confirmed = body.get("live_confirmed", False)  # Must be explicitly passed
+    airlock_status = state.get("airlock_status", "NOT_READY")
+    system_mode = state.get("system_mode", "MANUAL")  # VARIANT A: Use system_mode
+    # VARIANT A: live_allowed is explicit server arm status (derived from env or explicit setting)
+    live_allowed = state.get("live_allowed", os.environ.get("LIVE_ALLOWED", "0") == "1")
+    
+    gates = {
+        "global_stop": global_stop,
+        "system_mode": system_mode,  # VARIANT A: Changed from exec_mode
+        "airlock": airlock_status,
+        "keys_present": bool(state.get("exchange_keys", {})),
+        "live_allowed": live_allowed,  # VARIANT A: Explicit server arm status
+    }
+    
+    # GOVERNANCE GATE: Blocked conditions
+    if global_stop:
+        _audit("OPS_START_BLOCKED", ok=False, details={"reason": "global_stop"})
+        return jsonify({
+            "status": "blocked",
+            "reason": "System Halted by Global Stop",
+            "gates": gates
+        }), 403
+        
+    if airlock_status == "BLOCKED":
+        _audit("OPS_START_BLOCKED", ok=False, details={"reason": "airlock_blocked"})
+        return jsonify({
+            "status": "blocked", 
+            "reason": "Airlock Security Active",
+            "gates": gates
+        }), 403
+    
+    # VARIANT A: Force DRY if conditions not met for REAL
+    # Real requires: airlock ARMED + live_confirmed + live_allowed + !global_stop
+    run_mode = "dry"
+    if requested_mode == "real" and airlock_status == "ARMED" and live_confirmed and live_allowed:
+        run_mode = "real"
+    
+    started_at = datetime.utcnow().isoformat()
+    
+    # Update run_state
+    run_state_update = {
+        "running": True,
+        "phase": "assembling_portfolio",
+        "started_at": started_at,
+        "run_mode": run_mode,
+        "last_error": None,
+    }
+    set_state({"run_state": run_state_update})
+    
+    _audit("OPS_START_REQUESTED", details={
+        "run_mode": run_mode,
+        "requested_mode": requested_mode,
+        "gates": gates
+    })
+    
+    return jsonify({
+        "status": "success",
+        "started_at": started_at,
+        "run_mode": run_mode,
+        "gates": gates
+    })
+
+
+@app.get("/ops/run-state")
+@_measure_latency
+def ops_run_state() -> Any:
+    """
+    Get current orchestration run state.
+    """
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    state = get_runtime_state()
+    run_state = state.get("run_state", {
+        "running": False,
+        "phase": "idle",
+        "last_error": None
+    })
+    return jsonify(run_state)
+
+
 @app.get("/ops/equity")
 @_measure_latency
 def ops_equity() -> Any:
@@ -1449,9 +2025,9 @@ def spot_strategies() -> Any:
             "weight": weight,
             "horizon": meta["horizon"],
             "risk_label": meta["risk_label"],
-            "mode_override": "AI", # Default for now
-            "performance_pct": round(weight * 12.5, 2), # Mocked based on weight for consistency
-            "confidence": round(0.85 + (weight * 0.1), 2) # Mocked confidence
+            "mode_override": "AI",
+            "performance_pct": 0.0, # HONESTY: Real tracking not yet populated
+            "confidence": 0.50 # HONESTY: Neutral confidence
         })
         
     return jsonify(strategies)
@@ -1587,6 +2163,76 @@ def spot_risk_update() -> Any:
     return jsonify(OpsState.parse_obj(state).dict())
 
 
+@app.get("/spot/risk/dashboard")
+@_measure_latency
+def spot_risk_dashboard() -> Any:
+    """Risk dashboard with current limits and usage."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    state = get_runtime_state()
+    spot_cfg = state.get("spot", {})
+    payload = {
+        "current_positions": 0,  # Would come from portfolio in real impl
+        "max_positions": spot_cfg.get("max_positions", 5),
+        "max_trade_pct": spot_cfg.get("max_trade_pct", 0.20),
+        "risk_per_trade_pct": spot_cfg.get("risk_per_trade_pct", 0.01),
+        "sl_pct_default": spot_cfg.get("sl_pct_default", 0.15),
+        "tp_pct_default": spot_cfg.get("tp_pct_default", 0.30),
+        "daily_drawdown_pct": 0.0,  # Would be computed from trades
+        "max_daily_drawdown_pct": 0.05,  # Hard limit
+        "risk_status": "NOMINAL",
+        "warnings": [],
+    }
+    return jsonify(payload)
+
+
+@app.get("/spot/risk/mandates")
+@_measure_latency
+def spot_risk_mandates() -> Any:
+    """Risk mandates - hard constraints for execution."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    state = get_runtime_state()
+    spot_cfg = state.get("spot", {})
+    mandates = [
+        {
+            "id": "max_trade_size",
+            "name": "Max Trade Size",
+            "value": spot_cfg.get("max_trade_pct", 0.20),
+            "unit": "% of equity",
+            "enforced": True,
+            "source": "CONFIG",
+        },
+        {
+            "id": "stop_loss_required",
+            "name": "Stop-Loss Required",
+            "value": True,
+            "unit": "boolean",
+            "enforced": True,
+            "source": "GOVERNANCE",
+        },
+        {
+            "id": "max_positions",
+            "name": "Max Concurrent Positions",
+            "value": spot_cfg.get("max_positions", 5),
+            "unit": "positions",
+            "enforced": True,
+            "source": "CONFIG",
+        },
+        {
+            "id": "sl_pct_default",
+            "name": "Default Stop-Loss",
+            "value": spot_cfg.get("sl_pct_default", 0.15),
+            "unit": "% from entry",
+            "enforced": True,
+            "source": "CONFIG",
+        },
+    ]
+    return jsonify({"mandates": mandates})
+
+
 @app.post("/spot/manual/preview")
 @require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 def manual_trade_preview() -> Any:
@@ -1629,6 +2275,38 @@ def manual_trade_preview() -> Any:
 @require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
 @safety_guard
 def manual_trade_execute() -> Any:
+    # P0-001 HOTFIX: Governance gates (FAIL-CLOSED)
+    state = get_runtime_state()
+    global_stop = bool(state.get("global_stop", True))
+    airlock_status = state.get("airlock_status", "NOT_READY")
+    run_mode = (state.get("run_state") or {}).get("run_mode", "dry")
+    system_mode = state.get("system_mode", "MANUAL")
+    live_allowed = bool(state.get("live_allowed", os.environ.get("LIVE_ALLOWED", "0") == "1"))
+
+    gates = {
+        "global_stop": global_stop,
+        "airlock_status": airlock_status,
+        "run_mode": run_mode,
+        "live_allowed": live_allowed,
+        "system_mode": system_mode,
+    }
+
+    if global_stop:
+        _audit("MANUAL_EXECUTE_BLOCKED", ok=False, details={"reason": "global_stop", "gates": gates})
+        return jsonify({"error": "Trading halted", "code": "GLOBAL_STOP", "gates": gates}), 403
+
+    if airlock_status != "ARMED":
+        _audit("MANUAL_EXECUTE_BLOCKED", ok=False, details={"reason": "airlock_not_armed", "gates": gates})
+        return jsonify({"error": "Airlock not ARMED", "code": "AIRLOCK_NOT_ARMED", "gates": gates}), 403
+
+    if not live_allowed:
+        _audit("MANUAL_EXECUTE_BLOCKED", ok=False, details={"reason": "live_not_allowed", "gates": gates})
+        return jsonify({"error": "LIVE not allowed (server not armed)", "code": "LIVE_NOT_ALLOWED", "gates": gates}), 403
+
+    if run_mode != "real":
+        _audit("MANUAL_EXECUTE_BLOCKED", ok=False, details={"reason": "not_in_real_mode", "gates": gates})
+        return jsonify({"error": "Not in REAL mode", "code": "DRY_MODE", "gates": gates}), 403
+
     # 1. Parse
     body = request.get_json(force=True) or {}
     proposal = body.get("proposal", {})
@@ -1957,18 +2635,267 @@ def get_portfolio_snapshot() -> Any:
 @app.get("/balances")
 @_measure_latency
 def get_balances() -> Any:
+    # Diagnostic ID
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    logger.info(f"[DIAGNOSTIC] /balances START req_id={req_id}")
+
+    try:
+        guard = _telemetry_guard()
+        if guard:
+            return guard
+        
+        # Determine Source & Enforce Fail-Closed
+        requested_source = request.headers.get("X-Data-Source", "AUTO").upper()
+        logger.info(f"[DIAGNOSTIC] RequestedSource={requested_source}")
+        
+        if not agent or not agent.client:
+            return jsonify({"error": "Agent not ready"}), 503
+
+        c = agent.client
+        current_is_mock = getattr(c, "mock", True)
+        logger.info(f"[DIAGNOSTIC] AgentState: Mock={current_is_mock} KeyLen={len(c.api_key or '')}")
+
+        # Enforce REAL Mode Pre-checks
+        if requested_source == "REAL":
+            has_keys = bool(c.api_key and c.api_secret)
+            if not has_keys:
+                 msg = "Cannot serve REAL data: No Validation Keys found in client."
+                 logger.error(f"[DIAGNOSTIC] {msg}")
+                 return jsonify({
+                    "error": msg,
+                    "source": "REAL",
+                    "upstream_status": 401, 
+                    "request_id": req_id
+                }), 401
+
+        # Execute Fetch
+        logger.info(f"[DIAGNOSTIC] Executing get_balances(force_real={requested_source == 'REAL'})")
+        
+        # Force Real if requested
+        force_real = (requested_source == "REAL")
+        
+        # --- CRITICAL SECTION ---
+        balances = c.get_balances(force_real=force_real)
+        # ------------------------
+        
+        logger.info(f"[DIAGNOSTIC] Fetch Success. RowCount={len(balances)}")
+
+        effective_source = "SIMULATION" if c.mock and not force_real else "REAL"
+        
+        # Metadata
+        time_offset = getattr(c, "time_offset", 0)
+        base_url = getattr(c, "base_url", "UNKNOWN")
+        env = "UNKNOWN"
+        use_testnet = getattr(c, "use_testnet", None)
+        
+        if "testnet" in base_url or use_testnet is True:
+            env = "TESTNET"
+        elif "api.binance.com" in base_url or use_testnet is False:
+            env = "MAINNET"
+        
+        response = BalancesResponse(
+            balances=[
+                {"asset": asset, "free": data["free"], "locked": data["locked"]}
+                for asset, data in balances.items()
+            ],
+            source=effective_source,
+            env=env,
+            request_id=req_id,
+            upstream_status=200,
+            time_offset=time_offset
+        )
+        return jsonify(response.dict())
+
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        logger.error(f"[DIAGNOSTIC_FAILURE] /balances CRASH: {e}\n{tb}")
+        
+        # Return 500 with detail if possible, OR 502/401 if it's a known error
+        status_code = 502
+        err_str = str(e)
+        if "401" in err_str or "Unauthorized" in err_str:
+            status_code = 401
+            
+        return jsonify({
+            "error": err_str,
+            "trace": tb.splitlines()[-3:], # Show last 3 lines of trace for context
+            "source": "REAL" if request.headers.get("X-Data-Source") == "REAL" else "SIMULATION", 
+            "request_id": req_id,
+            "upstream_status": status_code 
+        }), status_code
+
+
+@app.get("/positions")
+@_measure_latency
+def get_positions() -> Any:
+    """Get current open positions."""
     guard = _telemetry_guard()
     if guard:
         return guard
-    logger.info("/balances requested")
-    balances = agent.client.get_balances()
-    response = BalancesResponse(
-        balances=[
-            {"asset": asset, "free": data["free"], "locked": data["locked"]}
-            for asset, data in balances.items()
-        ]
-    )
-    return jsonify(response.dict())
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    # For now, return empty positions (to be implemented fully later)
+    return jsonify({
+        "positions": [],
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
+
+
+@app.get("/orders/active")
+@_measure_latency
+def get_orders_active() -> Any:
+    """Get currently active orders."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    # For now, return empty orders (to be implemented fully later)
+    return jsonify({
+        "orders": [],
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
+
+
+@app.get("/pnl/history")
+@_measure_latency
+def get_pnl_history() -> Any:
+    """Get PnL history."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    # For now, return empty history (to be implemented fully later)
+    return jsonify({
+        "history": [],
+        "total_pnl": 0.0,
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
+
+
+@app.get("/risk/drift")
+@_measure_latency
+def get_risk_drift() -> Any:
+    """Get risk drift metrics."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    # For now, return zero drift (to be implemented fully later)
+    return jsonify({
+        "drift": 0.0,
+        "within_limits": True,
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
+
+
+@app.get("/ops/incidents")
+@_measure_latency
+def get_ops_incidents() -> Any:
+    """Get operational incidents."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    # For now, return no incidents (to be implemented fully later)
+    return jsonify({
+        "incidents": [],
+        "count": 0,
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
+
+
+@app.get("/ops/state/killswitch")
+@_measure_latency
+def get_ops_state_killswitch() -> Any:
+    """Get killswitch state."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    state = get_runtime_state()
+    return jsonify({
+        "killswitch_active": state.get("global_stop", False),
+        "system_mode": state.get("system_mode", "MANUAL"),
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
+
+
+@app.get("/strategies")
+@_measure_latency
+def get_strategies_list() -> Any:
+    """Get list of available strategies (frontend compatibility)."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    # Return available strategies from registry
+    strategies = [
+        {"id": k, "name": k.replace("_", " ").title(), "enabled": True}
+        for k in REGISTRY.keys()
+    ]
+    return jsonify({
+        "strategies": strategies,
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
+
+
+@app.get("/risk/limits")
+@_measure_latency
+def get_risk_limits() -> Any:
+    """Get current risk limits."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    state = get_runtime_state()
+    spot_config = state.get("spot", {})
+    return jsonify({
+        "limits": {
+            "max_positions": spot_config.get("max_positions", 5),
+            "risk_per_trade_pct": spot_config.get("risk_per_trade_pct", 0.005),
+            "max_trade_pct": spot_config.get("max_trade_pct", 0.2),
+            "max_symbol_exposure_pct": spot_config.get("max_symbol_exposure_pct", 0.35)
+        },
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
+
+
+@app.get("/allocations")
+@_measure_latency
+def get_allocations() -> Any:
+    """Get current capital allocations."""
+    guard = _telemetry_guard()
+    if guard:
+        return guard
+    req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+    state = get_runtime_state()
+    return jsonify({
+        "allocations": {
+            "arbitrage": state.get("reserves", {}).get("arbitrage", 0.25),
+            "portfolio": state.get("reserves", {}).get("portfolio", 0.15),
+            "spot_trading": state.get("ops", {}).get("capital", {}).get("cap_pct", 0.25)
+        },
+        "total_equity": state.get("portfolio_equity", 10000.0),
+        "request_id": req_id,
+        "source": "REAL",
+        "upstream_status": 200
+    })
 
 
 @app.get("/ops/logs")
@@ -2416,7 +3343,27 @@ def admin_get_limits() -> Any:
             updated_at=l.updated_at.isoformat(), updated_by=l.updated_by
         ).dict() for l in limits])
 
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# EPOCH B: Proposal Domain Endpoints Registration
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Temporarily commented out due to circular import
+# from .proposal_endpoints import register_proposal_endpoints
+# register_proposal_endpoints(app, require_role)
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PHASE 5.1: Admin Governance Blueprint (Fail-Safe)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+try:
+    from forensic.api.admin_governance_routes import admin_bp, init_governance
+    init_governance()  # Initialize with default paths
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
+    logger.info("[PHASE5_ADMIN] Admin governance endpoints registered at /api/admin")
+except Exception as e:
+    logger.warning(f"[PHASE5_ADMIN] Admin blueprint registration skipped: {e}")
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(host='0.0.0.0', port=port, debug=debug)
 

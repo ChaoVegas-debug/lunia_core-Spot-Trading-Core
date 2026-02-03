@@ -104,6 +104,7 @@ export interface PreviewState {
     sim_offline: boolean;
     backend_reachable: boolean;
     force_sim: boolean;
+    use_real_data: boolean; // HYBRID MODE: Real Balances, Sim Execution
 }
 
 // ------------------------------------------------------------------
@@ -112,7 +113,7 @@ export interface PreviewState {
 
 const INITIAL_OPS: OpsState = {
     auto_mode: false,
-    exec_mode: 'MANUAL',
+    system_mode: 'MANUAL', // VARIANT A: Use system_mode
     global_stop: false,
     drift_status: 'NONE',
     veto_reason: null,
@@ -219,10 +220,11 @@ class PreviewStoreService {
                 ]
             },
 
-            sim_latency_ms: 200,
+            sim_latency_ms: 50,
             sim_offline: false,
-            backend_reachable: true,
-            force_sim: false
+            backend_reachable: true, // Default to reachable so we try backend first
+            force_sim: false, // Allow real backend data by default in preview mode
+            use_real_data: false
         };
         this.addLog('INFO', 'System Started', 'INFO', 'SYSTEM');
     }
@@ -243,11 +245,12 @@ class PreviewStoreService {
     // --- MUTATION ACTIONS ---
 
     // 1. OPS & MODES
+    // VARIANT A: Renamed to setSystemMode for clarity
     setExecMode = (mode: SystemMode) => {
-        this.state.ops.exec_mode = mode;
+        this.state.ops.system_mode = mode;
         this.state.ops.auto_mode = mode === 'AUTO';
         this.state.ops.airlock_status = mode === 'AUTO' ? 'ARMED' : 'NOT_READY';
-        const msg = `Execution Mode changed to ${mode}`;
+        const msg = `System Mode changed to ${mode}`;
         this.addLog('MODE_CHANGE', msg);
         this.notify();
     };
@@ -255,7 +258,7 @@ class PreviewStoreService {
     setGlobalStop = (stop: boolean) => {
         this.state.ops.global_stop = stop;
         if (stop) {
-            this.state.ops.exec_mode = 'STOP';
+            this.state.ops.system_mode = 'STOP'; // VARIANT A
             this.state.ops.veto_reason = "Manual Emergency Stop Engaged";
             this.addLog('STOP', 'Global Emergency Stop Triggered', 'CRITICAL');
         } else {
@@ -271,8 +274,8 @@ class PreviewStoreService {
             const severity = type === 'HARD' ? 'CRITICAL' : 'WARNING';
             const msg = `Simulated ${type} Drift Detected on Main Fund A`;
             this.addLog('DRIFT', msg, severity);
-            if (type === 'HARD' && this.state.ops.exec_mode === 'AUTO') {
-                this.state.ops.exec_mode = 'MANUAL';
+            if (type === 'HARD' && this.state.ops.system_mode === 'AUTO') {
+                this.state.ops.system_mode = 'MANUAL'; // VARIANT A
                 this.state.ops.auto_mode = false;
                 this.addLog('VETO', 'Governance downgrade: AUTO -> MANUAL due to HARD Drift', 'CRITICAL');
             }
@@ -433,6 +436,16 @@ class PreviewStoreService {
         this.state.force_sim = force;
         this.notify();
     };
+
+    setUseRealData = (useReal: boolean) => {
+        this.state.use_real_data = useReal;
+        if (useReal) {
+            this.addLog('INFO', 'Enabled Real Data Feeds (Execution Remained Simulated)', 'WARNING');
+        } else {
+            this.addLog('INFO', 'Switched to Simulated Data Feeds', 'INFO');
+        }
+        this.notify();
+    }
 
     // 6. ADMIN ACTIONS
     toggleFeatureFlag = (key: string) => {

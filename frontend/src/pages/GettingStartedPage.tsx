@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import {
     getExchangeKeys,
     getOpsState,
@@ -16,10 +16,38 @@ export const GettingStartedPage: React.FC = () => {
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
     // Poll all states related to onboarding
-    const keys = usePolledResource<any[]>((signal) => getExchangeKeys(signal, client), 2000, [auth]);
-    const ops = usePolledResource<any>((signal) => getOpsState(signal, client), 2000, [auth]);
-    const strats = usePolledResource<any[]>((signal) => getStrategies(signal, client), 2000, [auth]);
-    const portfolios = usePolledResource<PortfolioDefinition[]>((signal) => getPortfolioStructure(signal, client), 2000, [auth]);
+    const { data: keysData, error: keysError, refresh: keysRefresh } = usePoller<any[]>({
+        key: 'keys_GettingStartedPage',
+        endpoint: '/api/exchange/keys',
+        fetcher: () => getExchangeKeys(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: false
+    });
+    const keys = { data: keysData, error: keysError, loading: false, refresh: keysRefresh };
+    const { data: opsData, error: opsError, refresh: opsRefresh } = usePoller<any>({
+        key: 'ops_GettingStartedPage',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: true
+    });
+    const ops = { data: opsData, error: opsError, loading: false, refresh: opsRefresh };
+    const { data: stratsData, error: stratsError, refresh: stratsRefresh } = usePoller<any[]>({
+        key: 'strats_GettingStartedPage',
+        endpoint: '/api/strategies',
+        fetcher: () => getStrategies(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: false
+    });
+    const strats = { data: stratsData, error: stratsError, loading: false, refresh: stratsRefresh };
+    const { data: portfoliosData, error: portfoliosError, refresh: portfoliosRefresh } = usePoller<PortfolioDefinition[]>({
+        key: 'portfolios_GettingStartedPage',
+        endpoint: '/api/portfolio/structure',
+        fetcher: () => getPortfolioStructure(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: false
+    });
+    const portfolios = { data: portfoliosData, error: portfoliosError, loading: false, refresh: portfoliosRefresh };
 
     // Derived Status
     const hasKeys = keys.data && keys.data.some(k => k.status === 'CONNECTED');

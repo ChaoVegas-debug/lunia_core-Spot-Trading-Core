@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { usePolledResource } from '../../../hooks/usePolledResource';
 import { getAdminOverview } from '../../../api/endpoints';
 import type { AdminOverview } from '../../../api/types';
 import { DataStatus } from '../../common/DataStatus';
@@ -8,7 +7,15 @@ import { DataStatus } from '../../common/DataStatus';
 export const AdminOverviewWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
-    const { data, error, loading, lastUpdated } = usePolledResource<AdminOverview>((signal) => getAdminOverview(signal, client), 10000, [auth]);
+    const { data, error, refresh } = usePoller<AdminOverview>({
+        key: 'data_AdminOverviewWidget',
+        endpoint: '/api/unknown',
+        fetcher: () => getAdminOverview(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     return (
         <div className="card">

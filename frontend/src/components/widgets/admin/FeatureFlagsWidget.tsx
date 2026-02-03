@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { usePolledResource } from '../../../hooks/usePolledResource';
 import { getAdminFlags, setAdminFlag } from '../../../api/endpoints';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePreview } from '../../../hooks/usePreview';
@@ -13,7 +12,15 @@ export const FeatureFlagsWidget: React.FC = () => {
     const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken };
 
-    const { data: apiFlags, loading, refresh } = usePolledResource<FeatureFlag[]>((s) => getAdminFlags(s, client), 5000, [auth.role]);
+    const { data, error, refresh } = usePoller<FeatureFlag[]>({
+        key: 'data_FeatureFlagsWidget',
+        endpoint: '/api/unknown',
+        fetcher: () => getAdminFlags(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     // Use simulated flags in Preview Mode
     const displayFlags = isPreview

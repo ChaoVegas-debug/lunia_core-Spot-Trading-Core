@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { createUser, getUsers, updateUser } from '../../api/adapter';
 import type { UserProfile } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
@@ -9,7 +9,14 @@ export const AdminUsersWidget: React.FC = () => {
   const auth = useAuth();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
   const [refreshKey, setRefreshKey] = useState(0);
-  const users = usePolledResource<UserProfile[]>((signal) => getUsers(signal, client), 15000, [auth.role, refreshKey]);
+  const { data: usersData, error: usersError, refresh: usersRefresh } = usePoller<UserProfile[]>({
+        key: 'users_AdminUsersWidget',
+        endpoint: '/api/admin/users',
+        fetcher: () => getUsers(new AbortController().signal, client),
+        interval_ms: 15000,
+        critical: false
+    });
+    const users = { data: usersData, error: usersError, loading: false, refresh: usersRefresh };
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

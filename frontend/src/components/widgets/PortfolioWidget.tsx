@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getPortfolioSnapshot } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import type { PortfolioAggregate } from '../../api/types';
@@ -15,7 +15,14 @@ export const PortfolioWidget: React.FC = () => {
     bearerToken: auth.bearerToken
   };
 
-  const snapshot = usePolledResource<PortfolioAggregate>((signal) => getPortfolioSnapshot(signal, client), 8000, [auth.role]);
+  const { data: snapshotData, error: snapshotError, refresh: snapshotRefresh } = usePoller<PortfolioAggregate>({
+        key: 'snapshot_PortfolioWidget',
+        endpoint: '/api/portfolio/snapshot',
+        fetcher: () => getPortfolioSnapshot(new AbortController().signal, client),
+        interval_ms: 8000,
+        critical: false
+    });
+    const snapshot = { data: snapshotData, error: snapshotError, loading: false, refresh: snapshotRefresh };
 
   const hasMismatch = snapshot.data && snapshot.data.tradable_equity_usd && snapshot.data.equity_total_usd
     ? Math.abs(snapshot.data.tradable_equity_usd - snapshot.data.equity_total_usd) > snapshot.data.equity_total_usd * 0.1

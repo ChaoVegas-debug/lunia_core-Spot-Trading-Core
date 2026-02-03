@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getAiProposals, acknowledgeAiProposal, updateOpsCapital, executeManualTrade } from '../../api/adapter';
 import { safeArray } from '../../utils/safe';
 import type { AIProposal, ManualTradeProposal } from '../../api/types';
@@ -8,13 +8,22 @@ import { DataStatus } from '../common/DataStatus';
 import { ProposalPreviewModal } from '../common/ProposalPreviewModal';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useDashboard } from '../../context/DashboardContext';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const IntelligenceWidget: React.FC = () => {
     const auth = useAuth();
     const { addToast } = useDashboard();
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
-    const { data: proposals, error, loading, lastUpdated, refresh } = usePolledResource<AIProposal[]>((signal) => getAiProposals(signal, client), 5000, [auth.role]);
+    const { data, error, refresh } = usePoller<AIProposal[]>({
+        key: 'data_IntelligenceWidget',
+        endpoint: '/api/ai/proposals',
+        fetcher: () => getAiProposals(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     const [selectedProposal, setSelectedProposal] = useState<AIProposal | null>(null);
     const [viewState, setViewState] = useState<'IDLE' | 'PREVIEW' | 'CONFIRMING'>('IDLE');
@@ -61,15 +70,18 @@ export const IntelligenceWidget: React.FC = () => {
     };
 
     return (
-        <div className="card">
-            <div className="card-header">
+        <WidgetWrapper
+            id="IntelligenceWidget"
+            title="AI Orchestrator"
+            loading={loading}
+            error={error}
+            rightElem={
                 <div>
-                    <h3>AI Orchestrator</h3>
-                    <p className="small">Live Strategy Feed</p>
+                    <p className="small" style={{ display: 'inline' }}>Live Strategy Feed</p>
+                    <DataStatus loading={loading} error={error} lastUpdated={lastUpdated} staleAfterMs={10000} />
                 </div>
-                <DataStatus loading={loading} error={error} lastUpdated={lastUpdated} staleAfterMs={10000} />
-            </div>
-
+            }
+        >
             <div style={{ padding: '0 4px', maxHeight: '350px', overflowY: 'auto' }}>
                 <div className="flex-between p-2 mb-2" style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <div className="flex-row">
@@ -132,6 +144,6 @@ export const IntelligenceWidget: React.FC = () => {
                     onCancel={() => setViewState('IDLE')}
                 />
             )}
-        </div>
+        </WidgetWrapper>
     );
 };

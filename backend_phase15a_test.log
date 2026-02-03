@@ -1,0 +1,30 @@
+/Users/neomind/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+Missing Binance Futures credentials; falling back to mock mode
+DEBUG: BASE_DIR=/Users/neomind/alladin/lunia_core-Spot-Trading-Core/lunia_core
+DEBUG: DATA_DIR=/Users/neomind/alladin/lunia_core-Spot-Trading-Core/lunia_core/data
+DEBUG: DATABASE_URL=sqlite:////Users/neomind/alladin/lunia_core-Spot-Trading-Core/lunia_core/data/lunia.db
+ * Serving Flask app 'flask_app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.1.19:8080
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [29/Jan/2026 09:50:53] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:11] "[31m[1mGET /signals/active HTTP/1.1[0m" 400 -
+127.0.0.1 - - [29/Jan/2026 09:51:11] "GET /signals/active?now_ms=1000000 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:11] "[31m[1mPOST /signals/ingest/debug HTTP/1.1[0m" 400 -
+127.0.0.1 - - [29/Jan/2026 09:51:56] "[31m[1mGET /signals/active HTTP/1.1[0m" 400 -
+127.0.0.1 - - [29/Jan/2026 09:51:56] "GET /signals/active?now_ms=1000000 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:56] "[31m[1mPOST /signals/ingest/debug HTTP/1.1[0m" 400 -
+127.0.0.1 - - [29/Jan/2026 09:51:56] "[31m[1mPOST /signals/ingest/debug HTTP/1.1[0m" 403 -
+127.0.0.1 - - [29/Jan/2026 09:51:56] "POST /signals/ingest/debug HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:57] "GET /signals/active?now_ms=1769676716000 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:57] "GET /signals/active?now_ms=1769676716000&symbol=BTC HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:57] "GET /signals/active?now_ms=1769676716000&symbol=ETH HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:57] "GET /signals/active?now_ms=1769676716000&source=NEWS HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:57] "GET /signals/active?now_ms=1769676716000&min_confidence=0.8 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:57] "GET /signals/active?now_ms=1769676716000&min_confidence=0.9 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:57] "POST /signals/ingest/debug HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 09:51:57] "GET /signals/active?now_ms=1769676716000 HTTP/1.1" 200 -

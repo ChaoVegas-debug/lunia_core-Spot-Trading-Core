@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { RiskDashboardWidget } from '../components/risk/RiskDashboardWidget';
 import { RiskRulesTable } from '../components/risk/RiskRulesTable';
 import { RiskMandatesTable } from '../components/risk/RiskMandatesTable';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import { getSystemEvents } from '../api/adapter';
 import type { SystemEvent } from '../api/types';
 import { useLocation } from 'react-router-dom';
@@ -12,7 +12,14 @@ import { useDashboard } from '../context/DashboardContext';
 export const RiskPage: React.FC = () => {
     const location = useLocation() as { state: any };
     const navigate = useNavigate();
-    const events = usePolledResource(getSystemEvents, 2000);
+    const { data: eventsData, error: eventsError, refresh: eventsRefresh } = usePoller({
+        key: 'risk_page_events',
+        endpoint: '/api/events/system',
+        fetcher: () => getSystemEvents(new AbortController().signal, { role: 'admin' }),
+        interval_ms: 2000,
+        critical: false
+    });
+    const events = { data: eventsData, error: eventsError, loading: false, refresh: eventsRefresh };
     const { addToast } = useDashboard();
     const [tab, setTab] = useState<'DASHBOARD' | 'RULES' | 'LOGS'>('DASHBOARD');
 

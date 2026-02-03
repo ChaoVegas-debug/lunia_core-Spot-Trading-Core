@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
 import { getHealth, getOpsState } from '../api/adapter';
+
+// OPERATOR OVERRIDE: Check if current user bypasses governance UI gating
+const OPERATOR_OVERRIDE_EMAILS = (import.meta.env.VITE_OPERATOR_OVERRIDE_EMAILS || '').split(',').map((s: string) => s.trim().toLowerCase()).filter(Boolean);
 import { OpsState } from '../api/types';
 import { SystemStateWidget } from '../components/widgets/SystemStateWidget';
 import { PortfolioStructureWidget } from '../components/widgets/PortfolioStructureWidget';
@@ -46,12 +49,30 @@ export const TraderPanel: React.FC = () => {
   const auth = useAuth();
   const { isPreview, isSimulation, simHealth, simOps } = usePreview();
 
+  // OPERATOR OVERRIDE: Check if current user has full UI freedom
+  const userEmail = auth.user?.email?.toLowerCase() || '';
+  const isOperatorOverride = OPERATOR_OVERRIDE_EMAILS.includes(userEmail) || OPERATOR_OVERRIDE_EMAILS.includes('*');
+
   // Real Heartbeat & Ops State
   const client = { role: auth.role, opsToken: auth.opsToken };
 
   // Polling with safety for undefined
-  const health = usePolledResource((s) => getHealth(s, client), 10000, []);
-  const ops = usePolledResource<OpsState>((s) => getOpsState(s, client), 5000, []);
+  const { data: healthData, error: healthError, refresh: healthRefresh } = usePoller({
+        key: 'health_TraderPanel',
+        endpoint: '/api/health',
+        fetcher: () => getHealth(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: true
+    });
+    const health = { data: healthData, error: healthError, loading: false, refresh: healthRefresh };
+  const { data: opsData, error: opsError, refresh: opsRefresh } = usePoller<OpsState>({
+        key: 'ops_TraderPanel',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: true
+    });
+    const ops = { data: opsData, error: opsError, loading: false, refresh: opsRefresh };
 
   // SIMULATION FALLBACK
   // If backend is unreachable AND we are in preview simulation => use sim data
@@ -75,20 +96,82 @@ export const TraderPanel: React.FC = () => {
   }, [effectiveHealth, effectiveOps]);
 
   // P1.1: Hard Block Condition
-  const isHalted = effectiveOps?.global_stop || effectiveOps?.exec_mode === 'STOP';
-  const haltReason = effectiveOps?.veto_reason || (effectiveOps?.exec_mode === 'STOP' ? "Manual Emergency Stop Active" : undefined);
+  // VARIANT A: Use system_mode for halt detection
+  const systemMode = effectiveOps?.system_mode || (effectiveOps?.global_stop ? 'STOP' : 'MANUAL');
+  const isHalted = effectiveOps?.global_stop || systemMode === 'STOP';
+  const haltReason = effectiveOps?.veto_reason || (systemMode === 'STOP' ? "Manual Emergency Stop Active" : undefined);
 
   // In Preview Mode, we don't want the overlay to be "blocking" if it's just offline/simulated.
   // However, if the simulated state itself is STOPPED, we still show the halted overlay (but soft blocked due to preview).
-  const showOverlay = !isLinkActive || isHalted; // Offline or Stopped
+  // OPERATOR OVERRIDE: Never fully block the dashboard UI for operators, just show warnings
+  const showOverlay = (!isLinkActive || isHalted) && !isOperatorOverride;
+  const overlayBlocking = !isPreview && !isOperatorOverride;
+
+  // Dashboard Render State for diagnostics
+  const dashboardRenderState = {
+    mounted: true,
+    operatorOverride: isOperatorOverride,
+    isHalted,
+    isLinkActive,
+    showOverlay,
+    overlayBlocking,
+    healthStatus: effectiveHealth?.status,
+    authRole: auth.role,
+    userEmail,
+  };
+
+  // Log render state for debugging
+  React.useEffect(() => {
+    console.info('[TraderPanel] Render State:', dashboardRenderState);
+  }, [isHalted, isLinkActive, showOverlay]);
 
   return (
     <div className="trader-cockpit" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '2rem' }}>
+      {/* RENDER ANCHOR: Always visible indicator that page is mounted */}
+      <div
+        id="trader-panel-render-anchor"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10000,
+          background: isOperatorOverride ? 'rgba(16, 185, 129, 0.9)' : '#111',
+          color: '#fff',
+          padding: '4px 12px',
+          fontSize: '10px',
+          fontFamily: 'monospace',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <span>🔧 DASHBOARD MOUNTED | Override: {isOperatorOverride ? 'YES' : 'NO'} | Health: {effectiveHealth?.status || 'LOADING'}</span>
+        <span>Role: {auth.role} | Halted: {isHalted ? 'YES' : 'NO'} | ts: {Date.now()}</span>
+      </div>
+
+      {/* Operator Override Warning Banner */}
+      {isOperatorOverride && (isHalted || !isLinkActive) && (
+        <div
+          style={{
+            margin: '32px 12px 0',
+            padding: '12px',
+            background: 'rgba(245, 158, 11, 0.2)',
+            border: '1px solid var(--accent-warning)',
+            borderRadius: '4px',
+            color: 'var(--accent-warning)',
+            fontWeight: 'bold'
+          }}
+        >
+          ⚠️ OPERATOR OVERRIDE ACTIVE: {!isLinkActive ? 'System Offline' : `System Halted: ${haltReason || 'Unknown'}`} — Dashboard visible for diagnostics only
+        </div>
+      )}
+
       {showOverlay && (
         <SystemHaltedOverlay
           isOffline={!isLinkActive}
           reason={!isLinkActive ? undefined : haltReason}
-          blocking={!isPreview} // Soft block in preview
+          blocking={overlayBlocking}
         />
       )}
       <HumanInterventionDecisionPanel />
@@ -103,8 +186,8 @@ export const TraderPanel: React.FC = () => {
           <ExecutionCommandStrip />
         </div>
 
-        {/* DIAGNOSTICS TOGGLE (Preview Only) */}
-        {isPreview && (
+        {/* DIAGNOSTICS TOGGLE (Always Available) */}
+        {true && (
           <div style={{ marginLeft: '12px' }}>
             <button
               className={`button tiny ${showDiagnostics ? 'active' : 'subtle'}`}

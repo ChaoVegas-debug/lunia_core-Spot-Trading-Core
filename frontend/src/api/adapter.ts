@@ -180,14 +180,27 @@ export function getAdminFlags(signal: AbortSignal, client?: any) {
 }
 
 // ... Add other fallbacks as needed defaulting to empty arrays or safe objects if not strictly implemented in sim
-export function getBalances(signal: AbortSignal, client?: any) {
+// ... Add other fallbacks as needed defaulting to empty arrays or safe objects if not strictly implemented in sim
+export function getBalances(signal: AbortSignal, client?: any, requestId?: string) {
+    // HYBRID MODE: If use_real_data is enabled in PreviewStore, force Real API attempt
+    // regardless of global simulation state.
+    const state = previewStore.getState();
+    if (state.use_real_data) {
+        // Direct call to Real API (bypassing normal simulation fallback logic)
+        // If it fails, we let it fail (or return empty) but providing feedback is handled by UI.
+        return realApi.getBalances(signal, client, requestId, 'REAL');
+    }
+
     return tryRealOrFallback(
-        () => realApi.getBalances(signal, client),
+        () => realApi.getBalances(signal, client, requestId),
         () => ({
             balances: [
                 { asset: 'USDT', free: 50000, locked: 2500 },
                 { asset: 'BTC', free: 1.5, locked: 0.1 }
-            ]
+            ],
+            source: 'SIMULATION',
+            upstream_status: 200,
+            request_id: 'sim-fallback-id'
         })
     );
 }
@@ -334,7 +347,7 @@ export function updateExchangeKeys(payload: any, signal: AbortSignal, client?: a
 
 export function testExchangeConnection(exchangeId: string, signal: AbortSignal, client?: any) {
     return tryRealOrFallback(
-        () => new Promise(resolve => setTimeout(() => resolve({ latency_ms: 45, status: 'ok' }), 500)), // Mock Real (TODO: Implement real endpoint wiring)
+        () => realApi.testExchangeConnection(exchangeId, signal, client), // Use Real Wired Endpoint
         () => {
             if (previewStore.getState().sim_offline) {
                 throw new Error("Simulation Offline: Cannot reach exchange.");
@@ -675,4 +688,36 @@ export function getSignalsFeed(signal: AbortSignal, client?: any) {
     );
 }
 
+// --- START BUTTON ORCHESTRATION ---
 
+export function opsStart(mode: 'dry' | 'real' = 'dry', signal?: AbortSignal, client?: any) {
+    return tryRealOrFallback(
+        async () => {
+            const response = await fetch('/ops/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode }),
+                signal
+            });
+            return response.json();
+        },
+        () => simulatedBackend.opsStart(mode)
+    );
+}
+
+export function getOpsRunState(signal?: AbortSignal, client?: any) {
+    return tryRealOrFallback(
+        async () => {
+            const response = await fetch('/ops/run-state', { signal });
+            return response.json();
+        },
+        () => simulatedBackend.getOpsRunState()
+    );
+}
+
+export function opsStop(signal?: AbortSignal, client?: any) {
+    return tryRealOrFallback(
+        () => Promise.resolve({ status: 'stopped' }),
+        () => Promise.resolve((simulatedBackend as any).opsStop?.() || { status: 'stopped' })
+    );
+}

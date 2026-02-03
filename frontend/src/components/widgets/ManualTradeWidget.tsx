@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getExchanges, getStrategies, previewManualTrade, executeManualTrade } from '../../api/adapter';
 import type { ExchangeConfig, StrategyConfig, ManualTradeProposal, ManualTradePreviewResponse } from '../../api/types';
 import { useSemiAuto } from '../../hooks/useSemiAuto';
 import { ProposalPreviewModal } from '../common/ProposalPreviewModal';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useDashboard } from '../../context/DashboardContext';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const ManualTradeWidget: React.FC = () => {
     const auth = useAuth();
@@ -14,8 +15,22 @@ export const ManualTradeWidget: React.FC = () => {
     const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
 
     // Fetch dependencies
-    const exchanges = usePolledResource<ExchangeConfig[]>((signal) => getExchanges(signal, client), 10000, [auth.role]);
-    const strategies = usePolledResource<StrategyConfig[]>((signal) => getStrategies(signal, client), 10000, [auth.role]);
+    const { data: exchangesData, error: exchangesError, refresh: exchangesRefresh } = usePoller<ExchangeConfig[]>({
+        key: 'exchanges_ManualTradeWidget',
+        endpoint: '/api/exchanges',
+        fetcher: () => getExchanges(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const exchanges = { data: exchangesData, error: exchangesError, loading: false, refresh: exchangesRefresh };
+    const { data: strategiesData, error: strategiesError, refresh: strategiesRefresh } = usePoller<StrategyConfig[]>({
+        key: 'strategies_ManualTradeWidget',
+        endpoint: '/api/strategies',
+        fetcher: () => getStrategies(new AbortController().signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const strategies = { data: strategiesData, error: strategiesError, loading: false, refresh: strategiesRefresh };
 
     const activeExchanges = exchanges.data?.filter(e => e.enabled) || [];
     const activeStrategies = strategies.data?.filter(s => s.enabled) || [];
@@ -75,12 +90,11 @@ export const ManualTradeWidget: React.FC = () => {
     };
 
 
-    return (
-        <div className="card">
-            <div className="card-header">
-                <h3>Manual Trade</h3>
-            </div>
+    const combinedError = exchanges.error || strategies.error;
+    const combinedLoading = exchanges.loading && strategies.loading; // Only load if both are loading initially
 
+    return (
+        <WidgetWrapper id="ManualTradeWidget" title="Manual Trade" loading={combinedLoading} error={combinedError}>
             <div className="p-4 grid gap-4">
                 <div className="form-group">
                     <label>Exchange</label>
@@ -172,7 +186,6 @@ export const ManualTradeWidget: React.FC = () => {
                     )
                 }
             </div>
-        </div>
-
+        </WidgetWrapper>
     );
 };

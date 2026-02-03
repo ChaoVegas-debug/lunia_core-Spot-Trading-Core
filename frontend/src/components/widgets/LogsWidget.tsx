@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getLogs } from '../../api/adapter';
 import type { LogsResponse } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
 import { UiAuditEntry, addAuditEntry, subscribeAudit } from '../../utils/auditLog';
+import { WidgetWrapper } from '../common/WidgetWrapper';
 
 export const LogsWidget: React.FC = () => {
   const auth = useAuth();
@@ -15,7 +16,14 @@ export const LogsWidget: React.FC = () => {
     bearerToken: auth.bearerToken
   };
 
-  const logs = usePolledResource<LogsResponse>((signal) => getLogs(signal, client), 20000, [auth.role]);
+  const { data: logsData, error: logsError, refresh: logsRefresh } = usePoller<LogsResponse>({
+        key: 'logs_LogsWidget',
+        endpoint: '/api/logs',
+        fetcher: () => getLogs(new AbortController().signal, client),
+        interval_ms: 20000,
+        critical: false
+    });
+    const logs = { data: logsData, error: logsError, loading: false, refresh: logsRefresh };
   const [audit, setAudit] = useState<UiAuditEntry[]>([]);
 
   useEffect(() => {
@@ -23,20 +31,17 @@ export const LogsWidget: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // seed with a UI start entry when component mounts
     addAuditEntry({ ts: new Date().toISOString(), action: 'UI session started', ok: true });
   }, []);
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <div>
-          <h3>Logs</h3>
-          <p className="small">Backend API log + local UI audit of control clicks.</p>
-        </div>
-        <DataStatus loading={logs.loading} error={logs.error} lastUpdated={logs.lastUpdated} staleAfterMs={30000} />
-      </div>
-      {logs.error && <div className="alert">Backend logs endpoint unavailable ({logs.error.message})</div>}
+    <WidgetWrapper
+      id="LogsWidget"
+      title="Logs"
+      loading={logs.loading}
+      error={logs.error}
+      rightElem={<DataStatus loading={logs.loading} error={logs.error} lastUpdated={logs.lastUpdated} staleAfterMs={30000} />}
+    >
       <div className="grid cols-2">
         <div className="card subtle">
           <h4>Backend</h4>
@@ -71,6 +76,6 @@ export const LogsWidget: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </WidgetWrapper>
   );
 };

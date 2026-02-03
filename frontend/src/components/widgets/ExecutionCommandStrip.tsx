@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
-import { getHealth, getOpsState, setSystemMode, setArbitrage } from '../../api/adapter';
-import type { OpsState } from '../../api/types';
+import { usePoller } from '../../hooks/usePoller';
+import { getHealth, getOpsState, setSystemMode, setArbitrage, opsStart, getOpsRunState } from '../../api/adapter';
+import type { OpsState, OpsRunState } from '../../api/types';
 import { WhyPanel } from '../modals/WhyPanel';
-import { AirlockModal } from '../modals/AirlockModal';
+import { StartConfirmationModal } from '../modals/StartConfirmationModal';
 import { useDashboard } from '../../context/DashboardContext';
 import { FlattenPortfolioModal } from '../modals/FlattenPortfolioModal';
 import { usePreview } from '../../context/PreviewModeContext';
 import { journalStore } from '../../store/JournalStore';
+import { openAirlock } from '../../lib/airlock/airlockHelper';
 
 export const ExecutionCommandStrip: React.FC = () => {
     const auth = useAuth();
@@ -16,9 +17,24 @@ export const ExecutionCommandStrip: React.FC = () => {
     const { isPreview, isSimulation, simHealth, simOps, setSimExecMode, setSimGlobalStop } = usePreview();
     const { addToast } = useDashboard();
 
-    // Polling
-    const health = usePolledResource((s) => getHealth(s, client), 5000, []);
-    const ops = usePolledResource<OpsState>((s) => getOpsState(s, client), 2000, []);
+    // Polling - MIGRATED to canonical usePoller
+    const { data: healthData, error: healthError, refresh: healthRefresh } = usePoller({
+        key: 'exec_strip_health',
+        endpoint: '/api/health',
+        fetcher: () => getHealth(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const health = { data: healthData, error: healthError, loading: false, refresh: healthRefresh };
+
+    const { data: opsData, error: opsError, refresh: opsRefresh } = usePoller<OpsState>({
+        key: 'exec_strip_ops',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: true  // Core system health
+    });
+    const ops = { data: opsData, error: opsError, loading: false, refresh: opsRefresh };
 
     // SIMULATION FALLBACK
     const useSimData = isPreview && isSimulation && (health.error || health.data?.status !== 'ok');
@@ -39,16 +55,27 @@ export const ExecutionCommandStrip: React.FC = () => {
     }, []);
 
     // Local State
-    const [showAirlock, setShowAirlock] = useState(false);
     const [showFlatten, setShowFlatten] = useState(false);
     const [showWhy, setShowWhy] = useState(false);
+    const [showStart, setShowStart] = useState(false);
     const [whyContext, setWhyContext] = useState<{ id: string, text: string }>({ id: '', text: '' });
     const [busy, setBusy] = useState(false);
+
+    // Run State Polling for START button orchestration - MIGRATED
+    const { data: runStateData, error: runStateError, refresh: runStateRefresh } = usePoller<OpsRunState>({
+        key: 'exec_strip_run_state',
+        endpoint: '/api/ops/run_state',
+        fetcher: () => getOpsRunState(new AbortController().signal, client),
+        interval_ms: 2000,
+        critical: false
+    });
+    const runState = { data: runStateData, error: runStateError, loading: false, refresh: runStateRefresh };
 
     // Derived Logic
     const isArbOn = effectiveOps?.arb_on || false;
     const isOffline = effectiveHealth?.status !== 'ok';
-    const mode = effectiveOps?.exec_mode || 'MANUAL'; // STOP, MANUAL, SEMI, AUTO
+    // VARIANT A: Use system_mode for governance, derive from auto_mode if missing
+    const mode = effectiveOps?.system_mode || (effectiveOps?.global_stop ? 'STOP' : (effectiveOps?.auto_mode ? 'AUTO' : 'MANUAL'));
     const isStop = mode === 'STOP' || effectiveOps?.global_stop;
     const isDrift = effectiveOps?.drift_status === 'HARD' || effectiveOps?.drift_status === 'SOFT';
     const airlockStatus = effectiveOps?.airlock_status || 'NOT_READY';
@@ -74,8 +101,8 @@ export const ExecutionCommandStrip: React.FC = () => {
     const handleFlatten = () => setShowFlatten(true);
 
     const handleModeClick = (target: 'MANUAL' | 'SEMI' | 'AUTO') => {
+        // Pre-conditions for AUTO
         if (target === 'AUTO') {
-            // Check pre-conditions
             if (isStop) {
                 setWhyContext({ id: 'GLOBAL_STOP', text: 'Auto Blocked: System Halted' });
                 setShowWhy(true);
@@ -86,26 +113,97 @@ export const ExecutionCommandStrip: React.FC = () => {
                 setShowWhy(true);
                 return;
             }
-            // Open Airlock
-            setShowAirlock(true);
-        } else {
-            // Direct switch for MANUAL/SEMI
-            updateMode((target as any));
         }
+
+        // ALL mode changes go through Airlock
+        openAirlock({
+            actionType: 'SET_SYSTEM_MODE',
+            severity: target === 'AUTO' ? 'CRITICAL' : 'HIGH',
+            state_before: {
+                mode: mode,
+                auto_mode: mode === 'AUTO',
+                trading_on: effectiveOps?.trading_on,
+                global_stop: isStop
+            },
+            state_after: {
+                mode: target,
+                auto_mode: target === 'AUTO',
+                trading_on: true,
+                global_stop: false
+            },
+            dependencies: ['RiskEngine', 'ExecutionGateway', 'AuditLog', 'BalanceSync'],
+            entry_exit_plan: {
+                entry_conditions: ['All preflight checks PASS', 'Operator authenticated', 'No hard drift'],
+                exit_triggers: ['Hard drift detected', 'Risk engine veto', 'Emergency stop'],
+                reversion_method: 'Auto-downgrade to MANUAL + position freeze'
+            },
+            executor: async () => {
+                const startTime = Date.now();
+                try {
+                    if (useSimData) {
+                        await new Promise(r => setTimeout(r, 600));
+                        setSimExecMode(target);
+                        journalStore.addLog('MODE_CHANGE', `Mode changed to ${target}`, 'HUMAN');
+                        return { status: 200, latency_ms: Date.now() - startTime, request_id: 'sim-' + Date.now() };
+                    } else {
+                        await setSystemMode(target, new AbortController().signal, client);
+                        ops.refresh();
+                        journalStore.addLog('MODE_CHANGE', `Mode changed to ${target} (Real)`, 'HUMAN');
+                        return { status: 200, latency_ms: Date.now() - startTime, request_id: 'real-' + Date.now() };
+                    }
+                } catch (error: any) {
+                    addToast({ type: 'ERROR', message: `Mode change failed: ${error.message || error}` });
+                    throw error;
+                }
+            }
+        });
     };
 
-    const handleStop = async () => {
-        if (!confirm("CONFIRM: EMERGENCY STOP ALL TRADING?")) return;
 
-        if (useSimData) {
-            setSimExecMode('STOP');
-            setSimGlobalStop(true);
-            journalStore.addLog('STOP', 'Operator triggered Emergency Stop', 'HUMAN', 'CRITICAL');
-            return;
-        }
-        updateMode('STOP');
-        journalStore.addLog('STOP', 'Operator triggered Emergency Stop (Real)', 'HUMAN', 'CRITICAL');
+    const handleStop = () => {
+        // STOP goes through Airlock but with FAST PATH (risk-reducing action)
+        openAirlock({
+            actionType: 'GLOBAL_EMERGENCY_STOP',
+            severity: 'CRITICAL',
+            fastPath: true, // 0.5-1.0s hold instead of 3.0s
+            state_before: {
+                mode: mode,
+                trading_on: effectiveOps?.trading_on,
+                global_stop: isStop
+            },
+            state_after: {
+                mode: 'STOP',
+                trading_on: false,
+                global_stop: true
+            },
+            dependencies: ['AllTradingEngines', 'StrategyExecution', 'OrderRouter'],
+            entry_exit_plan: {
+                entry_conditions: ['Operator authority confirmed'],
+                exit_triggers: ['Manual restart only'],
+                reversion_method: 'Requires explicit mode change to re-enable trading'
+            },
+            executor: async () => {
+                const startTime = Date.now();
+                try {
+                    if (useSimData) {
+                        setSimExecMode('STOP');
+                        setSimGlobalStop(true);
+                        journalStore.addLog('STOP', 'Operator triggered Emergency Stop', 'HUMAN', 'CRITICAL');
+                        return { status: 200, latency_ms: Date.now() - startTime, request_id: 'sim-stop-' + Date.now() };
+                    } else {
+                        await setSystemMode('STOP', new AbortController().signal, client);
+                        ops.refresh();
+                        journalStore.addLog('STOP', 'Operator triggered Emergency Stop (Real)', 'HUMAN', 'CRITICAL');
+                        return { status: 200, latency_ms: Date.now() - startTime, request_id: 'real-stop-' + Date.now() };
+                    }
+                } catch (error: any) {
+                    addToast({ type: 'ERROR', message: `Emergency stop failed: ${error.message || error}` });
+                    throw error;
+                }
+            }
+        });
     };
+
 
     const updateMode = async (newMode: 'MANUAL' | 'SEMI' | 'AUTO' | 'STOP') => {
         setBusy(true);
@@ -221,9 +319,27 @@ export const ExecutionCommandStrip: React.FC = () => {
                     </span>
                 </div>
 
-                {/* 3. RIGHT: DANGER, WHY & SIGNAL */}
+                {/* 3. RIGHT: START, STOP, WHY & SIGNAL */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                    {/* Run State Badge */}
+                    {runState.data?.running && (
+                        <div className="badge success" style={{ marginBottom: '4px', animation: 'pulse 1.5s infinite' }}>
+                            {runState.data.phase === 'assembling_portfolio' && '🔧 ASSEMBLING'}
+                            {runState.data.phase === 'arming' && '🔒 ARMING'}
+                            {runState.data.phase === 'trading' && `⚡ TRADING (${runState.data.run_mode?.toUpperCase() || 'DRY'})`}
+                        </div>
+                    )}
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        {/* START Button */}
+                        {!runState.data?.running && !isStop && (
+                            <button
+                                className="button tiny primary"
+                                onClick={() => setShowStart(true)}
+                                disabled={busy}
+                            >
+                                ▶ START
+                            </button>
+                        )}
                         {isStop ? (
                             <button className="button tiny danger" onClick={handleStop} disabled>STOPPED</button>
                         ) : (
@@ -264,14 +380,30 @@ export const ExecutionCommandStrip: React.FC = () => {
                 ruleId={whyContext.id}
                 context={whyContext.text}
             />
-            <AirlockModal
-                isOpen={showAirlock}
-                onCancel={() => setShowAirlock(false)}
-                onConfirm={async () => {
-                    await updateMode('AUTO');
-                    setShowAirlock(false);
-                    journalStore.addLog('AIRLOCK', 'Airlock procedure completed, AUTO mode engaged', 'HUMAN');
+            {/* Legacy AirlockModal removed - all mutations now go through AirlockModalV3 via openAirlock() */}
+            <StartConfirmationModal
+                isOpen={showStart}
+                onCancel={() => setShowStart(false)}
+                onConfirm={async (mode) => {
+                    setBusy(true);
+                    try {
+                        const result = await opsStart(mode, new AbortController().signal, client);
+                        if (result.status === 'success') {
+                            journalStore.addLog('START', `Orchestration started (${mode.toUpperCase()})`, 'HUMAN');
+                            addToast({ type: 'SUCCESS', message: `Trading pipeline started in ${mode.toUpperCase()} mode` });
+                        } else {
+                            addToast({ type: 'ERROR', message: result.reason || 'START blocked' });
+                        }
+                    } catch (e) {
+                        addToast({ type: 'ERROR', message: 'Failed to start: ' + e });
+                    } finally {
+                        setBusy(false);
+                        setShowStart(false);
+                        runState.refresh();
+                    }
                 }}
+                ops={effectiveOps || null}
+                loading={busy}
             />
             {showFlatten && <FlattenPortfolioModal onClose={() => setShowFlatten(false)} />}
         </>

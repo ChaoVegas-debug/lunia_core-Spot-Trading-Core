@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 from typing import Dict, List
 
-from app.compat.dotenv import load_dotenv
+from lunia_core.app.compat.dotenv import load_dotenv
 
 load_dotenv()
 

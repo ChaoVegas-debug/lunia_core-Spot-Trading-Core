@@ -1,0 +1,55 @@
+{
+  "autopsy_id": "primary_10k_to_1k",
+  "seed": 42,
+  "initial_state": {
+    "capital": "10000",
+    "config": {
+      "initial_capital": "10000",
+      "genesis_seed": 42,
+      "sim_clock_seed_ms": 1609459200000,
+      "slippage": "0.0005",
+      "fee_taker": "0.001",
+      "fee_maker": "0.001",
+      "capital_fraction": "0.95",
+      "max_drawdown_limit": "0.20",
+      "bars": 1000
+    }
+  },
+  "final_state": {
+    "equity": "0",
+    "counters": {
+      "intents_total": 6,
+      "sized_total": 6,
+      "risk_evaluated_total": 6,
+      "risk_blocked_total": 0,
+      "gov_evaluated_total": 6,
+      "gov_rejected_total": 0,
+      "preflight_attempts_total": 6,
+      "preflight_rejected_total": 0,
+      "risk_gate_blocked_total": 0,
+      "risk_gate_allowed_total": 6,
+      "holodeck_submissions_total": 6,
+      "holodeck_rejected_total": 0,
+      "fills_total": 6,
+      "emergency_orders_total": 0
+    }
+  },
+  "explained_loss": "0",
+  "unexplained_loss": "10000",
+  "forensic_tags": [
+    "QTY_NOTIONAL_MISMATCH"
+  ],
+  "classification": {
+    "primary_tag": "QTY_NOTIONAL_MISMATCH",
+    "secondary_tags": [],
+    "severity": "CRITICAL",
+    "explanation": "Massive equity loss without market event suggests unit/notional bug",
+    "context": {
+      "initial_equity": 10000.0,
+      "final_equity": 0.0,
+      "delta_pct": -1.0,
+      "fills_count": 6,
+      "flash_crash": false
+    }
+  }
+}

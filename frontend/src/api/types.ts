@@ -67,6 +67,12 @@ export interface OpsState {
   sched_on?: boolean;
   manual_override?: boolean;
   manual_strategy?: Record<string, unknown> | null;
+
+  // VARIANT A: Canonical mode fields
+  system_mode?: SystemMode; // STOP | MANUAL | SEMI | AUTO (governance mode)
+  live_allowed?: boolean; // VARIANT A: Explicit server arm status
+
+  /** @deprecated Use system_mode instead. Will be removed in future version. */
   exec_mode?: string;
   portfolio_equity?: number;
   scalp?: Record<string, unknown>;
@@ -123,6 +129,31 @@ export interface OpsState {
   undo_ttl?: number;
 }
 
+// START Button Orchestration Types
+export type RunPhase = 'idle' | 'assembling_portfolio' | 'arming' | 'trading';
+
+export interface OpsRunState {
+  running: boolean;
+  phase: RunPhase;
+  started_at?: string;
+  run_mode?: 'dry' | 'real';
+  last_error?: string | null;
+}
+
+export interface OpsStartResponse {
+  status: 'success' | 'blocked';
+  started_at?: string;
+  run_mode?: 'dry' | 'real';
+  reason?: string;
+  gates: {
+    global_stop: boolean;
+    system_mode: SystemMode; // VARIANT A: Changed from exec_mode
+    airlock: string;
+    keys_present: boolean;
+    live_allowed: boolean; // VARIANT A: Explicit server arm status
+  };
+}
+
 export interface PortfolioPosition {
   symbol: string;
   quantity: number;
@@ -145,6 +176,9 @@ export interface BalanceEntry {
 
 export interface BalancesResponse {
   balances: BalanceEntry[];
+  source?: string;
+  upstream_status?: number;
+  request_id?: string;
 }
 
 export interface PortfolioAggregate {
@@ -353,7 +387,7 @@ export interface ExchangeKey {
   api_key: string;
   api_secret: string; // masked
   passphrase?: string;
-  status: 'CONNECTED' | 'FAILED' | 'Not Configured' | 'ERROR';
+  status: 'CONNECTED' | 'FAILED' | 'Not Configured' | 'ERROR' | 'CONFIGURED' | 'MISSING' | 'INVALID';
   updated_at: string;
   is_testnet: boolean;
   last_latency_ms?: number;

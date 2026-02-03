@@ -1,9 +1,16 @@
 import React from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getRiskMandates } from '../../api/adapter';
 
 export const RiskMandatesTable: React.FC = () => {
-    const mandates = usePolledResource(getRiskMandates, 5000);
+    const { data: mandatesData, error: mandatesError, refresh: mandatesRefresh } = usePoller({
+        key: 'risk_mandates',
+        endpoint: '/api/risk/mandates',
+        fetcher: () => getRiskMandates(),
+        interval_ms: 5000,
+        critical: false
+    });
+    const mandates = { data: mandatesData, error: mandatesError, loading: false, refresh: mandatesRefresh };
 
     return (
         <div className="card">

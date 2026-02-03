@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getCapital } from '../../api/adapter';
 import type { OpsCapital } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
@@ -14,7 +14,14 @@ export const CapitalWidget: React.FC = () => {
     bearerToken: auth.bearerToken
   };
 
-  const cap = usePolledResource<OpsCapital>((signal) => getCapital(signal, client), 5000, [auth.role]);
+  const { data: capData, error: capError, refresh: capRefresh } = usePoller<OpsCapital>({
+        key: 'cap_CapitalWidget',
+        endpoint: '/api/unknown',
+        fetcher: () => getCapital(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const cap = { data: capData, error: capError, loading: false, refresh: capRefresh };
 
   return (
     <div className="card">

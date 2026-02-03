@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getLimits, upsertLimit } from '../../api/adapter';
 import type { LimitEntry } from '../../api/types';
 import { DataStatus } from '../common/DataStatus';
@@ -9,7 +9,14 @@ export const LimitsWidget: React.FC = () => {
   const auth = useAuth();
   const client = { role: auth.role, adminToken: auth.adminToken, opsToken: auth.opsToken, bearerToken: auth.bearerToken };
   const [refreshKey, setRefreshKey] = useState(0);
-  const limits = usePolledResource<LimitEntry[]>((signal) => getLimits(signal, client), 12000, [auth.role, refreshKey]);
+  const { data: limitsData, error: limitsError, refresh: limitsRefresh } = usePoller<LimitEntry[]>({
+        key: 'limits_LimitsWidget',
+        endpoint: '/api/limits',
+        fetcher: () => getLimits(new AbortController().signal, client),
+        interval_ms: 12000,
+        critical: false
+    });
+    const limits = { data: limitsData, error: limitsError, loading: false, refresh: limitsRefresh };
 
   const [form, setForm] = useState<{ scope: string; subject?: string; key: string; value: string }>({ scope: 'global', key: '', value: '' });
   const [error, setError] = useState<string | null>(null);

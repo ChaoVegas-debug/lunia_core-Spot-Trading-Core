@@ -1,18 +1,35 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { usePolledResource } from '../hooks/usePolledResource';
+import { usePoller } from '../hooks/usePoller';
+import { AdminPanel } from './AdminPanel';
 import { getAdminStats, getUsers, updateUserRole } from '../api/adapter';
 import { AdminOverview, UserProfile, Role } from '../api/types';
 
 import { useDashboard } from '../context/DashboardContext';
+import { DiagnosticsPanel } from '../components/admin/DiagnosticsPanel';
 
 export const AdminPage: React.FC = () => {
     const { role } = useAuth();
     const { addToast } = useDashboard();
     const client = { role };
 
-    const statsRes = usePolledResource<AdminOverview>((s) => getAdminStats(s, client), 5000, []);
-    const usersRes = usePolledResource<UserProfile[]>((s) => getUsers(s, client), 5000, []);
+    const { data: statsResData, error: statsResError, refresh: statsResRefresh } = usePoller<AdminOverview>({
+        key: 'statsRes_AdminPage',
+        endpoint: '/api/admin/stats',
+        fetcher: () => getAdminStats(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const statsRes = { data: statsResData, error: statsResError, loading: false, refresh: statsResRefresh };
+    const { data: usersResData, error: usersResError, refresh: usersResRefresh } = usePoller<UserProfile[]>({
+        key: 'usersRes_AdminPage',
+        endpoint: '/api/admin/users',
+        fetcher: () => getUsers(new AbortController().signal, client),
+        interval_ms: 5000,
+        critical: false
+    });
+    const usersRes = { data: usersResData, error: usersResError, loading: false, refresh: usersResRefresh };
     const [editingUserId, setEditingUserId] = useState<number | null>(null);
 
     const stats = statsRes.data || {
@@ -25,7 +42,7 @@ export const AdminPage: React.FC = () => {
     };
 
     const handleAction = async (userId: number, action: string, newVal: string) => {
-        if (!confirm(`Confirm ${action} for User ${userId}?`)) return;
+        if (!confirm(`Confirm ${action} for User ${userId} ? `)) return;
         try {
             await updateUserRole(userId, action === 'ROLE' ? newVal : 'TRADER', action === 'TIER' ? newVal : 'STD_RETAIL');
             addToast({ type: 'SUCCESS', message: 'User updated successfully' });
@@ -70,9 +87,9 @@ export const AdminPage: React.FC = () => {
                 <div className="card p-4">
                     <div className="tiny muted uppercase mb-2">Infrastructure Health</div>
                     <div className="flex gap-2 mt-2">
-                        <span className={`badge tiny ${stats.system_health.db === 'ok' ? 'success' : 'danger'}`}>DB</span>
-                        <span className={`badge tiny ${stats.system_health.redis === 'ok' ? 'success' : 'danger'}`}>CACHE</span>
-                        <span className={`badge tiny ${stats.system_health.engine === 'ok' ? 'success' : 'danger'}`}>ENGINE</span>
+                        <span className={`badge tiny ${stats.system_health.db === 'ok' ? 'success' : 'danger'} `}>DB</span>
+                        <span className={`badge tiny ${stats.system_health.redis === 'ok' ? 'success' : 'danger'} `}>CACHE</span>
+                        <span className={`badge tiny ${stats.system_health.engine === 'ok' ? 'success' : 'danger'} `}>ENGINE</span>
                     </div>
                 </div>
             </div>
@@ -103,13 +120,13 @@ export const AdminPage: React.FC = () => {
                                 <td className="p-3 font-mono tiny text-muted">#{u.id}</td>
                                 <td className="p-3 font-bold">{u.email}</td>
                                 <td className="p-3">
-                                    <span className={`badge tiny ${u.role === 'ADMIN' ? 'primary' : 'secondary'}`}>{u.role}</span>
+                                    <span className={`badge tiny ${u.role === 'ADMIN' ? 'primary' : 'secondary'} `}>{u.role}</span>
                                 </td>
                                 <td className="p-3">
                                     <span className="badge outline tiny">{u.tier}</span>
                                 </td>
                                 <td className="p-3">
-                                    <span className={`status-dot ${u.is_active ? 'success' : 'danger'}`}></span>
+                                    <span className={`status - dot ${u.is_active ? 'success' : 'danger'} `}></span>
                                     <span className="tiny ml-2">{u.is_active ? 'Active' : 'Suspended'}</span>
                                 </td>
                                 <td className="p-3 text-right">

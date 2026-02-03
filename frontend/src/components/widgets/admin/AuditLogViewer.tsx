@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import { usePolledResource } from '../../../hooks/usePolledResource';
 import { getAdminAudit } from '../../../api/endpoints';
 import type { AuditEvent } from '../../../api/types';
 import { DataStatus } from '../../common/DataStatus';
@@ -11,7 +10,15 @@ export const AuditLogViewer: React.FC = () => {
     const [filterAction, setFilterAction] = useState<string>('');
 
     // We pass the filter as dependency to re-fetch when changed
-    const { data, error, loading, lastUpdated } = usePolledResource<AuditEvent[]>((signal) => getAdminAudit(filterAction || undefined, signal, client), 10000, [auth, filterAction]);
+    const { data, error, refresh } = usePoller<AuditEvent[]>({
+        key: 'data_AuditLogViewer',
+        endpoint: '/api/unknown',
+        fetcher: () => getAdminAudit(filterAction || undefined, signal, client),
+        interval_ms: 10000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     return (
         <div className="card" style={{ height: '100%' }}>

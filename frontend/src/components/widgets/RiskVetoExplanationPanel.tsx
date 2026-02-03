@@ -1,13 +1,20 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getOpsState } from '../../api/adapter';
 import type { OpsState } from '../../api/types';
 
 export const RiskVetoExplanationPanel: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, opsToken: auth.opsToken };
-    const ops = usePolledResource<OpsState>((s) => getOpsState(s, client), 3000, []);
+    const { data: opsData, error: opsError, refresh: opsRefresh } = usePoller<OpsState>({
+        key: 'ops_RiskVetoExplanationPanel',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, client),
+        interval_ms: 3000,
+        critical: true
+    });
+    const ops = { data: opsData, error: opsError, loading: false, refresh: opsRefresh };
 
     const isGlobalStop = ops.data?.global_stop;
     const vetoReason = ops.data?.veto_reason;

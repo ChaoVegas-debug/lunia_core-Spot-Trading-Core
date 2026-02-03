@@ -1,14 +1,20 @@
-export const PREVIEW_MODE = import.meta.env.VITE_PREVIEW_MODE === '1';
-export const PREVIEW_SIMULATION = import.meta.env.VITE_PREVIEW_SIMULATION !== '0'; // default true if preview mode is on, unless explicitly 0
+// Read from Vite env vars - fall back to false if not set
+export const PREVIEW_MODE = import.meta.env.VITE_PREVIEW_MODE === '1' || import.meta.env.VITE_PREVIEW_MODE === 'true';
+export const PREVIEW_SIMULATION = import.meta.env.VITE_PREVIEW_SIMULATION === '1' || import.meta.env.VITE_PREVIEW_SIMULATION === 'true';
+export const PROOF_MODE = import.meta.env.VITE_PROOF_MODE === '1' || import.meta.env.VITE_PROOF_MODE === 'true';
 
-export const PREVIEW_BADGE_TEXT = 'PREVIEW MODE';
+export const PREVIEW_BADGE_TEXT = PREVIEW_MODE ? 'PREVIEW MODE' : 'LIVE MODE';
 
 export function isPreviewEnabled(): boolean {
     return PREVIEW_MODE;
 }
 
 export function isSimulationEnabled(): boolean {
-    return PREVIEW_MODE && PREVIEW_SIMULATION;
+    return PREVIEW_SIMULATION;
+}
+
+export function isProofModeEnabled(): boolean {
+    return PROOF_MODE;
 }
 
 export function previewLabel(text: string): string {

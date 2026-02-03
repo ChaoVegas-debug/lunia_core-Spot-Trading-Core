@@ -1,4 +1,32 @@
-import { useEffect, useState, useCallback } from 'react';
+/**
+ * @deprecated ARCHITECTURALLY BROKEN - DO NOT USE
+ * 
+ * ROOT CAUSE: Deterministic deadlock bug in interval/backoff interaction
+ * - setInterval captures backoffRef.current at creation time
+ * - When backoff increases on error, interval continues at old rate
+ * - Result: interval and backoff desynchronize → permanent polling freeze
+ * 
+ * MIGRATION REQUIRED: Use usePoller.ts instead
+ * 
+ * Pattern:
+ * BEFORE:
+ *   const X = usePolledResource((signal) => apiCall(signal, client), 2000, [deps]);
+ * 
+ * AFTER:
+ *   const { data: X, error: XError, refresh: XRefresh } = usePoller({
+ *     key: 'unique_key',
+ *     endpoint: '/api/actual/endpoint',
+ *     fetcher: () => apiCall(new AbortController().signal, client),
+ *     interval_ms: 2000,
+ *     critical: true/false  // affects global AGE calculation
+ *   });
+ * 
+ * See: /Users/neomind/.gemini/antigravity/brain/5a77fe4a-6cff-41cb-a2a5-c3b6f5064c42/implementation_plan.md
+ * 
+ * This hook is DISABLED. All usage will throw at runtime.
+ */
+
+import { useState, useCallback } from 'react';
 
 interface ResourceState<T> {
   data?: T;
@@ -13,47 +41,20 @@ export function usePolledResource<T>(
   intervalMs: number,
   deps: unknown[] = []
 ): ResourceState<T> {
-  const [state, setState] = useState<Omit<ResourceState<T>, 'refresh'>>({ loading: true });
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const refresh = useCallback(() => {
-    setRefreshKey(k => k + 1);
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    let controller = new AbortController();
-
-    const run = async () => {
-      // Don't set loading true on poll, only initial or refresh if desired (optional)
-      // setState(prev => ({ ...prev, loading: true }));
-      try {
-        const result = await fetcher(controller.signal);
-        if (!active) return;
-        setState({ data: result, loading: false, lastUpdated: Date.now() });
-      } catch (err) {
-        if (!active) return;
-        if ((err as Error).name === 'AbortError') {
-          return;
-        }
-        setState((prev) => ({ ...prev, error: err as Error, loading: false }));
-      }
-    };
-
-    run();
-    const id = window.setInterval(() => {
-      controller.abort();
-      controller = new AbortController();
-      run();
-    }, intervalMs);
-
-    return () => {
-      active = false;
-      controller.abort();
-      window.clearInterval(id);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps, refreshKey]);
-
-  return { ...state, refresh };
+  // PHASE 2 KILL SWITCH: Fail fast on any usage
+  throw new Error(
+    `❌ usePolledResource is DEPRECATED and DISABLED.\n\n` +
+    `ROOT CAUSE: Architectural deadlock bug (setInterval captures backoffRef → permanent freeze).\n\n` +
+    `MIGRATION REQUIRED:\n` +
+    `Use usePoller from '../../hooks/usePoller' instead.\n\n` +
+    `Pattern:\n` +
+    `  const { data, error, refresh } = usePoller({\n` +
+    `    key: 'unique_key',\n` +
+    `    endpoint: '/api/endpoint',\n` +
+    `    fetcher: () => apiCall(new AbortController().signal, client),\n` +
+    `    interval_ms: ${intervalMs},\n` +
+    `    critical: false  // or true for ops_state/health\n` +
+    `  });\n\n` +
+    `See migration guide: implementation_plan.md in artifacts`
+  );
 }

@@ -1,10 +1,17 @@
 import React from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getRiskDashboard } from '../../api/adapter';
 import { DataStatus } from '../common/DataStatus';
 
 export const RiskDashboardWidget: React.FC = () => {
-    const dashboard = usePolledResource(getRiskDashboard, 5000);
+    const { data: dashboardData, error: dashboardError, refresh: dashboardRefresh } = usePoller({
+        key: 'risk_dashboard',
+        endpoint: '/api/risk/dashboard',
+        fetcher: () => getRiskDashboard(),
+        interval_ms: 5000,
+        critical: false
+    });
+    const dashboard = { data: dashboardData, error: dashboardError, loading: false, refresh: dashboardRefresh };
 
     const data = dashboard.data || {
         utilization_pct: 0,

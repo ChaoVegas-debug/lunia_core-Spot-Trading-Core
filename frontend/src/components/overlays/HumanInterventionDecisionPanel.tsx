@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePolledResource } from '../../hooks/usePolledResource';
+import { usePoller } from '../../hooks/usePoller';
 import { getOpsState } from '../../api/adapter';
 import { useAuth } from '../../hooks/useAuth';
 import type { OpsState } from '../../api/types';
@@ -9,7 +9,14 @@ import { useDashboard } from '../../context/DashboardContext';
 export const HumanInterventionDecisionPanel: React.FC = () => {
     const auth = useAuth();
     const { addToast } = useDashboard();
-    const ops = usePolledResource<OpsState>((s) => getOpsState(s, { role: auth.role, opsToken: auth.opsToken }), 3000, []);
+    const { data: opsData, error: opsError, refresh: opsRefresh } = usePoller<OpsState>({
+        key: 'ops_HumanInterventionDecisionPanel',
+        endpoint: '/api/ops/state',
+        fetcher: () => getOpsState(new AbortController().signal, { role: auth.role, opsToken: auth.opsToken }),
+        interval_ms: 3000,
+        critical: true
+    });
+    const ops = { data: opsData, error: opsError, loading: false, refresh: opsRefresh };
     const { isPreview } = usePreview();
 
     const [resolved, setResolved] = useState(false);
@@ -19,8 +26,9 @@ export const HumanInterventionDecisionPanel: React.FC = () => {
     // Trigger Logic: Check for drift status (HARD = Confirmation Required)
     const isDrift = ops.data?.drift_status === 'HARD';
 
-    // Only show if drift exists and not yet resolved locally (in this session)
-    if (!isDrift || resolved) return null;
+    // BLOCK, DON'T HIDE: Always render, but return empty fragment when not needed
+    // This prevents blank dashboard issues from component unmounting
+    const shouldShow = isDrift && !resolved && !(dismissed && isPreview);
 
     const handleAction = async (action: 'ACCEPT' | 'REVERT' | 'FLATTEN') => {
         setBusy(true);
@@ -43,7 +51,10 @@ export const HumanInterventionDecisionPanel: React.FC = () => {
         setBusy(false);
     };
 
-    if (dismissed && isPreview) return null;
+    // BLOCK, DON'T HIDE: Return empty fragment if not showing, never null
+    if (!shouldShow) {
+        return <></>;
+    }
 
     return (
         <div className="overlay-backdrop" style={{

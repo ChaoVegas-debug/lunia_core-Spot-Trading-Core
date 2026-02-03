@@ -1,5 +1,4 @@
 import React from 'react';
-import { usePolledResource } from '../../../hooks/usePolledResource';
 import { getExchanges } from '../../../api/endpoints';
 import { useAuth } from '../../../hooks/useAuth';
 import type { ExchangeConfig } from '../../../api/types';
@@ -7,7 +6,15 @@ import type { ExchangeConfig } from '../../../api/types';
 export const ExchangeHealthWidget: React.FC = () => {
     const auth = useAuth();
     const client = { role: auth.role, adminToken: auth.adminToken };
-    const { data: exchanges, loading } = usePolledResource<ExchangeConfig[]>((s) => getExchanges(s, client), 3000, [auth.role]);
+    const { data, error, refresh } = usePoller<ExchangeConfig[]>({
+        key: 'data_ExchangeHealthWidget',
+        endpoint: '/api/exchanges',
+        fetcher: () => getExchanges(new AbortController().signal, client),
+        interval_ms: 3000,
+        critical: false
+    });
+    const loading = false;
+    const lastUpdated = undefined;
 
     if (loading && !exchanges) return <div className="card">Loading Exchange Health...</div>;
 
