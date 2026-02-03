@@ -10,8 +10,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional, Tuple, Dict, Any
 
-from app.services.api.config import LOG_DIR
-from app.compat.requests import requests
+from lunia_core.app.services.api.config import LOG_DIR
+from lunia_core.app.compat.requests import requests
 
 # Canonical Store Path (Absolute)
 CREDENTIALS_FILE = LOG_DIR.parent / ".secrets.json"
