@@ -54,6 +54,7 @@ class AIEventType(str, enum.Enum):
     AI_TIMEOUT = "AI_TIMEOUT"
     AI_VALIDATION_FAILED = "AI_VALIDATION_FAILED"
     AI_CIRCUIT_BREAKER_OPEN = "AI_CIRCUIT_BREAKER_OPEN"
+    AI_BLOCKED = "AI_BLOCKED"  # Phase 8.0: Kill switch or budget blocked
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

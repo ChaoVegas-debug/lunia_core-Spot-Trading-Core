@@ -17,6 +17,9 @@ from lunia_core.app.services.proposal.models import Proposal, ExecutionIntent, P
 # Import execution journal models (Phase 7)
 from lunia_core.app.services.execution_journal.models import SignalEvent, AIAnalysis, AIInferenceLog
 
+# Import budget tracking model (Phase 8.0)
+from lunia_core.app.services.execution_journal.budget_model import AIBudgetUsage
+
 # Alembic Config object
 config = context.config
 

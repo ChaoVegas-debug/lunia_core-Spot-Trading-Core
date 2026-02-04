@@ -1,7 +1,27 @@
 """
-Phase 7: Execution Journal Service
+Execution Journal: Signal Persistence & AI Analysis
 
-Purpose: Make deterministic signal intelligence legible and auditable.
-This is NOT adding intelligence - it's revealing existing intelligence.
+Phase 7: Synthetic Advisor Layer
 """
-<parameter name="Complexity">1
+
+from .models import (
+    SignalEvent,
+    AIAnalysis,
+    AIInferenceLog,
+    SignalType,
+    AIProvider,
+    AIEventType
+)
+
+# Phase 8.0: Budget tracking model
+from .budget_model import AIBudgetUsage
+
+__all__ = [
+    "SignalEvent",
+    "AIAnalysis",
+    "AIInferenceLog",
+    "AIBudgetUsage",
+    "SignalType",
+    "AIProvider",
+    "AIEventType"
+]
