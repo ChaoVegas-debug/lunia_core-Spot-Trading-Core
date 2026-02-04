@@ -14,6 +14,9 @@ from lunia_core.app.services.auth.database import Base, DATABASE_URL
 # Import proposal models to ensure they're registered
 from lunia_core.app.services.proposal.models import Proposal, ExecutionIntent, ProposalAuditEvent
 
+# Import execution journal models (Phase 7)
+from lunia_core.app.services.execution_journal.models import SignalEvent, AIAnalysis, AIInferenceLog
+
 # Alembic Config object
 config = context.config
 
