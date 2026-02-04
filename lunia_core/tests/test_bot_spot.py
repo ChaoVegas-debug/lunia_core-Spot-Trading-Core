@@ -2,7 +2,7 @@ import pytest
 
 pytest.importorskip("flask", reason="Flask not available in offline/proxy env")
 
-from app.services.telegram import bot
+from lunia_core.app.services.telegram import bot
 
 
 def test_capital_adjustment_and_spot_toggle():

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List
 
-from app.core.state import get_state
+from lunia_core.app.core.state import get_state
 
 from .scanner import ArbitrageFilters, ArbitrageOpportunity
 

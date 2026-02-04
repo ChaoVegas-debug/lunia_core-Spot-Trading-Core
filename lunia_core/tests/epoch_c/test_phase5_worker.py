@@ -10,10 +10,10 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.execution.worker import ExecutionWorker
-from app.services.execution.exceptions import HardError, SoftError
-from app.services.execution.models import OrderExecution, OrderExecutionStatus, OrderPlan
-from app.services.proposal.models import ExecutionIntent
+from lunia_core.app.services.execution.worker import ExecutionWorker
+from lunia_core.app.services.execution.exceptions import HardError, SoftError
+from lunia_core.app.services.execution.models import OrderExecution, OrderExecutionStatus, OrderPlan
+from lunia_core.app.services.proposal.models import ExecutionIntent
 
 
 def test_dry_mode_never_calls_adapter():

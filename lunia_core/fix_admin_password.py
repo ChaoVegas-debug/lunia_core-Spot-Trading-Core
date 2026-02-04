@@ -1,9 +1,9 @@
 import sys
 import logging
-from app.services.api.flask_app import app
-from app.services.auth.database import get_session
-from app.services.auth.models import User
-from app.services.auth.security import hash_password
+from lunia_core.app.services.api.flask_app import app
+from lunia_core.app.services.auth.database import get_session
+from lunia_core.app.services.auth.models import User
+from lunia_core.app.services.auth.security import hash_password
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

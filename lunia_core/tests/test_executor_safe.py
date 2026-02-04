@@ -2,10 +2,10 @@ import math
 
 import pytest
 
-from app.core.portfolio.portfolio import Portfolio
-from app.core.risk.manager import RiskManager
-from app.services.arbitrage.executor_safe import SafeArbitrageExecutor
-from app.services.arbitrage.scanner import ArbitrageOpportunity
+from lunia_core.app.core.portfolio.portfolio import Portfolio
+from lunia_core.app.core.risk.manager import RiskManager
+from lunia_core.app.services.arbitrage.executor_safe import SafeArbitrageExecutor
+from lunia_core.app.services.arbitrage.scanner import ArbitrageOpportunity
 
 
 def make_opportunity(net_roi: float = 1.0, net_profit: float = 1.0) -> ArbitrageOpportunity:

@@ -5,8 +5,8 @@ import pytest
 from unittest.mock import Mock
 from datetime import datetime
 
-from app.services.execution.converter import convert_intent_to_plan, FatFingerError
-from app.services.execution.canonicalization import compute_plan_hash
+from lunia_core.app.services.execution.converter import convert_intent_to_plan, FatFingerError
+from lunia_core.app.services.execution.canonicalization import compute_plan_hash
 
 
 def test_deterministic_plan_id():

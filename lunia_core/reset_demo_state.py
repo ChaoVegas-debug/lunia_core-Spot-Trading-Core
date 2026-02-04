@@ -1,6 +1,6 @@
 
 import logging
-from app.core.state import reset_state
+from lunia_core.app.core.state import reset_state
 
 logging.basicConfig(level=logging.INFO)
 print("Resetting system state to defaults...")

@@ -7,9 +7,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1] / "lunia_core"
 sys.path.append(str(ROOT))
 
-from app.services.auth.database import Base, engine, get_session  # type: ignore  # noqa: E402
-from app.services.auth.models import AuditEvent, FeatureFlag, Limit, User  # type: ignore  # noqa: E402
-from app.services.auth.users import ensure_seed_admin  # type: ignore  # noqa: E402
+from lunia_core.app.services.auth.database import Base, engine, get_session  # type: ignore  # noqa: E402
+from lunia_core.app.services.auth.models import AuditEvent, FeatureFlag, Limit, User  # type: ignore  # noqa: E402
+from lunia_core.app.services.auth.users import ensure_seed_admin  # type: ignore  # noqa: E402
 
 
 def main() -> None:

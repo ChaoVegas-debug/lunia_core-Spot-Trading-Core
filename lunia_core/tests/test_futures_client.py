@@ -1,4 +1,4 @@
-from app.core.exchange.binance_futures import BinanceFutures, BinanceFuturesError
+from lunia_core.app.core.exchange.binance_futures import BinanceFutures, BinanceFuturesError
 
 
 def test_mock_order_execution():

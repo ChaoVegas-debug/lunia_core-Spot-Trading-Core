@@ -1,8 +1,8 @@
 """Genesis EMA Crossover Strategy - Minimal, deterministic, hard-coded (EPOCH F)"""
 from decimal import Decimal
 from typing import Optional,List
-from app.services.strategy.models import IntentProposal,SignalSide,StrategyContext
-from app.services.history.models import HistoricalTick
+from lunia_core.app.services.strategy.models import IntentProposal,SignalSide,StrategyContext
+from lunia_core.app.services.history.models import HistoricalTick
 
 class GenesisEMAStrategy:
     """

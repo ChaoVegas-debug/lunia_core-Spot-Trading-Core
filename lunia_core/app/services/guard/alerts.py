@@ -5,8 +5,8 @@ import os
 from pathlib import Path
 from typing import Dict, Optional
 
-from app.core.metrics import alerts_sent_total
-from app.db.reporting import arbitrage_daily_summary
+from lunia_core.app.core.metrics import alerts_sent_total
+from lunia_core.app.db.reporting import arbitrage_daily_summary
 
 LOG_DIR = Path(__file__).resolve().parents[4] / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)

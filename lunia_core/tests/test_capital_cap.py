@@ -1,4 +1,4 @@
-from app.core.state import get_state, set_state
+from lunia_core.app.core.state import get_state, set_state
 
 
 def test_capital_cap_runtime_update():

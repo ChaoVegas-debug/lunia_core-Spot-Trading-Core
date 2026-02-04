@@ -10,7 +10,7 @@ from pathlib import Path
 # Adjust path to find app
 sys.path.append(str(Path.cwd() / "lunia_core"))
 
-from app.services.security.credentials_service import load_credentials, CREDENTIALS_FILE
+from lunia_core.app.services.security.credentials_service import load_credentials, CREDENTIALS_FILE
 import app.services.security.credentials_service as credentials_service
 
 def test_invalid_keys_response():

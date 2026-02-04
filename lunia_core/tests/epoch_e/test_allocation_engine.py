@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).parent.parent.parent))
 
-from app.services.allocation import AllocationEngine,AllocationContext,AllocationConfig,SymbolConstraints,CapMode
-from app.services.strategy.models import IntentProposal,SignalSide
+from lunia_core.app.services.allocation import AllocationEngine,AllocationContext,AllocationConfig,SymbolConstraints,CapMode
+from lunia_core.app.services.strategy.models import IntentProposal,SignalSide
 
 def make_constraints(symbol,now_ms=1000000):
     return SymbolConstraints(
@@ -199,7 +199,7 @@ def test_qty_decimal_str_is_canonical_and_deterministic():
 
 def test_intent_id_resolution_prefers_generated_with_metadata():
     """Verify intent_id resolution policy and metadata tracking"""
-    from app.services.allocation.models import resolve_intent_id
+    from lunia_core.app.services.allocation.models import resolve_intent_id
     
     # IntentProposal has no proposal_id or intent_id → should generate
     intent=IntentProposal(strategy_id="test",symbol="BTC/USDT",side=SignalSide.BUY,signal_strength=0.8,reference_price=50000.0,rationale="test")

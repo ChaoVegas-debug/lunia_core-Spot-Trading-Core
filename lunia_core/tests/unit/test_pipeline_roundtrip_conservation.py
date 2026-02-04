@@ -11,8 +11,8 @@ from pathlib import Path
 import sys
 sys.path.insert(0,str(Path(__file__).parent.parent.parent))
 
-from app.simulation.genesis_harness_full import GenesisHarnessFull
-from app.services.allocation.policies import DecimalMathKernel
+from lunia_core.app.simulation.genesis_harness_full import GenesisHarnessFull
+from lunia_core.app.services.allocation.policies import DecimalMathKernel
 
 def test_pipeline_conservation_via_harness():
     """BLOCKING: Verify harness BUY→SELL doesn't lose 90% of capital"""

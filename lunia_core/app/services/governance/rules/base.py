@@ -10,8 +10,8 @@ from typing import Any, Dict
 from pydantic import BaseModel, Field
 
 from ...strategy.models import IntentProposal
-from app.services.market_data.realtime.models import MarketSnapshot
-from app.services.governance.context import GovernanceContext
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot
+from lunia_core.app.services.governance.context import GovernanceContext
 
 
 class RuleResult(BaseModel):

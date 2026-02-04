@@ -3,13 +3,13 @@ import os
 import logging
 import time
 import random
-from app.services.api.flask_app import app
-from app.services.auth.database import get_session
-from app.services.auth.users import ensure_seed_admin, create_user
-from app.services.auth.models import User
-from app.core.state import set_state, get_state
-from app.core.portfolio.engine import PortfolioEngine
-from app.core.portfolio.types import PortfolioType, RiskProfile, PortfolioStatus
+from lunia_core.app.services.api.flask_app import app
+from lunia_core.app.services.auth.database import get_session
+from lunia_core.app.services.auth.users import ensure_seed_admin, create_user
+from lunia_core.app.services.auth.models import User
+from lunia_core.app.core.state import set_state, get_state
+from lunia_core.app.core.portfolio.engine import PortfolioEngine
+from lunia_core.app.core.portfolio.types import PortfolioType, RiskProfile, PortfolioStatus
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,13 +33,13 @@ def seed_full():
                     logger.info(f"Created User: {email}")
                 else:
                     # PROMPT 5 FIX: Ensure known credentials
-                    from app.services.auth.security import hash_password
+                    from lunia_core.app.services.auth.security import hash_password
                     existing.password_hash = hash_password(pwd)
                     session.add(existing)
                     logger.info(f"User Updated: {email}")
             
             # 1.1 Risk Limits (Idempotent)
-            from app.services.auth.models import Limit
+            from lunia_core.app.services.auth.models import Limit
             from datetime import datetime
             
             default_limits = [

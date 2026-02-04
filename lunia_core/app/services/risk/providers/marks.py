@@ -9,7 +9,7 @@ import time
 from typing import Dict, Optional
 from pydantic import BaseModel, Field
 
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
 from .base import ProviderErrorCodes
 
 

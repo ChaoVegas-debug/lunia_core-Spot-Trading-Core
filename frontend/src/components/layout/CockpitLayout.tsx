@@ -27,7 +27,7 @@ import { emitSystemEvent } from '../../lib/runtime/eventBus';
 // LEFT Column - Control
 import { SystemStateWidgetF1 } from '../widgets/SystemStateWidgetF1';
 import { StrategiesBoardWidget } from '../widgets/StrategiesBoardWidget';
-import { AllocationControlsWidget } from '../widgets/AllocationControlsWidget';
+// import { AllocationControlsWidget } from '../widgets/AllocationControlsWidget';  // DISABLED: Contract mismatch (see ui_contract_fix_plan.md)
 import { KillSwitchReadinessWidget } from '../widgets/KillSwitchReadinessWidget';
 
 // CENTER Column - Capital & Execution
@@ -38,7 +38,7 @@ import { PnLWidget } from '../widgets/PnLWidget';
 
 // RIGHT Column - Risk & Intel
 import { SignalsWidget } from '../widgets/SignalsWidget';
-import { RiskLimitsWidget } from '../widgets/RiskLimitsWidget';
+// import { RiskLimitsWidget } from '../widgets/RiskLimitsWidget';  // DISABLED: Contract mismatch (limits.map error)
 import { DriftMonitorWidget } from '../widgets/DriftMonitorWidget';
 import { IncidentsWidget } from '../widgets/IncidentsWidget';
 
@@ -313,7 +313,7 @@ export const CockpitLayout: React.FC = () => {
                         <StrategiesBoardWidget />
                     </div>
                     <div style={{ flex: 1, minHeight: 0 }}>
-                        <AllocationControlsWidget />
+                        {/* <AllocationControlsWidget /> */}  {/* DISABLED: Contract mismatch */}
                     </div>
                     <div style={{ flex: 1, minHeight: 0 }}>
                         <KillSwitchReadinessWidget />
@@ -351,9 +351,9 @@ export const CockpitLayout: React.FC = () => {
                     <div style={{ flex: 1, minHeight: 0 }}>
                         <SignalsWidget />
                     </div>
-                    <div style={{ flex: 1, minHeight: 0 }}>
+                    {/* <div style={{ flex: 1, minHeight: 0 }}>
                         <RiskLimitsWidget />
-                    </div>
+                    </div> */}  {/* DISABLED: Contract mismatch */}
                     <div style={{ flex: 1, minHeight: 0 }}>
                         <DriftMonitorWidget />
                     </div>

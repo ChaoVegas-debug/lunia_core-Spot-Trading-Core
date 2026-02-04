@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.market_data.realtime.synchronous import ThreadSafeSnapshotCache
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState, PriceLevel
+from lunia_core.app.services.market_data.realtime.synchronous import ThreadSafeSnapshotCache
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState, PriceLevel
 
 
 def test_cache_update_and_get():

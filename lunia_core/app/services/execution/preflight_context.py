@@ -2,7 +2,7 @@
 from decimal import Decimal
 from typing import Dict
 from pydantic import BaseModel
-from app.services.allocation.models import SymbolConstraints
+from lunia_core.app.services.allocation.models import SymbolConstraints
 
 class PreflightContext(BaseModel):
     """

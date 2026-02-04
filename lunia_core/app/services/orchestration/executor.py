@@ -7,9 +7,9 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from app.services.strategy.models import IntentProposal
-from app.services.governance.engine import GovernanceEngine
-from app.services.governance.models import DecisionType
+from lunia_core.app.services.strategy.models import IntentProposal
+from lunia_core.app.services.governance.engine import GovernanceEngine
+from lunia_core.app.services.governance.models import DecisionType
 
 from .models import ApprovedIntent
 

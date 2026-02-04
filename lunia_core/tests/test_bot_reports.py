@@ -4,8 +4,8 @@ import pytest
 
 pytest.importorskip("flask", reason="Flask not available in offline/proxy env")
 
-from app.core.state import reset_state
-from app.services.telegram import bot as bot_module
+from lunia_core.app.core.state import reset_state
+from lunia_core.app.services.telegram import bot as bot_module
 
 
 def setup_function(_):

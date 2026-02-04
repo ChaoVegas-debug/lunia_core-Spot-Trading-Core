@@ -5,8 +5,8 @@ from typing import Optional,Dict
 from .models import SimulatedOrder,ExecutionReport,FillEvent,RejectionReason
 from .clock import DeterministicSimClock
 from .config import SimulatorConfig
-from app.services.allocation.models import SymbolConstraints
-from app.services.allocation.policies import DecimalMathKernel
+from lunia_core.app.services.allocation.models import SymbolConstraints
+from lunia_core.app.services.allocation.policies import DecimalMathKernel
 
 class SimulatedExchange:
     """

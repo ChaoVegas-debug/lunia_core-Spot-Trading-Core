@@ -4,12 +4,12 @@ import pytest
 
 pytest.importorskip("flask", reason="Flask not available in offline/proxy env")
 
-from app.db.reporting import (
+from lunia_core.app.db.reporting import (
     arbitrage_daily_summary,
     record_arbitrage_execution,
     record_arbitrage_proposal,
 )
-from app.services.telegram.bot import daily_summary_text
+from lunia_core.app.services.telegram.bot import daily_summary_text
 
 
 class DummyExec:

@@ -1,11 +1,11 @@
 import sys
 import os
 import logging
-from app.services.api.flask_app import app
-from app.services.auth.database import get_session
-from app.services.auth.users import ensure_seed_admin, create_user
-from app.services.auth.models import User
-from app.core.state import set_state
+from lunia_core.app.services.api.flask_app import app
+from lunia_core.app.services.auth.database import get_session
+from lunia_core.app.services.auth.users import ensure_seed_admin, create_user
+from lunia_core.app.services.auth.models import User
+from lunia_core.app.core.state import set_state
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,8 +36,8 @@ def seed():
         # 2. Seed State
         logger.info("Seeding Runtime State...")
         
-        from app.core.portfolio.engine import PortfolioEngine
-        from app.core.portfolio.types import PortfolioType, RiskProfile
+        from lunia_core.app.core.portfolio.engine import PortfolioEngine
+        from lunia_core.app.core.portfolio.types import PortfolioType, RiskProfile
 
         p1 = PortfolioEngine.generate_portfolio(PortfolioType.LONG_TERM, RiskProfile.BALANCED, 10000.0)
         p2 = PortfolioEngine.generate_portfolio(PortfolioType.TACTICAL, RiskProfile.AGGRESSIVE, 2000.0)

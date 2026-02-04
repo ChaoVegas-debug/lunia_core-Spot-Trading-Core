@@ -3,7 +3,7 @@ import pytest
 pytest.importorskip("flask", reason="Flask not available in offline/proxy env")
 pytestmark = pytest.mark.requires_flask
 
-from app.services.api.flask_app import app
+from lunia_core.app.services.api.flask_app import app
 
 
 def test_health_endpoint():

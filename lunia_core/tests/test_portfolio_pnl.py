@@ -1,4 +1,4 @@
-from app.core.portfolio.portfolio import Portfolio
+from lunia_core.app.core.portfolio.portfolio import Portfolio
 
 
 def test_portfolio_tracks_strategy_and_pnl():

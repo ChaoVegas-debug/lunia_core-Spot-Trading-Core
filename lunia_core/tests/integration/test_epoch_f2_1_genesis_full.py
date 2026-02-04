@@ -14,10 +14,10 @@ from pathlib import Path
 import sys
 sys.path.insert(0,str(Path(__file__).parent.parent.parent))
 
-from app.data.genesis_seeder import GenesisDataSeeder
-from app.services.history.store.inmemory import InMemoryHistoricalStore
-from app.simulation.genesis_harness_full import GenesisHarnessFull
-from app.services.allocation.policies import DecimalMathKernel
+from lunia_core.app.data.genesis_seeder import GenesisDataSeeder
+from lunia_core.app.services.history.store.inmemory import InMemoryHistoricalStore
+from lunia_core.app.simulation.genesis_harness_full import GenesisHarnessFull
+from lunia_core.app.services.allocation.policies import DecimalMathKernel
 
 CONFIG={
     'initial_capital':Decimal("10000"),

@@ -6,7 +6,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Deque, Dict, Tuple
 
-from app.core.metrics import arb_rate_limited_total
+from lunia_core.app.core.metrics import arb_rate_limited_total
 
 
 @dataclass

@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Sequence
 
-from app.core.metrics import (
+from lunia_core.app.core.metrics import (
     arb_filtered_out_total,
     arb_net_profit_usd_bucket,
     arb_net_roi_pct_bucket,
@@ -18,15 +18,15 @@ from app.core.metrics import (
     arb_qty_suggested_usd,
     arb_scans_total,
 )
-from app.core.state import get_state
+from lunia_core.app.core.state import get_state
 
 try:  # pragma: no cover - optional integration
-    from app.services.ai_research.worker import get_priority_scores
+    from lunia_core.app.services.ai_research.worker import get_priority_scores
 except Exception:  # pragma: no cover - offline fallback
 
     def get_priority_scores() -> Dict[str, float]:
         return {}
-from app.db.reporting import record_arbitrage_proposal
+from lunia_core.app.db.reporting import record_arbitrage_proposal
 
 logger = logging.getLogger(__name__)
 

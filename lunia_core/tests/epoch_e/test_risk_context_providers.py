@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.risk.providers import (
+from lunia_core.app.services.risk.providers import (
     RiskContextBuildResult,
     InMemoryPortfolioProvider,
     SnapshotMarkPriceProvider,
@@ -18,10 +18,10 @@ from app.services.risk.providers import (
     CompositeRiskContextProvider,
     ProviderErrorCodes
 )
-from app.services.risk.models import Position
-from app.services.strategy.models import IntentProposal, SignalSide
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
-from app.services.governance.context import GovernanceContext
+from lunia_core.app.services.risk.models import Position
+from lunia_core.app.services.strategy.models import IntentProposal, SignalSide
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
+from lunia_core.app.services.governance.context import GovernanceContext
 
 
 # Test 1: Fail-closed on missing equity

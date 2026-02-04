@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.execution.reconciliation import ExecutionReconciler
-from app.services.execution.models import OrderExecution, OrderExecutionStatus
+from lunia_core.app.services.execution.reconciliation import ExecutionReconciler
+from lunia_core.app.services.execution.models import OrderExecution, OrderExecutionStatus
 
 
 def test_scan_stuck_orders_selects_submitting():

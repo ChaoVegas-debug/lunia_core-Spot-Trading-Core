@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Dict,List,Optional
 from pydantic import BaseModel,Field,validator
 from enum import Enum
-from app.services.strategy.models import SignalSide
+from lunia_core.app.services.strategy.models import SignalSide
 
 class PriceReference(str,Enum):
     MID="MID"

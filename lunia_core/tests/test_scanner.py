@@ -1,4 +1,4 @@
-from app.services.arbitrage.scanner import ArbitrageFilters, ArbitrageScanner
+from lunia_core.app.services.arbitrage.scanner import ArbitrageFilters, ArbitrageScanner
 
 
 class DummyExchange:

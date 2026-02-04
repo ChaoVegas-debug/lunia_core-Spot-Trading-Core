@@ -3,7 +3,7 @@ import random
 import math
 from decimal import Decimal
 from typing import List
-from app.services.history.models import HistoricalTick
+from lunia_core.app.services.history.models import HistoricalTick
 
 class GenesisDataSeeder:
     """

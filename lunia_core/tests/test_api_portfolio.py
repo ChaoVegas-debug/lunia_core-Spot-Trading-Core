@@ -9,7 +9,7 @@ pytestmark = pytest.mark.requires_flask
 def test_portfolio_and_balances(monkeypatch):
     monkeypatch.setenv("BINANCE_USE_TESTNET", "false")
     monkeypatch.setenv("ENABLE_REDIS", "false")
-    from app.services.api import flask_app
+    from lunia_core.app.services.api import flask_app
 
     importlib.reload(flask_app)
     client = flask_app.app.test_client()

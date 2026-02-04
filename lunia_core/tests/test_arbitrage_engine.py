@@ -1,4 +1,4 @@
-from app.core.arbitrage.engine import ArbitrageConfig, ArbitrageEngine
+from lunia_core.app.core.arbitrage.engine import ArbitrageConfig, ArbitrageEngine
 
 
 class StubExchange:

@@ -5,9 +5,9 @@ import sys
 # Ensure we can import from app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app.services.auth.database import SessionLocal, init_db, engine
-from app.services.auth.models import User, Base
-from app.services.auth.security import hash_password
+from lunia_core.app.services.auth.database import SessionLocal, init_db, engine
+from lunia_core.app.services.auth.models import User, Base
+from lunia_core.app.services.auth.security import hash_password
 
 def create_admin():
     print("Initializing Database...")

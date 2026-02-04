@@ -12,8 +12,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-from app.services.market_data.models import Candle
-from app.services.market_data.ingestion import HistoricalDataService, TIMEFRAME_MS
+from lunia_core.app.services.market_data.models import Candle
+from lunia_core.app.services.market_data.ingestion import HistoricalDataService, TIMEFRAME_MS
 
 # Create standalone Base for testing (avoid conftest issues)
 TestBase = declarative_base()
@@ -53,7 +53,7 @@ def db_session():
     session = Session()
     
     # Monkey-patch service to use TestMarketCandle
-    from app.services.market_data import ingestion
+    from lunia_core.app.services.market_data import ingestion
     original_model = ingestion.MarketCandle
     ingestion.MarketCandle = TestMarketCandle
     

@@ -1,4 +1,4 @@
-from app.services.guard.alerts import evaluate_and_alert
+from lunia_core.app.services.guard.alerts import evaluate_and_alert
 
 
 def test_alerts_generate_log(monkeypatch, caplog):

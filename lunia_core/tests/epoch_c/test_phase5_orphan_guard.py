@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.execution.orphan_guard import OrphanPositionGuard, OrphanReasonCode, ORPHAN_DEADLINE_SEC
+from lunia_core.app.services.execution.orphan_guard import OrphanPositionGuard, OrphanReasonCode, ORPHAN_DEADLINE_SEC
 
 
 # Helpers

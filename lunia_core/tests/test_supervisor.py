@@ -1,7 +1,7 @@
 from collections import deque
 
-from app.core.ai.supervisor import Supervisor
-from app.core.state import set_state
+from lunia_core.app.core.ai.supervisor import Supervisor
+from lunia_core.app.core.state import set_state
 
 
 class DummyExchange:

@@ -8,11 +8,11 @@ import time
 import logging
 from typing import Optional
 
-from app.services.strategy.models import IntentProposal
-from app.services.market_data.realtime.models import MarketSnapshot
-from app.services.governance.context import GovernanceContext
+from lunia_core.app.services.strategy.models import IntentProposal
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot
+from lunia_core.app.services.governance.context import GovernanceContext
 
-from app.services.risk.models import RiskContext, Position
+from lunia_core.app.services.risk.models import RiskContext, Position
 
 from .base import IRiskContextProvider, RiskContextBuildResult, ProviderErrorCodes
 from .portfolio import IPortfolioProvider

@@ -11,19 +11,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from app.compat.dotenv import load_dotenv
-from app.core.metrics import (
+from lunia_core.app.compat.dotenv import load_dotenv
+from lunia_core.app.core.metrics import (
     arb_execution_latency_ms,
     arb_execs_total,
     arb_fail_total,
     arb_net_profit_total_usd,
     arb_success_total,
 )
-from app.core.portfolio.portfolio import Portfolio
-from app.core.risk.manager import RiskManager
-from app.core.risk.rate_limit import RateLimiter, RateLimitConfig
-from app.core.state import get_state
-from app.db.reporting import record_arbitrage_execution
+from lunia_core.app.core.portfolio.portfolio import Portfolio
+from lunia_core.app.core.risk.manager import RiskManager
+from lunia_core.app.core.risk.rate_limit import RateLimiter, RateLimitConfig
+from lunia_core.app.core.state import get_state
+from lunia_core.app.db.reporting import record_arbitrage_execution
 
 from .scanner import ArbitrageOpportunity
 from .transfer import TransferResult, internal_transfer, withdraw_and_deposit

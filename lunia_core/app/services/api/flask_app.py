@@ -14,7 +14,7 @@ from typing import Any, Dict, Iterable, List, Optional
 try:
     from dotenv import load_dotenv
 except ImportError:
-    from app.compat.dotenv import load_dotenv
+    from lunia_core.app.compat.dotenv import load_dotenv
 from flask import Flask, Response, g, jsonify, request
 from pydantic import ValidationError, BaseModel
 from sqlalchemy.orm import Session

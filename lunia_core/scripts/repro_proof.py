@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, '/Users/neomind/alladin/lunia_core-Spot-Trading-Core/lunia_core')
 
 # Direct imports (bypass proposal schemas)
-from app.services.execution.canonicalization import compute_plan_hash
+from lunia_core.app.services.execution.canonicalization import compute_plan_hash
 
 
 # Mock Intent (minimal)

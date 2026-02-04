@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.execution.reconciliation import ExecutionReconciler
-from app.services.execution.exceptions import HardError, SoftError
+from lunia_core.app.services.execution.reconciliation import ExecutionReconciler
+from lunia_core.app.services.execution.exceptions import HardError, SoftError
 
 
 def test_reconciler_respects_backoff_first_attempt():

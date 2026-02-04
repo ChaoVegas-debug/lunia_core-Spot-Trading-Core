@@ -1,4 +1,4 @@
-from app.core.risk.manager import RiskLimits, RiskManager
+from lunia_core.app.core.risk.manager import RiskLimits, RiskManager
 
 
 def test_exceeds_leverage():

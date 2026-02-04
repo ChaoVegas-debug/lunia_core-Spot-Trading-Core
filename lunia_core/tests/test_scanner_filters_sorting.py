@@ -1,5 +1,5 @@
-from app.services.arbitrage.scanner import ArbitrageFilters, ArbitrageOpportunity
-from app.services.arbitrage.ui import format_filters
+from lunia_core.app.services.arbitrage.scanner import ArbitrageFilters, ArbitrageOpportunity
+from lunia_core.app.services.arbitrage.ui import format_filters
 
 
 def make_opp(symbol: str, roi: float, usd: float) -> ArbitrageOpportunity:

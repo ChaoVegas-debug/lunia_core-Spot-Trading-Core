@@ -5,7 +5,7 @@ import logging
 import os
 from typing import Optional
 
-from app.compat.requests import requests
+from lunia_core.app.compat.requests import requests
 
 logger = logging.getLogger(__name__)
 

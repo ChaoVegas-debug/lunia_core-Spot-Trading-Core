@@ -9,9 +9,9 @@ import os
 import time
 
 from .base import GovernanceRule, RuleResult
-from app.services.strategy.models import IntentProposal
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
-from app.services.governance.context import GovernanceContext
+from lunia_core.app.services.strategy.models import IntentProposal
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
+from lunia_core.app.services.governance.context import GovernanceContext
 
 
 class MarketValidityRule(GovernanceRule):

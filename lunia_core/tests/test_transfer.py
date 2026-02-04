@@ -1,4 +1,4 @@
-from app.services.arbitrage.transfer import (
+from lunia_core.app.services.arbitrage.transfer import (
     convert_if_needed,
     internal_transfer,
     withdraw_and_deposit,

@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.market_data.ingestion import TIMEFRAME_MS
+from lunia_core.app.services.market_data.ingestion import TIMEFRAME_MS
 
 
 def test_timeframe_mapping_complete():

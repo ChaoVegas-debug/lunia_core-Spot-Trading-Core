@@ -9,7 +9,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
-from app.compat.dotenv import load_dotenv
+from lunia_core.app.compat.dotenv import load_dotenv
 
 from ...core.metrics import bot_commands_total, bot_errors_total, bot_latency_ms
 from ...core.state import get_state, set_state

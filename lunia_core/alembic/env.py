@@ -9,10 +9,10 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 
 # Import Base from auth.database (includes all models)
-from app.services.auth.database import Base, DATABASE_URL
+from lunia_core.app.services.auth.database import Base, DATABASE_URL
 
 # Import proposal models to ensure they're registered
-from app.services.proposal.models import Proposal, ExecutionIntent, ProposalAuditEvent
+from lunia_core.app.services.proposal.models import Proposal, ExecutionIntent, ProposalAuditEvent
 
 # Alembic Config object
 config = context.config

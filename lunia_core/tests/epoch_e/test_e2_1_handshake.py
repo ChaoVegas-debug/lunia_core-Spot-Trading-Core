@@ -9,15 +9,15 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.orchestration import ExecutionOrchestrator, ApprovedIntent
-from app.services.governance.engine import GovernanceEngine
-from app.services.governance.registry import GovernanceRuleRegistry
-from app.services.governance.context import GovernanceContext
-from app.services.governance.rules.core_rules import MarketValidityRule, PriceSanityEchoRule
+from lunia_core.app.services.orchestration import ExecutionOrchestrator, ApprovedIntent
+from lunia_core.app.services.governance.engine import GovernanceEngine
+from lunia_core.app.services.governance.registry import GovernanceRuleRegistry
+from lunia_core.app.services.governance.context import GovernanceContext
+from lunia_core.app.services.governance.rules.core_rules import MarketValidityRule, PriceSanityEchoRule
 
-from app.services.strategy.models import IntentProposal, SignalSide
-from app.services.market_data.realtime.synchronous import ThreadSafeSnapshotCache
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
+from lunia_core.app.services.strategy.models import IntentProposal, SignalSide
+from lunia_core.app.services.market_data.realtime.synchronous import ThreadSafeSnapshotCache
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
 
 
 def test_reject_path_no_execution():

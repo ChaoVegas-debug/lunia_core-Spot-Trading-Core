@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.capital.allocator import CapitalAllocator
+from lunia_core.app.core.capital.allocator import CapitalAllocator
 
 
 def test_compute_budgets_respects_cap_and_weights():

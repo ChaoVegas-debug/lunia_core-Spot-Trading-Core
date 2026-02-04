@@ -1,6 +1,6 @@
-from app.core.ai.supervisor import Supervisor
-from app.core.exchange.base import IExchange
-from app.core.state import set_state
+from lunia_core.app.core.ai.supervisor import Supervisor
+from lunia_core.app.core.exchange.base import IExchange
+from lunia_core.app.core.state import set_state
 
 
 class DummyClient(IExchange):

@@ -1,7 +1,7 @@
 import math
 
-from app.core.state import set_state
-from app.services.arbitrage.scanner import ArbitrageFilters, ArbitrageScanner
+from lunia_core.app.core.state import set_state
+from lunia_core.app.services.arbitrage.scanner import ArbitrageFilters, ArbitrageScanner
 
 
 class _MockExchange:

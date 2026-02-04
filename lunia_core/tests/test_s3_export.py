@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.services.reports.exporter import S3Exporter
+from lunia_core.app.services.reports.exporter import S3Exporter
 
 
 def test_s3_export_writes_fallback(tmp_path, monkeypatch):

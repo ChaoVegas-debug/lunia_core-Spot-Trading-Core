@@ -2,7 +2,7 @@
 import math
 from typing import List,Optional
 from pydantic import BaseModel
-from app.services.market_data.realtime.models import MarketSnapshot,SnapshotState
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot,SnapshotState
 from .models import HistoricalTick
 from .store.base import *
 

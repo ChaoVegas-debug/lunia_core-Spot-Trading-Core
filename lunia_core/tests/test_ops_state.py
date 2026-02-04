@@ -4,8 +4,8 @@ import pytest
 
 pytest.importorskip("flask", reason="Flask not available in offline/proxy env")
 
-from app.core.state import reset_state
-from app.services.api.flask_app import app
+from lunia_core.app.core.state import reset_state
+from lunia_core.app.services.api.flask_app import app
 
 
 @pytest.fixture(autouse=True)

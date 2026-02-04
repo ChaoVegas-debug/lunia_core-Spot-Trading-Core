@@ -5,8 +5,8 @@ import os
 # Add path to find app
 sys.path.append(os.path.join(os.getcwd(), "lunia_core"))
 
-from app.services.api.flask_app import app, get_session
-from app.services.auth.auth import get_user_by_email, create_user
+from lunia_core.app.services.api.flask_app import app, get_session
+from lunia_core.app.services.auth.auth import get_user_by_email, create_user
 
 def seed_trader():
     with app.app_context():

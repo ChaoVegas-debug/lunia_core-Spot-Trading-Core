@@ -7,13 +7,13 @@ from __future__ import annotations
 import logging
 # Optional is no longer needed as context_provider is now mandatory
 
-from app.services.governance.rules.base import GovernanceRule, RuleResult
-from app.services.governance.context import GovernanceContext
-from app.services.strategy.models import IntentProposal
-from app.services.market_data.realtime.models import MarketSnapshot
+from lunia_core.app.services.governance.rules.base import GovernanceRule, RuleResult
+from lunia_core.app.services.governance.context import GovernanceContext
+from lunia_core.app.services.strategy.models import IntentProposal
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot
 
-from app.services.risk import RiskEngine, RiskConfig
-from app.services.risk.providers import IRiskContextProvider, ProviderErrorCodes
+from lunia_core.app.services.risk import RiskEngine, RiskConfig
+from lunia_core.app.services.risk.providers import IRiskContextProvider, ProviderErrorCodes
 
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@
 Test orchestrator queue uniqueness (FIX #4 minimal verification)
 """
 import pytest
-from app.services.execution.orchestrator import Orchestrator, AlreadyQueuedError
+from lunia_core.app.services.execution.orchestrator import Orchestrator, AlreadyQueuedError
 
 
 def test_enqueue_twice_same_intent_fails(session_factory):
@@ -54,7 +54,7 @@ def session_factory():
     """Create in-memory SQLite session for testing"""
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    from app.auth.database import Base
+    from lunia_core.app.auth.database import Base
     
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)

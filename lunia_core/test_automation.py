@@ -1,9 +1,9 @@
 import time
 import logging
-from app.services.scheduler.rebalancer import _check_and_trigger_rebalance
-from app.core.state import get_state, set_state
-from app.core.portfolio.types import PortfolioDefinition, PortfolioType, RiskProfile, PortfolioStatus, PortfolioRule
-from app.services.api.flask_app import agent
+from lunia_core.app.services.scheduler.rebalancer import _check_and_trigger_rebalance
+from lunia_core.app.core.state import get_state, set_state
+from lunia_core.app.core.portfolio.types import PortfolioDefinition, PortfolioType, RiskProfile, PortfolioStatus, PortfolioRule
+from lunia_core.app.services.api.flask_app import agent
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)

@@ -8,13 +8,13 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.strategy.interfaces import IStrategy
-from app.services.strategy.models import StrategyContext, IntentProposal, SignalSide
-from app.services.strategy.registry import StrategyRegistry
-from app.services.strategy.engine import StrategyEngine
+from lunia_core.app.services.strategy.interfaces import IStrategy
+from lunia_core.app.services.strategy.models import StrategyContext, IntentProposal, SignalSide
+from lunia_core.app.services.strategy.registry import StrategyRegistry
+from lunia_core.app.services.strategy.engine import StrategyEngine
 
-from app.services.market_data.realtime.synchronous import ThreadSafeSnapshotCache
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
+from lunia_core.app.services.market_data.realtime.synchronous import ThreadSafeSnapshotCache
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
 
 
 # Mock strategy implementation for testing

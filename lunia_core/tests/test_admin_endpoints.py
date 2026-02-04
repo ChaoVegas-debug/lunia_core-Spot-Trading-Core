@@ -1,11 +1,11 @@
 import pytest
-from app.services.api import flask_app
+from lunia_core.app.services.api import flask_app
 
 app = flask_app.app
 
-from app.core.state import reset_state
-from app.services.auth.models import AuditEvent
-from app.services.auth.database import get_session
+from lunia_core.app.core.state import reset_state
+from lunia_core.app.services.auth.models import AuditEvent
+from lunia_core.app.services.auth.database import get_session
 
 @pytest.fixture
 def client():

@@ -1,4 +1,4 @@
-from app.core.exchange.binance_spot import BinanceSpot
+from lunia_core.app.core.exchange.binance_spot import BinanceSpot
 
 
 def test_mock_order_execution(tmp_path, monkeypatch):

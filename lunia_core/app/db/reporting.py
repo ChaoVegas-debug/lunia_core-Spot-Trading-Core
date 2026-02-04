@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Dict, Iterator, List, Optional
 from ..compat.dotenv import load_dotenv
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
-    from app.services.arbitrage.executor_safe import ArbitrageExecutionResult
-    from app.services.arbitrage.scanner import ArbitrageOpportunity
+    from lunia_core.app.services.arbitrage.executor_safe import ArbitrageExecutionResult
+    from lunia_core.app.services.arbitrage.scanner import ArbitrageOpportunity
 
 load_dotenv()
 

@@ -11,10 +11,10 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.market_data.adapters.ccxt_adapter import CCXTAdapter
-from app.services.market_data.adapters.mock_adapter import MockExchangeAdapter
-from app.services.market_data.models import TickerSnapshot, Candle, OrderBookSnapshot, BalanceSnapshot
-from app.services.execution.exceptions import HardError, SoftError
+from lunia_core.app.services.market_data.adapters.ccxt_adapter import CCXTAdapter
+from lunia_core.app.services.market_data.adapters.mock_adapter import MockExchangeAdapter
+from lunia_core.app.services.market_data.models import TickerSnapshot, Candle, OrderBookSnapshot, BalanceSnapshot
+from lunia_core.app.services.execution.exceptions import HardError, SoftError
 
 
 def test_mock_adapter_normalization():

@@ -12,17 +12,17 @@ from decimal import Decimal
 from typing import Optional,List,Dict
 from pathlib import Path
 
-from app.data.genesis_seeder import GenesisDataSeeder
-from app.strategies.genesis import GenesisEMAStrategy
-from app.services.history.store.inmemory import InMemoryHistoricalStore
-from app.services.allocation import AllocationEngine,AllocationConfig,AllocationContext,SymbolConstraints,resolve_intent_id
-from app.services.allocation.policies import DecimalMathKernel
-from app.services.allocation.models import SizedIntent
-from app.services.risk_simple import RiskEngine,RiskConfig,RiskContext
-from app.services.execution.preflight import ExecutionPreflight
-from app.services.execution.preflight_config import PreflightConfig
-from app.services.execution.preflight_context import PreflightContext
-from app.services.simulator import SimulatedExchange,SimulatedOrder,DeterministicSimClock,SimulatorConfig
+from lunia_core.app.data.genesis_seeder import GenesisDataSeeder
+from lunia_core.app.strategies.genesis import GenesisEMAStrategy
+from lunia_core.app.services.history.store.inmemory import InMemoryHistoricalStore
+from lunia_core.app.services.allocation import AllocationEngine,AllocationConfig,AllocationContext,SymbolConstraints,resolve_intent_id
+from lunia_core.app.services.allocation.policies import DecimalMathKernel
+from lunia_core.app.services.allocation.models import SizedIntent
+from lunia_core.app.services.risk_simple import RiskEngine,RiskConfig,RiskContext
+from lunia_core.app.services.execution.preflight import ExecutionPreflight
+from lunia_core.app.services.execution.preflight_config import PreflightConfig
+from lunia_core.app.services.execution.preflight_context import PreflightContext
+from lunia_core.app.services.simulator import SimulatedExchange,SimulatedOrder,DeterministicSimClock,SimulatorConfig
 
 class GenesisHarnessFull:
     """Full continuous watchdog harness (F.2.1)"""

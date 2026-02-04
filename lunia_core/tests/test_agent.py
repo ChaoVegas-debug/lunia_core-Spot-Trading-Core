@@ -1,9 +1,9 @@
 import json
 
-from app.core.ai.agent import Agent
-from app.core.ai.supervisor import Supervisor
-from app.core.exchange.base import IExchange
-from app.core.risk.manager import RiskLimits, RiskManager
+from lunia_core.app.core.ai.agent import Agent
+from lunia_core.app.core.ai.supervisor import Supervisor
+from lunia_core.app.core.exchange.base import IExchange
+from lunia_core.app.core.risk.manager import RiskLimits, RiskManager
 
 
 class DummyExchange(IExchange):

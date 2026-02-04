@@ -1,4 +1,4 @@
-from app.core.ai.strategies import REGISTRY
+from lunia_core.app.core.ai.strategies import REGISTRY
 
 
 def test_bollinger_reversion_signal():

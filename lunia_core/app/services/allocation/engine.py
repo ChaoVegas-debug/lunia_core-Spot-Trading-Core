@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import List,Optional
 from .models import AllocationConfig,AllocationContext,SizedIntent,AllocationPlan,SymbolConstraints,CapMode,resolve_intent_id
 from .policies import *
-from app.services.strategy.models import IntentProposal
+from lunia_core.app.services.strategy.models import IntentProposal
 
 class AllocationEngine:
     """

@@ -1,4 +1,4 @@
-from app.core.risk.rate_limit import RateLimitConfig, RateLimiter
+from lunia_core.app.core.risk.rate_limit import RateLimitConfig, RateLimiter
 
 
 def test_rate_limiter_blocks_after_threshold(monkeypatch):

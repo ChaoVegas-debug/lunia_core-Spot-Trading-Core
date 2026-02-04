@@ -1,4 +1,4 @@
-from app.core.bus.redis_bus import RedisBus, RedisBusConfig
+from lunia_core.app.core.bus.redis_bus import RedisBus, RedisBusConfig
 
 
 def test_bus_publish_subscribe_in_memory():

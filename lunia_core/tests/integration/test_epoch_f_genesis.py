@@ -7,11 +7,11 @@ from pathlib import Path
 import sys
 sys.path.insert(0,str(Path(__file__).parent.parent.parent))
 
-from app.data.genesis_seeder import GenesisDataSeeder
-from app.strategies.genesis import GenesisEMAStrategy
-from app.services.history.store.inmemory import InMemoryHistoricalStore
-from app.services.allocation import AllocationEngine,AllocationConfig,AllocationContext,SymbolConstraints
-from app.services.allocation.policies import DecimalMathKernel
+from lunia_core.app.data.genesis_seeder import GenesisDataSeeder
+from lunia_core.app.strategies.genesis import GenesisEMAStrategy
+from lunia_core.app.services.history.store.inmemory import InMemoryHistoricalStore
+from lunia_core.app.services.allocation import AllocationEngine,AllocationConfig,AllocationContext,SymbolConstraints
+from lunia_core.app.services.allocation.policies import DecimalMathKernel
 
 # LOCKED CONFIG
 GENESIS_SEED=1337

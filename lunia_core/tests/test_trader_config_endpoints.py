@@ -1,7 +1,7 @@
 import pytest
 import json
-from app.services.api.flask_app import app
-from app.core.state import reset_state, get_state
+from lunia_core.app.services.api.flask_app import app
+from lunia_core.app.core.state import reset_state, get_state
 
 @pytest.fixture
 def client():

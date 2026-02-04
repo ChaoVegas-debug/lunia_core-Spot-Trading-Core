@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.risk import (
+from lunia_core.app.services.risk import (
     RiskEngine,
     RiskConfig,
     RiskContext,
@@ -18,9 +18,9 @@ from app.services.risk import (
     RiskBlockingFlags,
     RiskWarningFlags
 )
-from app.services.strategy.models import IntentProposal, SignalSide
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
-from app.services.governance.rules.risk_rules import RiskGateRule
+from lunia_core.app.services.strategy.models import IntentProposal, SignalSide
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
+from lunia_core.app.services.governance.rules.risk_rules import RiskGateRule
 
 
 def test_determinism_same_inputs_same_outputs():
@@ -366,7 +366,7 @@ def test_risk_gate_rule_integration():
         rationale="Test"
     )
     
-    from app.services.governance.context import GovernanceContext
+    from lunia_core.app.services.governance.context import GovernanceContext
     gov_context = GovernanceContext()
     
     # Evaluate (mock provider returns empty portfolio → should pass)

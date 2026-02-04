@@ -8,25 +8,25 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Deque, Dict, List, Optional
 
-from app.core.bus import get_bus
-from app.core.exchange.binance_spot import BinanceSpot
-from app.core.exchange.bybit_spot import BybitSpot
-from app.core.exchange.okx_spot import OKXSpot
-from app.core.metrics import (
+from lunia_core.app.core.bus import get_bus
+from lunia_core.app.core.exchange.binance_spot import BinanceSpot
+from lunia_core.app.core.exchange.bybit_spot import BybitSpot
+from lunia_core.app.core.exchange.okx_spot import OKXSpot
+from lunia_core.app.core.metrics import (
     arb_auto_execs_total,
     arb_daily_pnl_usd,
     arb_net_profit_total_usd,
     arb_success_rate,
     ensure_metrics_server,
 )
-from app.core.portfolio.portfolio import Portfolio
-from app.core.risk.manager import RiskManager
-from app.core.risk.rate_limit import RateLimiter
-from app.core.state import get_state as get_runtime_state, set_state
-from app.db.reporting import arbitrage_daily_pnl
-from app.services.guard.alerts import evaluate_and_alert
-from app.services.reports.exporter import get_exporter
-from app.db.reporting import arbitrage_daily_summary
+from lunia_core.app.core.portfolio.portfolio import Portfolio
+from lunia_core.app.core.risk.manager import RiskManager
+from lunia_core.app.core.risk.rate_limit import RateLimiter
+from lunia_core.app.core.state import get_state as get_runtime_state, set_state
+from lunia_core.app.db.reporting import arbitrage_daily_pnl
+from lunia_core.app.services.guard.alerts import evaluate_and_alert
+from lunia_core.app.services.reports.exporter import get_exporter
+from lunia_core.app.db.reporting import arbitrage_daily_summary
 
 from .auto_manager import ArbitrageAutoManager
 from .executor_safe import ArbitrageExecutionResult, SafeArbitrageExecutor

@@ -5,7 +5,7 @@ They prove the accounting model is correct.
 """
 import pytest
 from decimal import Decimal
-from app.services.allocation.policies import DecimalMathKernel
+from lunia_core.app.services.allocation.policies import DecimalMathKernel
 
 # Simplified Portfolio for unit testing
 class SimplePortfolio:

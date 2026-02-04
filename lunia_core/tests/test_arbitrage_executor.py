@@ -2,9 +2,9 @@ import json
 
 import pytest
 
-from app.core.arbitrage.executor import ArbitrageExecutor
-from app.core.portfolio.portfolio import Portfolio
-from app.core.risk.manager import RiskLimits, RiskManager
+from lunia_core.app.core.arbitrage.executor import ArbitrageExecutor
+from lunia_core.app.core.portfolio.portfolio import Portfolio
+from lunia_core.app.core.risk.manager import RiskLimits, RiskManager
 
 
 @pytest.fixture

@@ -13,11 +13,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.services.auth.database import Base
-from app.services.market_data.models import Candle
-from app.services.market_data.models_db import MarketCandle
-from app.services.market_data.ingestion import HistoricalDataService, TIMEFRAME_MS
-from app.services.market_data.adapters.mock_adapter import MockExchangeAdapter
+from lunia_core.app.services.auth.database import Base
+from lunia_core.app.services.market_data.models import Candle
+from lunia_core.app.services.market_data.models_db import MarketCandle
+from lunia_core.app.services.market_data.ingestion import HistoricalDataService, TIMEFRAME_MS
+from lunia_core.app.services.market_data.adapters.mock_adapter import MockExchangeAdapter
 
 
 @pytest.fixture

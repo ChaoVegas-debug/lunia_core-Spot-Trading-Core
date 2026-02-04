@@ -11,8 +11,8 @@ try:  # pragma: no cover - optional dependency
 except Exception:  # pragma: no cover - offline fallback
     boto3 = None
 
-from app.core.metrics import s3_export_last_status, s3_exports_total
-from app.db.reporting import fetch_arbitrage_records
+from lunia_core.app.core.metrics import s3_export_last_status, s3_exports_total
+from lunia_core.app.db.reporting import fetch_arbitrage_records
 
 LOG_DIR = Path(__file__).resolve().parents[4] / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)

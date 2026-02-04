@@ -5,7 +5,7 @@ They prove SELL execution doesn't destroy principal.
 """
 import pytest
 from decimal import Decimal
-from app.services.allocation.policies import DecimalMathKernel
+from lunia_core.app.services.allocation.policies import DecimalMathKernel
 
 class TestPortfolio:
     """Minimal portfolio for testing execution math"""

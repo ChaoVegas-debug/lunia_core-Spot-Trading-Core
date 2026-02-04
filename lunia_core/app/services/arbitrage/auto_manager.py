@@ -6,7 +6,7 @@ import time
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-from app.core.state import get_state
+from lunia_core.app.core.state import get_state
 
 from .scanner import ArbitrageFilters, ArbitrageOpportunity
 from .strategy import ArbitrageStrategy, StrategyDecision

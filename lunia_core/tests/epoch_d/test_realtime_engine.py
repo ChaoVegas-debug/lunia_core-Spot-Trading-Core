@@ -10,14 +10,14 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.market_data.realtime.models import (
+from lunia_core.app.services.market_data.realtime.models import (
     TickerUpdate,
     OrderBookL2,
     PriceLevel,
     SnapshotState
 )
-from app.services.market_data.realtime.interfaces import MockWebSocketClient
-from app.services.market_data.realtime.manager import RealTimeMarketDataEngine
+from lunia_core.app.services.market_data.realtime.interfaces import MockWebSocketClient
+from lunia_core.app.services.market_data.realtime.manager import RealTimeMarketDataEngine
 
 
 @pytest.fixture

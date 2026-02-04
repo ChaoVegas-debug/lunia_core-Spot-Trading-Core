@@ -4,8 +4,8 @@ from typing import List
 from .preflight_models import NormalizedOrder,PreflightResult,BatchPreflightResult,PreflightRejectionReason
 from .preflight_config import PreflightConfig
 from .preflight_context import PreflightContext
-from app.services.allocation.policies import DecimalMathKernel
-from app.services.allocation.models import SizedIntent
+from lunia_core.app.services.allocation.policies import DecimalMathKernel
+from lunia_core.app.services.allocation.models import SizedIntent
 
 class ExecutionPreflight:
     """

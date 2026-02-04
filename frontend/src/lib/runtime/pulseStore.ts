@@ -100,3 +100,27 @@ class PulseRegistry {
 
 // Singleton instance
 export const pulseStore = new PulseRegistry();
+
+// PHASE 5B: DEBUG INSPECTOR (Dev-only heartbeat certification)
+// @ts-ignore - vite env vars exist at runtime
+if (typeof window !== 'undefined' && import.meta.env?.VITE_DEBUG_POLL === '1') {
+    setInterval(() => {
+        const snapshot = pulseStore.getSnapshot();
+        const critical = Object.entries(snapshot).filter(([, s]) => s.critical);
+
+        console.group('[PULSE STORE] Critical Sources Snapshot (10s interval)');
+        critical.forEach(([key, source]) => {
+            const age_s = source.meta?.age_s ?? 999;
+            const last_ok_ts = source.meta?.last_success_ts ?? 0;
+            const status = age_s > 10 ? '🔴 STALE' : '🟢 FRESH';
+            console.log(`${status} ${key}:`, {
+                endpoint: source.endpoint,
+                age_s,
+                last_ok_ts: last_ok_ts ? new Date(last_ok_ts).toISOString().substr(11, 8) : 'NEVER',
+                reason: source.last_update_reason,
+                detail: source.reason_detail
+            });
+        });
+        console.groupEnd();
+    }, 10000);
+}

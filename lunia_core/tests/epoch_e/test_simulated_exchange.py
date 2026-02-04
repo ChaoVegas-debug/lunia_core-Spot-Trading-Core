@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).parent.parent.parent))
 
-from app.services.simulator import SimulatedExchange,SimulatedOrder,DeterministicSimClock,SimulatorConfig,RejectionReason
-from app.services.allocation.models import SymbolConstraints
+from lunia_core.app.services.simulator import SimulatedExchange,SimulatedOrder,DeterministicSimClock,SimulatorConfig,RejectionReason
+from lunia_core.app.services.allocation.models import SymbolConstraints
 
 def make_constraints(symbol="BTC/USDT",now_ms=1000000):
     return SymbolConstraints(

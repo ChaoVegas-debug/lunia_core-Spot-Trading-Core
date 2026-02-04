@@ -12,9 +12,9 @@ logger = logging.getLogger("live_verifier")
 sys.path.append(str(Path.cwd() / "lunia_core"))
 
 try:
-    from app.services.api.flask_app import app, agent
-    from app.core.exchange.binance_spot import BinanceSpot
-    from app.services.security import credentials_service
+    from lunia_core.app.services.api.flask_app import app, agent
+    from lunia_core.app.core.exchange.binance_spot import BinanceSpot
+    from lunia_core.app.services.security import credentials_service
 except ImportError as e:
     print(f"Import Failed: {e}")
     sys.exit(1)

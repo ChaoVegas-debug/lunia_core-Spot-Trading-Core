@@ -7,10 +7,10 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Any, Protocol
 from pydantic import BaseModel, Field
 
-from app.services.risk.models import RiskContext
-from app.services.strategy.models import IntentProposal
-from app.services.market_data.realtime.models import MarketSnapshot
-from app.services.governance.context import GovernanceContext
+from lunia_core.app.services.risk.models import RiskContext
+from lunia_core.app.services.strategy.models import IntentProposal
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot
+from lunia_core.app.services.governance.context import GovernanceContext
 
 
 class RiskContextBuildResult(BaseModel):

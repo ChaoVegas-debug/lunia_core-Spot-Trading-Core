@@ -18,8 +18,8 @@ def mock_env_vars():
     os.environ["OPS_API_TOKEN"] = "dev-ops-token"
     
     # Inject Admin Token via custom client
-    from app.services.api import flask_app
-    from app.services.api.flask_app import app
+    from lunia_core.app.services.api import flask_app
+    from lunia_core.app.services.api.flask_app import app
     from flask.testing import FlaskClient
     
     # Force OPS_TOKEN update since it was loaded at import time

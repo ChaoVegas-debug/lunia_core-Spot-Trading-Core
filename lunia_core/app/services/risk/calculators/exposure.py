@@ -8,7 +8,7 @@ import math
 from typing import Dict, List, Tuple
 
 from ..models import Position, RiskContext, RiskConfig, RiskBlockingFlags
-from app.services.strategy.models import IntentProposal
+from lunia_core.app.services.strategy.models import IntentProposal
 
 
 def calculate_exposure(

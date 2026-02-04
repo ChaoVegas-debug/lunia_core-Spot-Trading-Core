@@ -8,7 +8,7 @@ import time
 from typing import Dict, Optional, Callable
 from pydantic import BaseModel, Field
 
-from app.services.risk.models import Position
+from lunia_core.app.services.risk.models import Position
 from .base import ProviderErrorCodes
 
 

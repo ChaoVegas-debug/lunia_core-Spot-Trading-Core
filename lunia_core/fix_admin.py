@@ -4,10 +4,10 @@ import os
 # Add current dir to path to find app module
 sys.path.append(os.getcwd())
 
-from app.services.auth.database import get_session, init_db, engine, Base
-from app.services.auth.security import get_user_by_email, hash_password
-from app.services.auth.users import create_user
-from app.core.state import set_state 
+from lunia_core.app.services.auth.database import get_session, init_db, engine, Base
+from lunia_core.app.services.auth.security import get_user_by_email, hash_password
+from lunia_core.app.services.auth.users import create_user
+from lunia_core.app.core.state import set_state 
 
 def fix_users():
     print("Initializing DB...")

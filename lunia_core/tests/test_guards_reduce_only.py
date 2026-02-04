@@ -2,7 +2,7 @@
 Test guards with reduce_only semantics (FIX #3 verification)
 """
 import pytest
-from app.services.execution.guards import (
+from lunia_core.app.services.execution.guards import (
     PortfolioConflictGuard, SlippageGuard, GuardStatus
 )
 

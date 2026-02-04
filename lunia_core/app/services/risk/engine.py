@@ -18,7 +18,7 @@ from .calculators.exposure import calculate_exposure
 from .calculators.drawdown import calculate_drawdown
 from .calculators.var import calculate_var
 
-from app.services.strategy.models import IntentProposal
+from lunia_core.app.services.strategy.models import IntentProposal
 
 
 logger = logging.getLogger(__name__)

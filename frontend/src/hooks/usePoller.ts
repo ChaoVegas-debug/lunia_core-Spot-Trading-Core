@@ -219,7 +219,7 @@ export function usePoller<T>({
                 console.log(`[POLLER] FINALLY`, { endpoint, inFlightRef: inFlightRef.current });
             }
         }
-    }, [fetcher, endpoint, lastGood, key]);
+    }, [fetcher, endpoint, key]);
 
     // Update age every second
     useEffect(() => {
@@ -235,10 +235,14 @@ export function usePoller<T>({
 
     // Polling interval
     useEffect(() => {
+        // FIX E3: isMountedRef lifecycle tied to interval, not component mount
+        isMountedRef.current = true;
+
         if (pause_when_hidden && document.hidden) {
             // Don't start interval when hidden
             // Set reason to TAB_HIDDEN (Phase F3.1)
             pulseStore.setReason(key, 'TAB_HIDDEN', 'Polling paused due to tab hidden');
+            isMountedRef.current = false;
             return;
         }
 
@@ -249,6 +253,8 @@ export function usePoller<T>({
         intervalRef.current = setInterval(refresh, interval_ms);
 
         return () => {
+            // FIX E3: Mark unmounted when interval stops
+            isMountedRef.current = false;
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
@@ -291,15 +297,7 @@ export function usePoller<T>({
         };
     }, [refresh, interval_ms, pause_when_hidden, force_refresh_on_focus]);
 
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            isMountedRef.current = false;
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-            }
-        };
-    }, []);
+    // FIX E3: Removed standalone cleanup effect - isMountedRef now managed by polling interval effect
 
     const isStale = meta.age_s > stale_threshold_s;
 

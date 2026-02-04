@@ -1,5 +1,5 @@
-from app.core.state import reset_state, set_state
-from app.services.ai_research.worker import run_research_now
+from lunia_core.app.core.state import reset_state, set_state
+from lunia_core.app.services.ai_research.worker import run_research_now
 
 
 def setup_function(_):

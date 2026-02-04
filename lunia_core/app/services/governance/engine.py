@@ -7,9 +7,9 @@ from __future__ import annotations
 import logging
 from typing import List, Optional
 
-from app.services.market_data.realtime.synchronous import ThreadSafeSnapshotCache
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
-from app.services.strategy.models import IntentProposal
+from lunia_core.app.services.market_data.realtime.synchronous import ThreadSafeSnapshotCache
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
+from lunia_core.app.services.strategy.models import IntentProposal
 
 from .models import GovernanceDecision, DecisionType
 from .context import GovernanceContext

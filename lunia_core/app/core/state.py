@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 try:
     from dotenv import load_dotenv
 except ImportError:
-    from app.compat.dotenv import load_dotenv
+    from lunia_core.app.compat.dotenv import load_dotenv
 
 from .metrics import (
     arb_filter_changes_total,

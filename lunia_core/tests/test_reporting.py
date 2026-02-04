@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from app.core.portfolio.portfolio import Portfolio
-from app.services.arbitrage.executor_safe import ArbitrageExecutionResult
-from app.services.arbitrage.scanner import ArbitrageOpportunity
+from lunia_core.app.core.portfolio.portfolio import Portfolio
+from lunia_core.app.services.arbitrage.executor_safe import ArbitrageExecutionResult
+from lunia_core.app.services.arbitrage.scanner import ArbitrageOpportunity
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def temp_reporting(monkeypatch, tmp_path):
     reporting = importlib.reload(reporting)
     import app.core.portfolio as portfolio_package  # type: ignore
     importlib.reload(portfolio_package)
-    from app.core.portfolio import portfolio as portfolio_module  # type: ignore
+    from lunia_core.app.core.portfolio import portfolio as portfolio_module  # type: ignore
     monkeypatch.setattr(portfolio_module, "record_trade", reporting.record_trade)
     yield reporting
 

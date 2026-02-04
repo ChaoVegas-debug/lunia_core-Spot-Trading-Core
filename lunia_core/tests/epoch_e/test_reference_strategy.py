@@ -8,10 +8,10 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.strategy.implementations.reference_midprice import ReferenceMidPriceThresholdStrategy
-from app.services.strategy.models import StrategyContext, SignalSide
+from lunia_core.app.services.strategy.implementations.reference_midprice import ReferenceMidPriceThresholdStrategy
+from lunia_core.app.services.strategy.models import StrategyContext, SignalSide
 
-from app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
+from lunia_core.app.services.market_data.realtime.models import MarketSnapshot, SnapshotState
 
 
 def test_first_tick_returns_none():

@@ -2,7 +2,7 @@
 Test canonicalization and hashing (FIX #2 verification)
 """
 import pytest
-from app.services.execution.canonicalization import (
+from lunia_core.app.services.execution.canonicalization import (
     canonicalize, compute_hash, compute_plan_hash, IntegrityError
 )
 
