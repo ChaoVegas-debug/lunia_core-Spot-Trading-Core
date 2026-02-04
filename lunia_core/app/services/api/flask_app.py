@@ -3345,11 +3345,254 @@ def admin_get_limits() -> Any:
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PHASE 7.5: EXECUTION JOURNAL API (UI LEGITIMACY LAYER)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+from sqlalchemy import desc
+
+try:
+    from lunia_core.app.services.execution_journal.models import (
+        SignalEvent,
+        AIAnalysis,
+        AIInferenceLog,
+        AIEventType
+    )
+    from lunia_core.app.services.ai_gateway.service import AIGatewayService
+    from lunia_core.app.services.ai_gateway.context_engine import ContextEngine
+    
+    EXECUTION_JOURNAL_AVAILABLE = True
+    logger.info("[PHASE7.5] Execution Journal models loaded")
+except ImportError as e:
+    EXECUTION_JOURNAL_AVAILABLE = False
+    logger.warning(f"[PHASE7.5] Execution Journal not available: {e}")
+
+
+@app.get("/api/journal/signals")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
+def api_journal_signals() -> Any:
+    """
+    Get recent signal events from Execution Journal.
+    
+    Query params:
+    - limit: max results (default 50, max 100)
+    - symbol: filter by symbol
+    - strategy_id: filter by strategy
+    
+    Returns: Array of signal events with optional AI analysis.
+    
+    GOVERNANCE: Read-only, no execution authority.
+    """
+    if not EXECUTION_JOURNAL_AVAILABLE:
+        return jsonify({"error": "Execution Journal not initialized"}), 503
+    
+    try:
+        # Query params
+        limit = min(int(request.args.get("limit", 50)), 100)
+        symbol_filter = request.args.get("symbol")
+        strategy_filter = request.args.get("strategy_id")
+        
+        # Build query
+        with get_session() as session:
+            query = session.query(SignalEvent).order_by(desc(SignalEvent.timestamp))
+            
+            if symbol_filter:
+                query = query.filter(SignalEvent.symbol == symbol_filter)
+            if strategy_filter:
+                query = query.filter(SignalEvent.strategy_id == strategy_filter)
+            
+            signal_events = query.limit(limit).all()
+            
+            # Build response with AI analysis if available
+            results = []
+            for signal in signal_events:
+                signal_dict = {
+                    "id": signal.id,
+                    "strategy_id": signal.strategy_id,
+                    "symbol": signal.symbol,
+                    "signal_type": signal.signal_type.value if hasattr(signal.signal_type, 'value') else str(signal.signal_type),
+                    "confidence": signal.confidence,
+                    "timestamp": signal.timestamp.isoformat() + "Z" if signal.timestamp else None,
+                    "market_context": signal.market_context or {},
+                    "risk_filters_applied": signal.risk_filters_applied or {},
+                    "deterministic_reasoning": signal.deterministic_reasoning,
+                    "ai_analysis": None
+                }
+                
+                # Attach AI analysis if exists (1:1 relationship)
+                if signal.ai_analysis:
+                    ai = signal.ai_analysis
+                    signal_dict["ai_analysis"] = {
+                        "id": ai.id,
+                        "summary": ai.summary,
+                        "risk_flags": ai.risk_flags or [],
+                        "confirmation": ai.confirmation,
+                        "confidence_score": ai.confidence_score,
+                        "confidence_reason": ai.confidence_reason,
+                        "conflicts_with_core": ai.conflicts_with_core,
+                        "conflict_reason": ai.conflict_reason,
+                        "invalid_if": ai.invalid_if or [],
+                        "model_revision": ai.model_revision,
+                        "latency_ms": ai.latency_ms,
+                        "cost_usd": float(ai.cost_usd) if ai.cost_usd else 0.0,
+                        "operator_feedback": ai.operator_feedback,
+                        "created_at": ai.created_at.isoformat() + "Z" if ai.created_at else None
+                    }
+                
+                results.append(signal_dict)
+            
+            return jsonify({"signals": results, "count": len(results)})
+    
+    except Exception as e:
+        logger.error(f"[JOURNAL_API] Failed to fetch signals: {e}")
+        return jsonify({"error": "Internal error"}), 500
+
+
+@app.get("/api/journal/signal/<signal_id>")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
+def api_journal_signal_detail(signal_id: str) -> Any:
+    """
+    Get full detail for a single signal event.
+    
+    Returns: SignalEvent with AI analysis, market context, risk filters.
+    
+    GOVERNANCE: Read-only, no execution authority.
+    """
+    if not EXECUTION_JOURNAL_AVAILABLE:
+        return jsonify({"error": "Execution Journal not initialized"}), 503
+    
+    try:
+        with get_session() as session:
+            signal = session.query(SignalEvent).filter(SignalEvent.id == signal_id).first()
+            
+            if not signal:
+                return jsonify({"error": "Signal not found"}), 404
+            
+            # Build full detail response
+            result = {
+                "id": signal.id,
+                "strategy_id": signal.strategy_id,
+                "symbol": signal.symbol,
+                "signal_type": signal.signal_type.value if hasattr(signal.signal_type, 'value') else str(signal.signal_type),
+                "confidence": signal.confidence,
+                "timestamp": signal.timestamp.isoformat() + "Z" if signal.timestamp else None,
+                "market_context": signal.market_context or {},
+                "risk_filters_applied": signal.risk_filters_applied or {},
+                "deterministic_reasoning": signal.deterministic_reasoning,
+                "created_at": signal.created_at.isoformat() + "Z" if signal.created_at else None,
+                "ai_analysis": None
+            }
+            
+            # Attach AI analysis
+            if signal.ai_analysis:
+                ai = signal.ai_analysis
+                result["ai_analysis"] = {
+                    "id": ai.id,
+                    "summary": ai.summary,
+                    "risk_flags": ai.risk_flags or [],
+                    "confirmation": ai.confirmation,
+                    "confidence_score": ai.confidence_score,
+                    "confidence_reason": ai.confidence_reason,
+                    "conflicts_with_core": ai.conflicts_with_core,
+                    "conflict_reason": ai.conflict_reason,
+                    "invalid_if": ai.invalid_if or [],
+                    "reasoning_version": ai.reasoning_version,
+                    "ai_constitution_hash": ai.ai_constitution_hash,
+                    "model_revision": ai.model_revision,
+                    "latency_ms": ai.latency_ms,
+                    "cost_usd": float(ai.cost_usd) if ai.cost_usd else 0.0,
+                    "operator_feedback": ai.operator_feedback,
+                    "feedback_comment": ai.feedback_comment,
+                    "feedback_timestamp": ai.feedback_timestamp.isoformat() + "Z" if ai.feedback_timestamp else None,
+                    "created_at": ai.created_at.isoformat() + "Z" if ai.created_at else None
+                }
+            
+            return jsonify(result)
+    
+    except Exception as e:
+        logger.error(f"[JOURNAL_API] Failed to fetch signal {signal_id}: {e}")
+        return jsonify({"error": "Internal error"}), 500
+
+
+@app.post("/api/journal/feedback")
+@require_role("TRADER", "ADMIN", ops_token=OPS_TOKEN)
+def api_journal_feedback() -> Any:
+    """
+    Submit operator feedback on AI analysis (hallucination detection).
+    
+    POST body:
+    {
+        "analysis_id": "uuid",
+        "feedback": "thumbs_up" | "thumbs_down",
+        "comment": "optional comment"
+    }
+    
+    GOVERNANCE: Updates operator_feedback field only. NO execution authority.
+    """
+    if not EXECUTION_JOURNAL_AVAILABLE:
+        return jsonify({"error": "Execution Journal not initialized"}), 503
+    
+    try:
+        payload = request.get_json(force=True) or {}
+        analysis_id = payload.get("analysis_id")
+        feedback = payload.get("feedback")
+        comment = payload.get("comment")
+        
+        # Validation
+        if not analysis_id:
+            return jsonify({"error": "analysis_id required"}), 400
+        if feedback not in ["thumbs_up", "thumbs_down"]:
+            return jsonify({"error": "feedback must be thumbs_up or thumbs_down"}), 400
+        
+        with get_session() as session:
+            ai_analysis = session.query(AIAnalysis).filter(AIAnalysis.id == analysis_id).first()
+            
+            if not ai_analysis:
+                return jsonify({"error": "AI analysis not found"}), 404
+            
+            # Update feedback
+            ai_analysis.operator_feedback = feedback
+            if comment:
+                ai_analysis.feedback_comment = comment
+            ai_analysis.feedback_timestamp = datetime.utcnow()
+            
+            session.commit()
+            
+            # Emit TraceDrawer event
+            try:
+                EventBus.publish("AI_FEEDBACK", {
+                    "analysis_id": analysis_id,
+                    "feedback": feedback,
+                    "comment": comment,
+                    "signal_event_id": ai_analysis.signal_event_id
+                })
+            except Exception as event_err:
+                logger.warning(f"[JOURNAL_API] Failed to emit AI_FEEDBACK event: {event_err}")
+            
+            # Audit action
+            _audit("AI_FEEDBACK_SUBMITTED", details={
+                "analysis_id": analysis_id,
+                "feedback": feedback,
+                "has_comment": bool(comment)
+            })
+            
+            return jsonify({
+                "status": "ok",
+                "analysis_id": analysis_id,
+                "feedback": feedback
+            })
+    
+    except Exception as e:
+        logger.error(f"[JOURNAL_API] Failed to submit feedback: {e}")
+        return jsonify({"error": "Internal error"}), 500
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # EPOCH B: Proposal Domain Endpoints Registration
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Temporarily commented out due to circular import
 # from .proposal_endpoints import register_proposal_endpoints
 # register_proposal_endpoints(app, require_role)
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # PHASE 5.1: Admin Governance Blueprint (Fail-Safe)
