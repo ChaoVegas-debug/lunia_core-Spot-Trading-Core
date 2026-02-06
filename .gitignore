@@ -16,3 +16,5 @@ frontend/dist/
 lunia_core/traefik/
 data/traefik/
 backups/
+# I.4: Exclude runtime artifacts at repository root
+data/

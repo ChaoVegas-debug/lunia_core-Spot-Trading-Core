@@ -78,9 +78,9 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
           role: user.role // Trust backend source of truth for role
         }));
       } catch (err) {
-        console.warn('Failed to refresh auth state (Session invalid or API offline)', err);
-        // Optional: Logout if 401? For now, we allow "stale" state if network error, but clean if 401.
-        // if ((err as any).status === 401) setAuthState({ role: defaultRole });
+        // I.2: Auth failures are now visible via useAuthController (no silent warnings)
+        // This refresh is kept for backward compatibility but errors are handled by auth controller
+        console.debug('[Auth] Session refresh failed, auth controller will handle visibility', err);
       }
     };
     refresh();

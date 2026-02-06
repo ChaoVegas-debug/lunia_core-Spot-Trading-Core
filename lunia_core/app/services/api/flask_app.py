@@ -1556,11 +1556,20 @@ def _user_payload(user: User) -> Dict[str, Any]:
     ).dict()
 
 
+
 @app.get("/health")
 @_measure_latency
 def health() -> Any:
     logger.info("/health requested")
     return jsonify({"status": "ok"})
+
+
+@app.get("/api/health")
+@_measure_latency
+def api_health() -> Any:
+    logger.info("/api/health requested")
+    return jsonify({"status": "ok"})
+
 
 
 @app.get("/metrics")

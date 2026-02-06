@@ -1,0 +1,2 @@
+# Root requirements delegate to the base profile (Telegram-free)
+-r lunia_core/requirements/base.txt

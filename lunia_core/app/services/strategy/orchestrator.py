@@ -1,0 +1,358 @@
+"""
+Epoch 9.2: Strategy Orchestrator — The Judge
+
+Responsibilities:
+- Consume multiple IntentProposals from strategies
+- Apply safety-first governance rules
+- Resolve conflicts (BUY vs SELL, Risk-Off overrides)
+- Produce exactly ONE ExecutionProposal per tick
+- Provide full traceability (accepted + rejected strategies with reasons)
+
+Safety-First Constitution:
+1. Empty intents OR all rejected → NO_TRADE
+2. Filter by signal strength threshold
+3. Filter by market regime/volatility/liquidity constraints
+4. Risk-Off Override: ANY risk-off signal overrides all entries
+5. Conflict Resolution (BUY vs SELL):
+   - Prefer SAFE over RISKY over DANGEROUS
+   - Prefer higher confidence
+   - Tie → NO_TRADE (fail-safe)
+6. Deterministic tie-breaks (explicit rules)
+
+Invariants:
+- EXACTLY ONE ExecutionProposal per tick
+- Deterministic (same inputs → same output)
+- Zero side effects (pure function)
+- Full audit trail
+"""
+import logging
+from typing import Optional, List, Tuple, Union
+from dataclasses import dataclass
+
+from .models import (
+    IntentProposal,
+    ExecutionProposal,
+    RejectedStrategy,
+    RejectionReasonCode,
+    SignalSide,
+    StrategyContext
+)
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class OrchestratorConfig:
+    """
+    Configuration for orchestration behavior.
+    
+    All defaults bias toward safety (NO_TRADE over aggressive entries).
+    """
+    min_signal_strength: float = 0.3  # Minimum signal strength (0.3 = conservative)
+    risk_off_overrides_entries: bool = True  # HARD TRUE for now
+    max_volatility_regime: str = "MEDIUM"  # MEDIUM or below allowed
+    max_liquidity_stress: str = "WARNING"  # WARNING or below allowed
+
+
+class StrategyOrchestrator:
+    """
+    Safety-First Governance Orchestrator.
+    
+    Synthesizes multiple IntentProposals into a single ExecutionProposal
+    using deterministic, safety-first rules.
+    
+    Features:
+    - **Filtering**: Remove weak signals and unsafe conditions
+    - **Risk-Off Override**: Exit signals override all entries
+    - **Conflict Resolution**: Deterministic tie-breaks for BUY vs SELL
+    - **Traceability**: Full audit trail of accepted/rejected strategies
+    - **Determinism**: Same inputs → identical output
+    - **Safety**: Fail-safe defaults to NO_TRADE
+    
+    Usage:
+        orchestrator = StrategyOrchestrator(config)
+        proposal = orchestrator.orchestrate(intents, context)
+    """
+    
+    def __init__(self, config: Union[OrchestratorConfig, None] = None):
+        """
+        Initialize orchestrator with config.
+        
+        Args:
+            config: Optional configuration (uses safe defaults if None)
+        """
+        self.config = config or OrchestratorConfig()
+    
+    def orchestrate(
+        self,
+        intents: List[IntentProposal],
+        context: StrategyContext
+    ) -> ExecutionProposal:
+        """
+        Synthesize multiple intents into ONE execution proposal.
+        
+        Execution flow:
+        1. Handle empty case (→ NO_TRADE)
+        2. Filter by signal strength
+        3. Filter by market constraints (regime, volatility, liquidity)
+        4. Check risk-off override
+        5. Resolve BUY vs SELL conflicts
+        6. Select winning intent
+        7. Build ExecutionProposal with full traceability
+        
+        Args:
+            intents: List of IntentProposals from strategies
+            context: StrategyContext (includes market_state)
+        
+        Returns:
+            ExecutionProposal (exactly one, immutable)
+        """
+        rejected: List[RejectedStrategy] = []
+        reason_codes: List[str] = []
+        
+        # RULE A: Empty intents → NO_TRADE
+        if not intents:
+            return self._no_trade_proposal(
+                context=context,
+                reasoning="No strategies emitted intents",
+                reason_codes=["NO_INTENTS"],
+                rejected=rejected
+            )
+        
+        # RULE B: Filter by signal strength threshold
+        strong_intents, weak_rejected = self._filter_by_threshold(intents)
+        rejected.extend(weak_rejected)
+        
+        if not strong_intents:
+            return self._no_trade_proposal(
+                context=context,
+                reasoning=f"All intents below threshold ({self.config.min_signal_strength})",
+                reason_codes=["ALL_BELOW_THRESHOLD"],
+                rejected=rejected
+            )
+        
+        # RULE B: Filter by market constraints
+        safe_intents, unsafe_rejected = self._filter_by_market_constraints(
+            strong_intents, context
+        )
+        rejected.extend(unsafe_rejected)
+        
+        if not safe_intents:
+            return self._no_trade_proposal(
+                context=context,
+                reasoning="All remaining intents violated market constraints",
+                reason_codes=["ALL_UNSAFE_CONDITIONS"],
+                rejected=rejected
+            )
+        
+        # RULE C: Risk-Off Override
+        if self.config.risk_off_overrides_entries:
+            risk_off_intents = [i for i in safe_intents if i.side == SignalSide.HOLD]
+            
+            if risk_off_intents:
+                # Risk-off signal present → override all entries
+                reason_codes.append("RISK_OFF_OVERRIDE")
+                
+                # Reject all entry intents (BUY/SELL)
+                for intent in safe_intents:
+                    if intent.side in [SignalSide.BUY, SignalSide.SELL]:
+                        rejected.append(RejectedStrategy(
+                            strategy_id=intent.strategy_id,
+                            reason_code=RejectionReasonCode.RISK_OFF_OVERRIDE,
+                            detail=f"Overridden by risk-off signal from {risk_off_intents[0].strategy_id}"
+                        ))
+                
+                # Accept the highest-confidence risk-off signal
+                winning_intent = max(risk_off_intents, key=lambda i: i.signal_strength)
+                
+                return ExecutionProposal(
+                    symbol=context.symbol,
+                    side=SignalSide.HOLD,
+                    aggregated_confidence=winning_intent.signal_strength,
+                    target_strategies=[winning_intent.strategy_id],
+                    rejected_strategies=rejected,
+                    orchestration_reasoning=(
+                        f"Risk-off override: {winning_intent.strategy_id} emitted HOLD "
+                        f"(confidence={winning_intent.signal_strength:.2f})"
+                    ),
+                    orchestration_reason_codes=reason_codes,
+                    market_state_snapshot=context.market_state or {},
+                    reference_price=winning_intent.reference_price
+                )
+        
+        # RULE D: Conflict Resolution (BUY vs SELL)
+        buy_intents = [i for i in safe_intents if i.side == SignalSide.BUY]
+        sell_intents = [i for i in safe_intents if i.side == SignalSide.SELL]
+        
+        if buy_intents and sell_intents:
+            # Conflict detected
+            reason_codes.append("CONFLICT_DETECTED")
+            
+            # Resolve: prefer higher confidence
+            best_buy = max(buy_intents, key=lambda i: i.signal_strength)
+            best_sell = max(sell_intents, key=lambda i: i.signal_strength)
+            
+            if best_buy.signal_strength > best_sell.signal_strength:
+                # BUY wins
+                winning_intent = best_buy
+                losing_side = sell_intents
+                reason_codes.append("CONFLICT_RESOLVED_BUY")
+            elif best_sell.signal_strength > best_buy.signal_strength:
+                # SELL wins
+                winning_intent = best_sell
+                losing_side = buy_intents
+                reason_codes.append("CONFLICT_RESOLVED_SELL")
+            else:
+                # TIE → Fail-safe NO_TRADE
+                for intent in safe_intents:
+                    rejected.append(RejectedStrategy(
+                        strategy_id=intent.strategy_id,
+                        reason_code=RejectionReasonCode.CONFLICT_LOST,
+                        detail=f"BUY vs SELL tie (confidence={intent.signal_strength:.2f})"
+                    ))
+                
+                return self._no_trade_proposal(
+                    context=context,
+                    reasoning=(
+                        f"BUY vs SELL conflict TIE (best_buy={best_buy.signal_strength:.2f}, "
+                        f"best_sell={best_sell.signal_strength:.2f}) → fail-safe NO_TRADE"
+                    ),
+                    reason_codes=["CONFLICT_TIE"] + reason_codes,
+                    rejected=rejected
+                )
+            
+            # Reject losing side
+            for intent in losing_side:
+                rejected.append(RejectedStrategy(
+                    strategy_id=intent.strategy_id,
+                    reason_code=RejectionReasonCode.CONFLICT_LOST,
+                    detail=f"Lost conflict resolution (confidence={intent.signal_strength:.2f})"
+                ))
+        
+        elif buy_intents:
+            # Only BUYs
+            winning_intent = max(buy_intents, key=lambda i: i.signal_strength)
+            reason_codes.append("BUY_CONSENSUS")
+        
+        elif sell_intents:
+            # Only SELLs
+            winning_intent = max(sell_intents, key=lambda i: i.signal_strength)
+            reason_codes.append("SELL_CONSENSUS")
+        
+        else:
+            # Only HOLD intents (no conflict)
+            winning_intent = max(safe_intents, key=lambda i: i.signal_strength)
+            reason_codes.append("HOLD_CONSENSUS")
+        
+        # Build final proposal
+        return ExecutionProposal(
+            symbol=context.symbol,
+            side=winning_intent.side,
+            aggregated_confidence=winning_intent.signal_strength,
+            target_strategies=[winning_intent.strategy_id],
+            rejected_strategies=rejected,
+            orchestration_reasoning=(
+                f"Selected {winning_intent.side} from {winning_intent.strategy_id} "
+                f"(confidence={winning_intent.signal_strength:.2f}, "
+                f"rationale={winning_intent.rationale[:100]}...)"
+            ),
+            orchestration_reason_codes=reason_codes,
+            market_state_snapshot=context.market_state or {},
+            reference_price=winning_intent.reference_price
+        )
+    
+    def _filter_by_threshold(
+        self,
+        intents: List[IntentProposal]
+    ) -> Tuple[List[IntentProposal], List[RejectedStrategy]]:
+        """Filter intents by minimum signal strength"""
+        strong = []
+        rejected = []
+        
+        for intent in intents:
+            if intent.signal_strength >= self.config.min_signal_strength:
+                strong.append(intent)
+            else:
+                rejected.append(RejectedStrategy(
+                    strategy_id=intent.strategy_id,
+                    reason_code=RejectionReasonCode.BELOW_THRESHOLD,
+                    detail=(
+                        f"Signal strength {intent.signal_strength:.2f} < "
+                        f"threshold {self.config.min_signal_strength:.2f}"
+                    )
+                ))
+        
+        return strong, rejected
+    
+    def _filter_by_market_constraints(
+        self,
+        intents: List[IntentProposal],
+        context: StrategyContext
+    ) -> Tuple[List[IntentProposal], List[RejectedStrategy]]:
+        """Filter intents based on market state constraints"""
+        safe = []
+        rejected = []
+        
+        vol_regime = context.get_volatility_regime()
+        market_risk = context.get_market_risk_flag()
+        liquidity_stress = context.get_liquidity_stress()
+        
+        # Define volatility hierarchy
+        vol_order = {"UNKNOWN": 0, "LOW": 1, "MEDIUM": 2, "HIGH": 3}
+        max_vol_level = vol_order.get(self.config.max_volatility_regime, 2)
+        
+        # Define liquidity stress hierarchy
+        liq_order = {"UNKNOWN": 0, "NORMAL": 1, "WARNING": 2, "CRITICAL": 3}
+        max_liq_level = liq_order.get(self.config.max_liquidity_stress, 2)
+        
+        for intent in intents:
+            # Check volatility
+            if vol_order.get(vol_regime, 0) > max_vol_level:
+                rejected.append(RejectedStrategy(
+                    strategy_id=intent.strategy_id,
+                    reason_code=RejectionReasonCode.VOLATILITY_TOO_HIGH,
+                    detail=f"Volatility {vol_regime} exceeds max {self.config.max_volatility_regime}"
+                ))
+                continue
+            
+            # Check liquidity stress
+            if liq_order.get(liquidity_stress, 0) > max_liq_level:
+                rejected.append(RejectedStrategy(
+                    strategy_id=intent.strategy_id,
+                    reason_code=RejectionReasonCode.LIQUIDITY_STRESS,
+                    detail=f"Liquidity stress {liquidity_stress} exceeds max {self.config.max_liquidity_stress}"
+                ))
+                continue
+            
+            # Check market risk (DANGEROUS → reject all entries)
+            if market_risk == "DANGEROUS" and intent.side in [SignalSide.BUY, SignalSide.SELL]:
+                rejected.append(RejectedStrategy(
+                    strategy_id=intent.strategy_id,
+                    reason_code=RejectionReasonCode.REGIME_FORBIDDEN,
+                    detail=f"Market risk = DANGEROUS, no entries allowed"
+                ))
+                continue
+            
+            # Passed all checks
+            safe.append(intent)
+        
+        return safe, rejected
+    
+    def _no_trade_proposal(
+        self,
+        context: StrategyContext,
+        reasoning: str,
+        reason_codes: List[str],
+        rejected: List[RejectedStrategy]
+    ) -> ExecutionProposal:
+        """Build a NO_TRADE proposal with explicit reasoning"""
+        return ExecutionProposal(
+            symbol=context.symbol,
+            side=SignalSide.HOLD,
+            aggregated_confidence=0.0,
+            target_strategies=[],
+            rejected_strategies=rejected,
+            orchestration_reasoning=reasoning,
+            orchestration_reason_codes=reason_codes,
+            market_state_snapshot=context.market_state or {}
+        )

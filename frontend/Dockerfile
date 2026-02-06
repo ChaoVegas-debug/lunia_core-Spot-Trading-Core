@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 COPY . .
 RUN --mount=type=cache,target=/root/.npm \
-    npm run build
+    npm run build:prod
 
 ###########################
 # Runtime stage
@@ -29,7 +29,16 @@ RUN --mount=type=cache,target=/root/.npm \
 FROM nginx:${NGINX_VERSION}-alpine AS runtime
 ENV NGINX_ENTRYPOINT_QUIET_LOGS=1
 
+# Copy built frontend assets
 COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy production nginx config (I.4: reverse proxy for /api)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
+
+# I.4: Health check for container orchestration
+HEALTHCHECK --interval=5s --timeout=2s --retries=3 --start-period=5s \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

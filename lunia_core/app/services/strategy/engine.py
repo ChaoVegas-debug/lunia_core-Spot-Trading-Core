@@ -55,7 +55,8 @@ class StrategyEngine:
     def __init__(
         self,
         snapshot_cache: ThreadSafeSnapshotCache,
-        registry: StrategyRegistry
+        registry: StrategyRegistry,
+        persistence_hook=None  # Phase 8.2A: Optional IntentPersistenceHook
     ):
         """
         Initialize strategy engine
@@ -63,9 +64,11 @@ class StrategyEngine:
         Args:
             snapshot_cache: Thread-safe snapshot cache (read-only)
             registry: Strategy registry
+            persistence_hook: Optional IntentPersistenceHook for Phase 8.2A wiring
         """
         self.snapshot_cache = snapshot_cache
         self.registry = registry
+        self._persistence_hook = persistence_hook  # Phase 8.2A
         
         # Version tracking: (strategy_id, symbol) -> last_processed_version
         self._last_processed_version: Dict[Tuple[str, str], int] = {}
@@ -133,6 +136,21 @@ class StrategyEngine:
                     
                     if proposal is not None:
                         proposals.append(proposal)
+                        
+                        # Phase 8.2A: Persist intent to ExecutionJournal (fail-safe)
+                        if hasattr(self, '_persistence_hook') and self._persistence_hook is not None:
+                            try:
+                                self._persistence_hook.persist_intent(
+                                    intent=proposal,
+                                    snapshot=snapshot,
+                                    rationale=f"Strategy {strategy.strategy_id} on_tick evaluation"
+                                )
+                            except Exception as persist_err:
+                                # FAIL-SAFE: persistence errors NEVER crash strategy engine
+                                logger.error(
+                                    f"Intent persistence failed (non-fatal): {strategy.strategy_id}:{symbol}: {persist_err}"
+                                )
+                        
                         logger.info(
                             f"Intent generated: {strategy.strategy_id} {symbol} "
                             f"{proposal.side} strength={proposal.signal_strength}"

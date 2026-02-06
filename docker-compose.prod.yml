@@ -1,0 +1,109 @@
+version: "3.9"
+
+# Integration Gate I.4 — Production Deployment Surface
+# Single-command production-like run with health checks
+
+networks:
+  lunia-prod:
+    driver: bridge
+
+services:
+  # ============================================================
+  # INFRASTRUCTURE SERVICES (from existing infra/docker-compose.yml)
+  # ============================================================
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - lunia-prod
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    networks:
+      - lunia-prod
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================
+  # BACKEND SERVICE (Flask API)
+  # ============================================================
+
+  backend:
+    build:
+      context: ./lunia_core
+      dockerfile: Dockerfile
+    image: lunia-backend:prod
+    restart: unless-stopped
+    networks:
+      - lunia-prod
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      - PORT=8000
+    volumes:
+      # Persist SQLite database
+      - ./data:/opt/app/data:rw
+      # Persist logs
+      - ./logs:/opt/app/logs:rw
+    expose:
+      - "8000"
+    # Optional: expose for direct backend access (debugging)
+    # ports:
+    #   - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\" || exit 1" ]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================
+  # FRONTEND SERVICE (Static nginx with reverse proxy)
+  # ============================================================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Empty base URL for same-origin API requests via nginx proxy
+        VITE_API_BASE_URL: ""
+        DOCKER_BUILDKIT: "1"
+    image: lunia-frontend:prod
+    restart: unless-stopped
+    networks:
+      - lunia-prod
+    ports:
+      # Single entry point for production
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/" ]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+      start_period: 5s

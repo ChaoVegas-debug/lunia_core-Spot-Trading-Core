@@ -85,8 +85,10 @@ export const Nav: React.FC = () => {
             if (isPreview && item.previewOnly) return true;
             return item.roles.includes(role);
           });
-
-          if (visibleItems.length === 0) return null;
+          // INTEGRATION I.1: Never return null - render empty placeholder for safety
+          if (visibleItems.length === 0) {
+            return <div style={{ display: 'none' }} data-nav-empty="true" />;
+          }
 
           return (
             <div key={section.title} className="nav-section">

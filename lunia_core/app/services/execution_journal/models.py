@@ -18,14 +18,17 @@ from typing import Optional
 
 from sqlalchemy import (
     Boolean, Column, DateTime, Enum, Float, ForeignKey,
-    Integer, String, Text, Index, Numeric
+    Integer, String, Text, Index, Numeric, JSON
 )
-from sqlalchemy.dialects.sqlite import JSON as SQLITE_JSON
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from ..auth.database import Base
 
-JSONType = SQLITE_JSON
+# Dialect-safe JSON strategy:
+# - SQLite/default: JSON
+# - PostgreSQL: JSONB (optimized for querying)
+JSONType = JSON().with_variant(JSONB, "postgresql")
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -112,6 +115,25 @@ class SignalEvent(Base):
     # Human-readable explanation from strategy engine
     # NOT AI-generated, this is the core logic explanation
     
+    # Phase 8.2A: Deduplication & Snapshotting
+    dedup_key = Column(String(255), index=True)  # {strategy_id}:{symbol}:{signal_type}:{timestamp_bucket}
+    timestamp_bucket = Column(Integer, index=True)  # Unix epoch seconds (for 1-second dedup window)
+    context_snapshot = Column(JSONType)  # L1/L2/L3 context snapshots
+    snapshot_truncated = Column(Boolean, default=False)  # True if snapshot exceeded 10KB limit
+    snapshot_level = Column(String(10))  # "L1", "L2", or "L3"
+    
+    # Phase 8.3: Market Enrichment
+    market_state = Column(JSONType)  # Deterministic market physics (volume, volatility, regime, liquidity)
+    # Structure:
+    # {
+    #   "volume": {"vol_1m": float, "vol_5m": float, "vol_15m": float, "rel_volume": float, "volume_trend": str},
+    #   "volatility": {"atr": float, "atr_pct": float, "vol_regime": str},
+    #   "regime": {"regime": str, "confidence": float},
+    #   "liquidity": {"spread_pct": float, "imbalance": float, "depth_score": float, "liquidity_stress": str},
+    #   "market_risk_flag": str,  # "SAFE" | "RISKY" | "DANGEROUS" | "UNKNOWN"
+    #   "timestamp_ms": int
+    # }
+    
     # Relationships
     ai_analysis = relationship(
         "AIAnalysis",
@@ -167,9 +189,27 @@ class AIAnalysis(Base):
     confidence_score = Column(Float)  # 0.0 - 1.0
     confidence_reason = Column(Text)
     
-    # Conflict Detection
+    # Conflict Detection (legacy fields)
     conflicts_with_core = Column(Boolean, nullable=False, default=False)
     conflict_reason = Column(Text)
+    
+    # Epoch 9.1: Structured Conflict Detection (AI vs Core Strategy)
+    ai_agrees_with_core = Column(Boolean, nullable=True, default=True)
+    # True: AI agrees with strategy core decision
+    # False: AI recommends different action
+    # None: No comparison available (e.g., AI disabled)
+    
+    conflict_reason_code = Column(String(50), nullable=True)
+    # Enum values: NO_CONFLICT, REGIME_MISMATCH, RISK_MISMATCH, LIQUIDITY_WARNING, VOLATILITY_CONCERN, OTHER
+    # Standardized classification for audit trail
+    
+    conflict_severity = Column(String(20), nullable=True)
+    # Enum values: NONE, LOW, MEDIUM, HIGH
+    # Escalated based on market conditions (DANGEROUS market → HIGH severity)
+    
+    conflict_explanation = Column(Text, nullable=True)
+    # Detailed explanation of AI disagreement with core strategy logic
+    # Includes market conditions and reasoning snippets
     
     # Invalidation Conditions
     invalid_if = Column(JSONType)

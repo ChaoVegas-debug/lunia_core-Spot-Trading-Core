@@ -304,6 +304,7 @@ export interface UserProfile {
   is_active: boolean;
   created_at: string;
   last_login_at?: string | null;
+  onboarding_completed?: boolean; // I.2: Added for auth/onboarding flow
 }
 
 export interface FeatureFlag {

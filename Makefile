@@ -1,8 +1,15 @@
 COMPOSE ?= docker compose
-COMPOSE_FILES := -f lunia_core/infra/docker-compose.yml -f lunia_core/infra/docker-compose.prod.yml
+# I.4: Fixed paths - compose files are in /infra, not /lunia_core/infra
+COMPOSE_FILES := -f infra/docker-compose.yml
+COMPOSE_PROD := -f docker-compose.prod.yml
 ENV_FILE := lunia_core/.env
 
 .PHONY: up down logs ps build deploy verify smoke backup restore restore-drill uptime
+.PHONY: up-prod down-prod logs-prod build-prod verify-prod
+
+# ============================================================
+# DEVELOPMENT TARGETS (existing infra)
+# ============================================================
 
 up:
 	$(COMPOSE) $(COMPOSE_FILES) --env-file $(ENV_FILE) up -d
@@ -43,3 +50,23 @@ restore-drill:
 
 uptime:
 	DOMAIN?=example.com bash scripts/uptime_check.sh
+
+# ============================================================
+# I.4 PRODUCTION TARGETS (full containerized stack)
+# ============================================================
+
+up-prod:
+	$(COMPOSE) $(COMPOSE_PROD) up -d
+
+down-prod:
+	$(COMPOSE) $(COMPOSE_PROD) down
+
+logs-prod:
+	$(COMPOSE) $(COMPOSE_PROD) logs -f
+
+build-prod:
+	$(COMPOSE) $(COMPOSE_PROD) build
+
+verify-prod:
+	@echo "=== I.4 Production Smoke Pack ==="
+	bash scripts/smoke_prod.sh
