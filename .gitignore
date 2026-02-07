@@ -1,21 +1,32 @@
-__pycache__/
-*.pyc
-.venv/
-.env
-logs/
-lunia_core/logs/
-lunia_core/data/
-lunia_core/app/db/*.db
-wheelhouse/*.whl
-wheelhouse/*.tar.gz
-wheelhouse/*.zip
-frontend/.eslintcache
-node_modules/
-frontend/node_modules/
-frontend/dist/
-lunia_core/traefik/
-data/traefik/
-backups/
+
+# --- large local artifacts / screenshots ---
+# --- local node bundles (do NOT commit) ---
+# --- runtime logs ---
 # I.4: Exclude runtime artifacts at repository root
+*.log
+*.pyc
+.env
+.venv/
+__pycache__/
+backend*.log
+backups/
 data/
+data/*.log
 data/api.log
+data/traefik/
+frontend/.eslintcache
+frontend/artifacts/
+frontend/dist/
+frontend/docs/_audit_screens/
+frontend/node_modules/
+logs/
+lunia_core/app/db/*.db
+lunia_core/data/
+lunia_core/logs/
+lunia_core/traefik/
+node*.tar.gz
+node-v*-darwin-*.tar.gz
+node_modules/
+wheelhouse/*.tar.gz
+wheelhouse/*.whl
+wheelhouse/*.zip
