@@ -21,6 +21,7 @@
 .env
 .venv/
 __pycache__/
+app/db/
 backend*.log
 backups/
 data/
