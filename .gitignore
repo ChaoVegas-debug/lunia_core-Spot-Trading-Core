@@ -1,5 +1,6 @@
 
 # --- build / tooling noise ---
+# --- db anywhere (sqlite) ---
 # --- generated artifacts / research outputs ---
 # --- large local artifacts / screenshots ---
 # --- local databases ---
@@ -7,7 +8,12 @@
 # --- logs everywhere ---
 # --- runtime logs ---
 # I.4: Exclude runtime artifacts at repository root
+**/*.db
+**/*.db-shm
+**/*.db-wal
 **/*.log
+**/*.sqlite
+**/*.sqlite3
 **/*.tsbuildinfo
 **/.DS_Store
 *.log
@@ -35,6 +41,7 @@ lunia_core/app/db/*.db
 lunia_core/artifacts/
 lunia_core/data/
 lunia_core/logs/
+lunia_core/memory:
 lunia_core/traefik/
 node*.tar.gz
 node-v*-darwin-*.tar.gz
