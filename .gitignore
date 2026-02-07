@@ -18,3 +18,4 @@ data/traefik/
 backups/
 # I.4: Exclude runtime artifacts at repository root
 data/
+data/api.log
