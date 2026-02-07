@@ -1,10 +1,15 @@
 
+# --- build / tooling noise ---
+# --- generated artifacts / research outputs ---
 # --- large local artifacts / screenshots ---
+# --- local databases ---
 # --- local node bundles (do NOT commit) ---
 # --- logs everywhere ---
 # --- runtime logs ---
 # I.4: Exclude runtime artifacts at repository root
 **/*.log
+**/*.tsbuildinfo
+**/.DS_Store
 *.log
 *.pyc
 .env
@@ -13,6 +18,8 @@ __pycache__/
 backend*.log
 backups/
 data/
+data/**/*.db
+data/*.db
 data/*.log
 data/api.log
 data/traefik/
@@ -22,7 +29,10 @@ frontend/dist/
 frontend/docs/_audit_screens/
 frontend/node_modules/
 logs/
+lunia_core/**/epoch*_*.csv
+lunia_core/**/epoch*_*.txt
 lunia_core/app/db/*.db
+lunia_core/artifacts/
 lunia_core/data/
 lunia_core/logs/
 lunia_core/traefik/

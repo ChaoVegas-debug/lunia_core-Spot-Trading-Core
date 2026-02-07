@@ -1,3 +1,0 @@
-intent_id,intent_id_source,bar_index,timestamp_ms,snapshot_version,symbol,side,stage,decision,reason,qty_before,qty_after
-genesis_ema_10_30_GENESIS-BTC_BUY_1700001740000_30,generated,29,1700001740000,30,GENESIS-BTC,BUY,E5_FILL,FILLED,"price=50610.66,fee=0.000187",0.187,0.187
-genesis_ema_10_30_GENESIS-BTC_SELL_1700002700000_46,generated,45,1700002700000,46,GENESIS-BTC,SELL,E3_RISK,BLOCK,MAX_DRAWDOWN_EXCEEDED: 95.13% >= 20.00%,0.010,
