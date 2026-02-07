@@ -1,8 +1,10 @@
 
 # --- large local artifacts / screenshots ---
 # --- local node bundles (do NOT commit) ---
+# --- logs everywhere ---
 # --- runtime logs ---
 # I.4: Exclude runtime artifacts at repository root
+**/*.log
 *.log
 *.pyc
 .env
