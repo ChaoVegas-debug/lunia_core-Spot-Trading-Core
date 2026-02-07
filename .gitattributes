@@ -1,0 +1,13 @@
+# Normalize text files
+* text=auto eol=lf
+
+# Prevent accidental diff bloat for binaries
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.gz  binary
+*.tar binary
+*.tgz binary
